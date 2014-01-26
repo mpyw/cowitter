@@ -123,10 +123,14 @@ class TwistRequest extends TwistBase {
     private $method    = 'GET';
     private $params    = array();
     private $info      = array();
+    private $responses = array();
     private $multipart = false;
     private $streaming = false;
     private $fp        = false;
+    private $eof       = false;
     private $consumer  = false;
+    private $prepared  = false;
+    private $buffer    = '';
     
     final public static function get($endpoint, $params = array()) {
         return new self($endpoint, 'GET', $params, false);
@@ -141,18 +145,20 @@ class TwistRequest extends TwistBase {
     }
     
     final public function __clone() {
-        $this->fp = $this->consumer = false;
-        $this->info = array();
+        $this->fp = $this->eof = $this->consumer = $this->prepared = false;
+        $this->info = $this->responses = array();
+        $this->buffer = '';
     }
     
     final public function close() {
         fclose($this->getConnection());
-        $this->fp = $this->consumer = false;
-        $this->info = array();
+        $this->fp = $this->eof = $this->consumer = $this->prepared = false;
+        $this->info = $this->responses = array();
+        $this->buffer = '';
     }
     
     final public function isEof() {
-        return feof($this->getConnection());
+        return $this->eof;
     }
     
     final public function isStreaming() {
@@ -166,12 +172,10 @@ class TwistRequest extends TwistBase {
         return $this->fp;
     }
     
-    final public function start(TwistConsumer $consumer) {
+    final public function start(TwistConsumer $consumer, $blocking = true) {
         if (is_resource($this->fp)) {
             throw new BadMethodCallException('request is already started');
         }
-        $fp   = false;
-        $info = array();
         if (!$fp = @fsockopen("ssl://{$this->host}", 443)) {
             throw new TwistException("failed to connect to {$this->host}", $this, $this->consumer);
         } elseif (!fwrite($fp, $this->buildHeaders($consumer))) {
@@ -181,140 +185,90 @@ class TwistRequest extends TwistBase {
         while (false !== $line = fgets($fp) and $line !== "\r\n") {
             $info += $this->parseHeader($consumer, $line);
         }
-        $this->fp       = $fp;
-        $this->info     = $info;
-        $this->consumer = $consumer;
+        stream_set_blocking($fp, (bool)$blocking);
+        $this->fp        = $fp;
+        $this->info      = $info;
+        $this->consumer  = $consumer;
+        $this->buffer    = '';
+        $this->eof       = false;
+        $this->prepared  = false;
+        $this->responses = array();
         $consumer->setHistory($this->endpoint);
         return $this;
     }
     
-    final public function getContent($throw = false) {
+    final public function fetch($throw = false) {
+        $response = array_shift($this->responses);
+        if ($throw and $response instanceof TwistException) {
+            throw $response;
+        }
+        return $response;
+    }
+    
+    final public function isReadable($timeout = 3) {
         $fp = $this->getConnection();
-        switch (true) {
-            case isset($this->info['content-length']):
-                $content = self::fread($fp, $this->info['content-length']);
-                break;
-            case !isset($this->info['transfer-encoding']):
-            case $this->info['transfer-encoding'] !== 'chunked':
-                $content = (string)stream_get_contents($fp);
-                break;
-            default:
-                $content = ($bytes = hexdec(fgets($fp))) ? self::fread($fp, $bytes) : '';
-                fgets($fp);
+        if ($this->isEof()) {
+            throw new BadMethodCallException('already reached EOF');
         }
-        switch (true) {
-            case $content === '':
-            case !isset($this->info['content-encoding']):
-            case $this->info['content-encoding'] !== 'gzip':
-                break;
-            default:
-                $content = @gzinflate(substr($content, 10, -8)); 
+        $fps = array($fp);
+        $null = null;
+        $count = @stream_select($fps, $null, $null, $timeout);
+        if ($count === false) {
+            throw new TwistException('failed to select stream', $this, $this->consumer);
         }
-        switch (true) {
-            case null !== $object = json_decode($content):
-            case false !== $object = json_decode(json_encode(@simplexml_load_string($content))):
-            case parse_str($content, $object):
-            case !$object = (object)$object:
-            case isset($object->oauth_token, $object->oauth_token_secret):
-                break;
-            default:
-                $object = (object)array('errors' =>
-                    array(
-                        (object)array(
-                            'message' => 'failed to parse response',
-                            'code'    => 0,
-                        )
-                    )
-                );
+        return (bool)$fps;
+    }
+    
+    final public function run() {
+        $fp = $this->getConnection();
+        if ($this->isEof()) {
+            throw new BadMethodCallException('already reached EOF');
         }
-        if (isset($object->screen_name)) {
-            $this->consumer->screenName = $object->screen_name;
-        }
-        if (isset($object->user_id)) {
-            $this->consumer->userId = $object->userId;
-        }
-        if (isset($object->oauth_token)) {
-            if ($this->endpoint === '/oauth/request_token') {
-                $this->consumer->requestToken = $object->oauth_token;
+        if (isset($this->info['content-length'])) {
+            if (false === $tmp = fread($fp, $this->info['content-length'])) {
+                throw new TwistException('failed to read stream', $this, $this->consumer);
             }
-            if ($this->endpoint === '/oauth/access_token') {
-                $this->consumer->accessToken = $object->oauth_token;
+            $this->buffer .= $tmp;
+            $this->info['content-length'] -= strlen($tmp);
+            if (!$this->info['content-length']) {
+                $this->decode($this->buffer);
+                $this->buffer = '';
+                $this->eof = true;
             }
-        }
-        if (isset($object->oauth_token_secret)) {
-            if ($this->endpoint === '/oauth/request_token') {
-                $this->consumer->requestTokenSecret = $object->oauth_token_secret;
-            }
-            if ($this->endpoint === '/oauth/access_token') {
-                $this->consumer->accessTokenSecret = $object->oauth_token_secret;
-            }
-        }
-        if (isset($this->info['x-twitter-new-account-oauth-access-token'])) {
-            $object->oauth_token = $this->info['x-twitter-new-account-oauth-access-token'];
-        }
-        if (isset($this->info['x-twitter-new-account-oauth-secret'])) {
-            $object->oauth_token_secret = $this->info['x-twitter-new-account-oauth-secret'];
-        }
-        if (isset($object->errors)) {
-            if (is_string($object->errors)) {
-                $object->errors = array((object)array(
-                    'message' => $object->errors,
-                    'code' => (int)$this->info['code'],
-                ));
+        } elseif (isset($this->info['transfer-encoding'])) {
+            if ($this->prepared) {
+                if (false === $tmp = fread($fp, $this->info['transfer-encoding'])) {
+                    throw new TwistException('failed to read stream', $this, $this->consumer);
+                }
+                $this->buffer .= $tmp;
+                $this->info['transfer-encoding'] -= strlen($tmp);
+                if (!$this->info['transfer-encoding']) {
+                    $this->prepared = false;
+                    if (false !== $pos = strpos($this->buffer, "\r\n")) {
+                        if ('' !== $tmp = substr($this->buffer, 0, $pos)) {
+                            $this->decode($tmp);
+                        }
+                        $this->buffer = substr($this->buffer, $pos + 2);
+                    }
+                }
             } else {
-                foreach ($object->errors as $key => $value) {
-                    $object->errors[$key]->code = (int)$this->info['code'];
+                if (false === $tmp = fgets($fp)) {
+                    return $this;
+                }
+                if ($tmp === "0\r\n") {
+                    $this->eof = true;
+                } elseif ($tmp !== "\r\n" and $tmp !== "2\r\n") {
+                    $this->info['transfer-encoding'] = hexdec($tmp);
+                    if (!$this->info['transfer-encoding']) {
+                        throw new TwistException('content-length is unclear', $this, $this->consumer);
+                    }
+                    $this->prepared = true;
                 }
             }
-        } elseif (isset($object->error)) {
-            $object->errors = array((object)array(
-                'message' => $object->error,
-                'code' => (int)$this->info['code'],
-            ));
+        } else {
+            throw new TwistException('content-length is unclear', $this, $this->consumer);
         }
-        if ($throw and isset($object->errors[0])) {
-            throw new TwistException(
-                $object->errors[0]->message,
-                $this,
-                $this->consumer,
-                $object->errors[0]->code
-            );
-        }
-        return $object;
-    }
-    
-    private function solveParams(array $params, $base64 = true) {
-        $new = array();
-        foreach ($params as $key => $value) {
-            if ($value === null) {
-                continue;
-            }
-            if ($value === false) {
-                $value = '0';
-            }
-            $value = self::asString($value);
-            if (strpos($key, '@') === 0) {
-                if (!is_readable($value) or !is_file($value)) {
-                    throw new InvalidArgumentException("file \"{$value}\" not found");
-                }
-                $key = substr($key, 1);
-                $value = file_get_contents($value);
-                if ($base64) {
-                    $value = base64_encode($value);
-                }
-            }
-            $new[$key] = $value;
-        }
-        return $new;
-    }
-    
-    private static function fread($fp, $length) {
-        $buffer = '';
-        do {
-            $buffer .= $tmp = fread($fp, (int)$length);
-            $length -= strlen($tmp);
-        } while ($length and $tmp !== false and !feof($fp));
-        return $buffer;
+        return $this;
     }
     
     private static function buildMultipartContent(array $params, $boundary) {
@@ -357,9 +311,8 @@ class TwistRequest extends TwistBase {
     
     private static function parseQuery($query) {
         foreach (explode('&', $query) as $pair) {
-            foreach (explode('=', $pair, 2) + array(1 => '') as $key => $value) {
-                $params[$key] = $value;
-            }
+            list($k, $v) = explode('=', $pair, 2) + array(1 => '');
+            $params[$k] = $v;
         }
         if ($params === array('' => '')) {
             $params = array();
@@ -431,6 +384,104 @@ class TwistRequest extends TwistBase {
         $this->streaming = $p['streaming'];
     }
     
+    private function decode($content) {
+        switch (true) {
+            case $content === '':
+            case !isset($this->info['content-encoding']):
+            case $this->info['content-encoding'] !== 'gzip':
+                break;
+            default:
+                $content = @gzinflate(substr($content, 10, -8)); 
+        }
+        switch (true) { 
+            case $content === '':
+                $object = (object)array('error' => 'failed to parse response');
+                break;
+            case null !== $object = json_decode($content):
+            case false !== $object = json_decode(json_encode(@simplexml_load_string($content))):
+            case parse_str($content, $object):
+            case !$object = (object)$object:
+            case isset($object->oauth_token, $object->oauth_token_secret):
+                break;
+            case preg_match("@<title>Error \d++ ([^<]++)</title>@", $content, $m):
+                $object = (object)array('error' => $m[1]);
+                break;
+            default:
+                $object = (object)array('error' => trim(strip_tags($content)));
+                
+        }
+        if (isset($object->screen_name, $object->user_id)) {
+            $this->consumer->screenName = $object->screen_name;
+            $this->consumer->userId = $object->userId;
+        }
+        if (isset($object->oauth_token, $object->oauth_token_secret)) {
+            if ($this->endpoint === '/oauth/request_token') {
+                $this->consumer->requestToken       = $object->oauth_token;
+                $this->consumer->requestTokenSecret = $object->oauth_token_secret;
+            }
+            if ($this->endpoint === '/oauth/access_token') {
+                $this->consumer->accessToken       = $object->oauth_token;
+                $this->consumer->accessTokenSecret = $object->oauth_token_secret;
+            }
+        }
+        if (isset(
+            $this->info['x-twitter-new-account-oauth-access-token'],
+            $this->info['x-twitter-new-account-oauth-secret']
+        )) {
+            $object->oauth_token = $this->info['x-twitter-new-account-oauth-access-token'];
+            $object->oauth_token_secret = $this->info['x-twitter-new-account-oauth-secret'];
+        }
+        if (isset($object->errors)) {
+            if (is_string($object->errors)) {
+                $object->errors = array((object)array(
+                    'message' => $object->errors,
+                    'code' => (int)$this->info['code'],
+                ));
+            } else {
+                $object->errors[0]->code = (int)$this->info['code'];
+            }
+        } elseif (isset($object->error)) {
+            $object->errors = array((object)array(
+                'message' => $object->error,
+                'code' => (int)$this->info['code'],
+            ));
+        }
+        if (isset($object->errors[0])) {
+            $object = new TwistException(
+                $object->errors[0]->message,
+                $this,
+                $this->consumer,
+                $object->errors[0]->code
+            );
+        }
+        $this->responses[] = $object;
+    }
+    
+    private function solveParams(array $params, $base64 = true) {
+        $new = array();
+        foreach ($params as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            if ($value === false) {
+                $value = '0';
+            }
+            $value = self::asString($value);
+            if (strpos($key, '@') === 0) {
+                if (!is_readable($value) or !is_file($value)) {
+                    throw new InvalidArgumentException("file \"{$value}\" not found");
+                }
+                $key = substr($key, 1);
+                $value = file_get_contents($value);
+                if ($base64) {
+                    $value = base64_encode($value);
+                }
+            }
+            $new[$key] = $value;
+        }
+        return $new;
+    }
+    
     private function parseHeader(TwistConsumer $consumer, $line) {
         list($key, $value) = explode(': ', $line, 2) + array(1 => '');
         $key = strtolower($key);
@@ -493,7 +544,7 @@ class TwistRequest extends TwistBase {
                 "Host: {$this->host}",
                 "User-Agent: TwistOAuth",
                 "Connection: {$connection}",
-                "Authorization: {$authorization}",
+                "Authorization: OAuth {$authorization}",
                 "Content-Type: multipart/form-data; boundary={$boundary}",
                 "Content-Length: {$length}",
                 "",
