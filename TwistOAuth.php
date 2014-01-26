@@ -122,15 +122,17 @@ class TwistRequest extends TwistBase {
     private $endpoint  = '/1.1/account/verify_credentials';
     private $method    = 'GET';
     private $params    = array();
-    private $info      = array();
-    private $responses = array();
     private $multipart = false;
     private $streaming = false;
+    
+    private $buffer    = '';
+    private $info      = array();
+    private $responses = array();
+    private $consumer  = false;
     private $fp        = false;
     private $eof       = false;
-    private $consumer  = false;
     private $prepared  = false;
-    private $buffer    = '';
+    
     
     final public static function get($endpoint, $params = array()) {
         return new self($endpoint, 'GET', $params, false);
@@ -157,12 +159,13 @@ class TwistRequest extends TwistBase {
         $this->buffer = '';
     }
     
-    final public function isEof() {
-        return $this->eof;
-    }
-    
     final public function isStreaming() {
         return $this->streaming;
+    }
+    
+    final public function isEof() {
+        $this->getConnection();
+        return $this->eof;
     }
     
     final public function getConnection() {
@@ -206,26 +209,24 @@ class TwistRequest extends TwistBase {
     }
     
     final public function isReadable($timeout = 3) {
-        $fp = $this->getConnection();
         if ($this->isEof()) {
             throw new BadMethodCallException('already reached EOF');
         }
-        $fps = array($fp);
+        $fps = array($this->fp);
         $null = null;
         $count = @stream_select($fps, $null, $null, $timeout);
         if ($count === false) {
             throw new TwistException('failed to select stream', $this, $this->consumer);
         }
-        return (bool)$fps;
+        return (bool)$count;
     }
     
     final public function run() {
-        $fp = $this->getConnection();
         if ($this->isEof()) {
             throw new BadMethodCallException('already reached EOF');
         }
         if (isset($this->info['content-length'])) {
-            if (false === $tmp = fread($fp, $this->info['content-length'])) {
+            if (false === $tmp = fread($this->fp, $this->info['content-length'])) {
                 throw new TwistException('failed to read stream', $this, $this->consumer);
             }
             $this->buffer .= $tmp;
@@ -237,7 +238,7 @@ class TwistRequest extends TwistBase {
             }
         } elseif (isset($this->info['transfer-encoding'])) {
             if ($this->prepared) {
-                if (false === $tmp = fread($fp, $this->info['transfer-encoding'])) {
+                if (false === $tmp = fread($this->fp, $this->info['transfer-encoding'])) {
                     throw new TwistException('failed to read stream', $this, $this->consumer);
                 }
                 $this->buffer .= $tmp;
@@ -252,7 +253,7 @@ class TwistRequest extends TwistBase {
                     }
                 }
             } else {
-                if (false === $tmp = fgets($fp)) {
+                if (false === $tmp = fgets($this->fp)) {
                     return $this;
                 }
                 if ($tmp === "0\r\n") {
