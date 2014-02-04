@@ -277,7 +277,7 @@ class TwistRequest extends TwistBase {
                 $content,
             );
         }
-        if (!$this->multipart) {
+        if (!$this->streaming) {
             // enable gzip if not streaming
             array_splice($lines, 3, 0, "Accept-Encoding: deflate, gzip");
         }

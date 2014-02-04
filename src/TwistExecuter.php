@@ -337,7 +337,7 @@ class TwistExecuter extends TwistUnserializable {
                 $job->length     = 0;
                 return;
             case $buffers[0] === '': // invalid blank
-            case !$tmp = hexdec($buffers[0]): // invalid size value
+            case 2 === $tmp = hexdec($buffers[0]) + 2: // invalid size value
                 throw new TwistException(
                     'Detected malformed response body.',
                     (int)$job->info['code'],
@@ -369,7 +369,6 @@ class TwistExecuter extends TwistUnserializable {
         $job->buffer = '';
         $job->length = 0;
         $job->step   = self::STEP_READ_RESPONSE_CHUNKED_SIZE; // next step
-        var_dump(self::decode($job, $job->incomplete . substr($buffers[0], 0, -2)));
         if (substr($buffers[0], -2) === "\r\n") {
             // end of message
             $value           = $job->incomplete . substr($buffers[0], 0, -2);
