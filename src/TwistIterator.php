@@ -46,8 +46,10 @@ class TwistIterator extends TwistExecuter implements Iterator {
         if (!is_callable($callback)) {
             throw InvalidArgumentException('Invalid callback passed.');
         }
-        $this->interval = abs((float)$sec);
+        $this->callback = $callback;
+        $this->interval = abs((float)$interval);
         $this->args     = $args;
+        $this->timer    = microtime(true) + $this->interval;
         return $this;
     }
     
@@ -97,14 +99,6 @@ class TwistIterator extends TwistExecuter implements Iterator {
      * @return mixed TwistRequest or TwistException
      */
     public function current() {
-        if ($this->callback) {
-            $time = microtime(true);
-            $this->timer -= $time;
-            if ($this->timer <= 0) {
-                $this->timer = $this->interval;
-                call_user_func_array($this->callback, $this->args);
-            }
-        }
         return current($this->responses);
     }
     
@@ -117,6 +111,25 @@ class TwistIterator extends TwistExecuter implements Iterator {
     public function next() {
         next($this->responses);
         return $this;
+    }
+    
+    /**
+     * Execute available requests and fetch responses.
+     * Callback function is also called here.
+     * 
+     * @override
+     * @access public
+     * @return array<stdClass or array or TwistException>
+     */
+    public function run() {
+        if ($this->callback) {
+            $time = microtime(true);
+            if ($this->timer <= $time) {
+                $this->timer += $this->interval;
+                call_user_func_array($this->callback, $this->args);
+            }
+        }
+        return parent::run();
     }
     
 }

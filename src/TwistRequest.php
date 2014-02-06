@@ -11,8 +11,8 @@
  * @property-read bool $streaming
  * @property-read bool $waitResponse
  * @property-read bool $throw
- * @property-read TwistConsumer $consumer nullable
- * @property-read array $construtArgs
+ * @property-read TwistCredential $credential nullable
+ * @property-read mixed $response
  *
  * @inherited method final protected static mixed TwistBase::filter()
  */
@@ -47,10 +47,10 @@ class TwistRequest extends TwistBase {
    /**
     * Request parameters.
     * 
-    * @var TwistConsumer
+    * @var TwistCredential
     * @var array
     */
-    private $consumer;
+    private $credential;
     private $params = array();
     
    /**
@@ -72,11 +72,11 @@ class TwistRequest extends TwistBase {
      * @param mixed [$params]
      *   e.g. "count=1"
      *        array("count" => 1)
-     * @param TwistConsumer [$consumer] nullable
+     * @param TwistCredential [$credential] nullable
      * @return TwistRequest
      */
     // Normal.
-    public static function get($endpoint = '', $params = array(), TwistConsumer $consumer = null) {
+    public static function get($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
             'method' => 'GET',
@@ -86,7 +86,7 @@ class TwistRequest extends TwistBase {
         return new self($args);
     }
     // Automatically throw TwistException.
-    public static function getAuto($endpoint = '', $params = array(), TwistConsumer $consumer = null) {
+    public static function getAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
             'method' => 'GET',
@@ -107,11 +107,11 @@ class TwistRequest extends TwistBase {
      * @param mixed [$params]
      *   e.g. "@image=me.jpg"
      *        array("@image" => "me.jpg")
-     * @param TwistConsumer [$consumer] nullable
+     * @param TwistCredential [$credential] nullable
      * @return TwistRequest
      */
     // Normal.
-    public static function post($endpoint = '', $params = array(), TwistConsumer $consumer = null) {
+    public static function post($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
             'method' => 'POST',
@@ -121,7 +121,7 @@ class TwistRequest extends TwistBase {
         return new self($args);
     }
     // Automatically throw TwistException.
-    public static function postAuto($endpoint = '', $params = array(), TwistConsumer $consumer = null) {
+    public static function postAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
             'method' => 'POST',
@@ -131,7 +131,7 @@ class TwistRequest extends TwistBase {
         return new self($args);
     }
     // Receive no response.
-    public static function send($endpoint = '', $params = array(), TwistConsumer $consumer = null) {
+    public static function send($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
             'method' => 'POST',
@@ -175,14 +175,14 @@ class TwistRequest extends TwistBase {
     }
     
     /**
-     * Bind or unset TwistConsumer instance.
+     * Bind or unset TwistCredential instance.
      *
      * @access public
-     * @param TwistConsumer [$consumer]
+     * @param TwistCredential [$credential]
      * @return TwistRequest $this
      */
-    public function setConsumer(TwistConsumer $consumer = null) {
-        $this->consumer = $consumer;
+    public function setCredential(TwistCredential $credential = null) {
+        $this->credential = $credential;
         return $this;
     }
     
@@ -220,16 +220,21 @@ class TwistRequest extends TwistBase {
      * @return string
      */
     final public function buildHeaders() {
-        if (!($this->consumer instanceof TwistConsumer)) {
-            // TwistConsumer instance is required
+        if (!($this->credential instanceof TwistCredential)) {
+            // TwistCredential instance is required
             throw new BadMethodCallException(
-                'Headers cannot be built without TwistConsumer instance.'
+                'Headers cannot be built without TwistCredential instance.'
             );
         }
         $params = $this->solveParams();
-        $content = $this->buildOAuthPart($params);
         $connection = $this->streaming ? 'keep-alive' : 'close';
-        $user_agent = urlencode($this->consumer->userAgent);
+        $user_agent = urlencode($this->credential->userAgent);
+        if ($this->scraping) {
+            $content = self::buildQuery($params);
+            $params = array();
+        } else {
+            $content = $this->buildOAuthPart($params);
+        }
         if ($this->method === 'GET') {
             // GET
             if ('' !== $query = self::buildQuery($params)) {
@@ -280,6 +285,11 @@ class TwistRequest extends TwistBase {
         if (!$this->streaming) {
             // enable gzip if not streaming
             array_splice($lines, 3, 0, "Accept-Encoding: deflate, gzip");
+        }
+        if ($this->credential->cookies) {
+            // apply cookies
+            $cookie = http_build_query($this->credential->cookies, '', '; ');
+            array_splice($lines, 3, 0, "Cookie: {$cookie}");
         }
         return implode("\r\n", $lines);
     }
@@ -367,7 +377,7 @@ class TwistRequest extends TwistBase {
     private function __construct(array $args) {
         $this->setEndpoint($args['endpoint']);
         $this->setParams($args['params']);
-        $this->setConsumer($args['consumer']);
+        $this->setCredential($args['credential']);
         $this->method = $args['method'];
         $this->waitResponse = $args['waitResponse'];
         $this->throw = $args['throw'];
@@ -389,7 +399,7 @@ class TwistRequest extends TwistBase {
             case !$count = preg_match_all('/(?![\d.])[\w.]++/', $p['path'], $parts):
                 throw new InvalidArgumentException("invalid endpoint: {$endpoint}");
         }
-        $streaming = $multipart = $old = !$host = 'api.twitter.com';
+        $streaming = $scraping = $multipart = $old = !$host = 'api.twitter.com';
         foreach ($parts[0] as $i => &$part) {
             $part = strtolower($part);
             if ($count === $i + 1) {
@@ -426,6 +436,7 @@ class TwistRequest extends TwistBase {
      * Normalize parameters and replace filenames into filedata.
      *
      * @access private
+     * @throw InvalidArgumentException(LogicException)
      */
     private function solveParams() {
         $new = array();
@@ -467,23 +478,23 @@ class TwistRequest extends TwistBase {
      */
     private function buildOAuthPart(array &$params) {
         $bodies = array(
-            'oauth_consumer_key'     => $this->consumer->consumerKey,
+            'oauth_consumer_key'     => $this->credential->consumerKey,
             'oauth_signature_method' => 'HMAC-SHA1',
             'oauth_timestamp'        => time(),
             'oauth_version'          => '1.0a',
             'oauth_nonce'            => sha1(mt_rand() . microtime()),
         );
-        $keys = array($this->consumer->consumerSecret, '');
+        $keys = array($this->credential->consumerSecret, '');
         if ($this->endpoint === '/oauth/access_token') {
-            $bodies['oauth_token'] = $consumer->requestToken;
+            $bodies['oauth_token'] = $credential->requestToken;
             if (isset($params['oauth_verifier'])) {
                 $bodies['oauth_verifier'] = $params['oauth_verifier'];
                 unset($params['oauth_verifier']);
             }
-            $keys[1] = $this->consumer->requestTokenSecret;
+            $keys[1] = $this->credential->requestTokenSecret;
         } elseif ($this->endpoint !== '/oauth/request_token') {
-            $bodies['oauth_token'] = $this->consumer->accessToken;
-            $keys[1] = $this->consumer->accessTokenSecret;
+            $bodies['oauth_token'] = $this->credential->accessToken;
+            $keys[1] = $this->credential->accessTokenSecret;
         }
         $copy = $bodies;
         if (!$this->multipart) {

@@ -17,7 +17,7 @@
  *
  * @inherited method final protected static mixed TwistBase::filter() 
  */
-class TwistConsumer extends TwistBase {
+class TwistCredential extends TwistBase {
     
    /**
     * OAuth parameters.
@@ -30,6 +30,8 @@ class TwistConsumer extends TwistBase {
     private $requestTokenSecret = ''; // automatically set after "oauth/request_token" calls.
     private $accessToken        = ''; // automatically set after "oauth/access_token" calls.
     private $accessTokenSecret  = ''; // automatically set after "oauth/access_token" calls.
+    private $authenticityToken  = ''; // automatically set after first "oauth/authenticate" "oauth/authorize" calls.
+    private $verifier           = ''; // automatically set after second "oauth/authenticate" "oauth/authorize" calls.
     private $screenName         = ''; // automatically set after "oauth/access_token" calls.
     private $userId             = ''; // automatically set after "oauth/access_token" calls.
     private $userAgent          = 'TwistOAuth';
@@ -109,7 +111,7 @@ class TwistConsumer extends TwistBase {
      * @access public
      * @param string [$consumerKey]
      * @param string [$consumerSecret]
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */
     public function setConsumer($consumerKey = '', $consumerSecret = '') {
         $this->consumerKey    = self::filter($consumerKey);
@@ -123,7 +125,7 @@ class TwistConsumer extends TwistBase {
      * @access public
      * @param string [$requestToken]
      * @param string [$requestTokenSecret]
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */
     public function setRequestToken($requestToken = '', $requestTokenSecret = '') {
         $this->requestToken       = self::filter($requestToken);
@@ -137,11 +139,35 @@ class TwistConsumer extends TwistBase {
      * @access public
      * @param string [$requestToken]
      * @param string [$requestTokenSecret]
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */
     public function setAccessToken($accessToken = '', $accessTokenSecret = '') {
         $this->accessToken       = self::filter($accessToken);
         $this->accessTokenSecret = self::filter($accessTokenSecret);
+        return $this;
+    }
+    
+    /**
+     * Set authenticityToken.
+     * 
+     * @access public
+     * @param string [$authenticityToken]
+     * @return TwistCredential $this
+     */
+    public function setAuthenticityToken($authenticityToken = '') {
+        $this->authenticityToken = self::filter($authenticityToken);
+        return $this;
+    }
+    
+    /**
+     * Set verifier.
+     * 
+     * @access public
+     * @param string [$verifier]
+     * @return TwistCredential $this
+     */
+    public function setAuthenticityToken($verifier = '') {
+        $this->verifier = self::filter($verifier);
         return $this;
     }
     
@@ -151,9 +177,9 @@ class TwistConsumer extends TwistBase {
      * @access public
      * @param string [$userId]
      * @param string [$screenName]
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */
-    public function setCredential($userId = '', $screenName = '') {
+    public function setUserInfo($userId = '', $screenName = '') {
         $this->userId     = self::filter($userId);
         $this->screenName = self::filter($screenName);
         return $this;
@@ -165,7 +191,7 @@ class TwistConsumer extends TwistBase {
      * @access public
      * @param string [$userId]
      * @param string [$screenName]
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */
     public function setUserAgent($userAgent) {
         $this->userAgent = self::filter($userAgent);
@@ -199,7 +225,7 @@ class TwistConsumer extends TwistBase {
      *
      * @access public
      * @param string $name
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */ 
     public function setHistory($name) {
         $name = self::filter($name);
@@ -214,7 +240,7 @@ class TwistConsumer extends TwistBase {
      *
      * @access public
      * @param string $name
-     * @return TwistConsumer $this
+     * @return TwistCredential $this
      */ 
     public function setCookie($key, $value) {
         $this->cookies[self::filter($key)] = self::filter($value);

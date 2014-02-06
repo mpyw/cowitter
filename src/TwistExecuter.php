@@ -61,12 +61,11 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Set Timeout parameter for stream_select()
      *
-     * @final
      * @access public
      * @param float [$sec]
      * @return TwistExecuter $this
      */
-    final public function setTimeout($sec = 1.0) {
+    public function setTimeout($sec = 1.0) {
         // ensure positive float value
         $this->timeout = abs((float)$sec);
         return $this;
@@ -75,17 +74,16 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Start asynchronized multiple requests execution.
      *
-     * @final
      * @access public
      * @throw TwistException(RuntimeException)
      * @return TwistExecuter $this
      */
-    final public function start() {
+    public function start() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
             switch (true) {
                 case !($job->request instanceof TwistRequest):
-                case !($job->request->consumer instanceof TwistConsumer):
+                case !($job->request->credential instanceof TwistCredential):
                     // skip invalid TwistRequest object
                     continue 2;
                 case !$fp = fsockopen("ssl://{$job->request->host}", 443):
@@ -106,11 +104,10 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Abort all requests.
      *
-     * @final
      * @access public
      * @return TwistExecuter $this
      */
-    final public function abort() {
+    public function abort() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
         }
@@ -120,11 +117,10 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Returns if responses are remained.
      *
-     * @final
      * @access public
      * @return bool
      */
-    final public function isRunning() {
+    public function isRunning() {
         foreach ($this->jobs as $job) {
             if ($job->step !== self::STEP_FINISHED) {
                 return true;
@@ -136,12 +132,11 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Execute available requests and fetch responses.
      *
-     * @final
      * @access public
      * @throw TwistException(RuntimeException)
      * @return array<stdClass or array or TwistException>
      */
-    final public function run() {
+    public function run() {
         // stream preparation
         $read = $write = $results = array();
         $except = null;
@@ -250,7 +245,7 @@ class TwistExecuter extends TwistUnserializable {
             ; // next step
         }
         // update history
-        $job->request->consumer->setHistory($job->request->endpoint);
+        $job->request->credential->setHistory($job->request->endpoint);
         return;
     }
     
@@ -401,7 +396,7 @@ class TwistExecuter extends TwistUnserializable {
                     list($k, $v) = explode('=', $line, 2) + array(1 => '');
                     list($v) = explode(";", $v);
                     // set cookie
-                    $job->request->consumer->setCookie($k, $v);
+                    $job->request->credential->setCookie(urldecode($k), urldecode($v));
                     break;
                 default:
                     // set assoc
@@ -498,16 +493,16 @@ class TwistExecuter extends TwistUnserializable {
         // update user credentials
         if (isset($object->oauth_token, $object->oauth_token_secret)) {
             if (isset($object->screen_name, $object->user_id)) {
-                $job->request->consumer->screenName = $object->screen_name;
-                $job->request->consumer->userId = $object->userId;
+                $job->request->credential->screenName = $object->screen_name;
+                $job->request->credential->userId = $object->userId;
             }
             if ($job->endpoint === '/oauth/request_token') {
-                $job->request->consumer->requestToken       = $object->oauth_token;
-                $job->request->consumer->requestTokenSecret = $object->oauth_token_secret;
+                $job->request->credential->requestToken       = $object->oauth_token;
+                $job->request->credential->requestTokenSecret = $object->oauth_token_secret;
             }
             if ($job->endpoint === '/oauth/access_token') {
-                $job->request->consumer->accessToken       = $object->oauth_token;
-                $job->request->consumer->accessTokenSecret = $object->oauth_token_secret;
+                $job->request->credential->accessToken       = $object->oauth_token;
+                $job->request->credential->accessTokenSecret = $object->oauth_token_secret;
             }
         }
         // set xAuth info
