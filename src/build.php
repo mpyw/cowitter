@@ -123,7 +123,7 @@ function compress_php_src($src) {
                     $iw = true;
                 } else {
                     if(!$ih) {
-                        $ts = strtolower($ts);
+                        //$ts = strtolower($ts);
                     }
                     $new .= $ts;
                     $iw = false;

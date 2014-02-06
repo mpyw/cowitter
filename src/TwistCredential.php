@@ -166,7 +166,7 @@ class TwistCredential extends TwistBase {
      * @param string [$verifier]
      * @return TwistCredential $this
      */
-    public function setAuthenticityToken($verifier = '') {
+    public function setVerifier($verifier = '') {
         $this->verifier = self::filter($verifier);
         return $this;
     }
