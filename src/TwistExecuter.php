@@ -115,6 +115,12 @@ class TwistExecuter extends TwistUnserializable {
     final public function start() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
+            switch (true) {
+                case !($job->request instanceof TwistRequest):
+                case !($job->request->credential instanceof TwistCredential):
+                // skip invalid TwistRequest object
+                continue 2;
+            }
             self::connect($job);
         }
         return $this;
@@ -249,10 +255,6 @@ class TwistExecuter extends TwistUnserializable {
      */
     private static function connect(stdClass $job) {
         switch (true) {
-            case !($job->request instanceof TwistRequest):
-            case !($job->request->credential instanceof TwistCredential):
-                // skip invalid TwistRequest object
-                continue 2;
             case !$fp = self::createSocket($job->request->host):
             case !stream_set_blocking($fp, 0):
                 throw new TwistException(
@@ -434,9 +436,9 @@ class TwistExecuter extends TwistUnserializable {
         $job->buffer = '';
         $job->length = 0;
         $job->step   = self::STEP_READ_RESPONSE_CHUNKED_SIZE; // next step
-        if (substr($buffers[0], -2) === "\r\n") {
+        if (substr($buffers[0], -1) === "\n") {
             // end of message
-            $value           = $job->incomplete . substr($buffers[0], 0, -2);
+            $value           = $job->incomplete . substr($buffers[0], 0, -1);
             $job->size       = $buffers[1];
             $job->incomplete = '';
             return self::decode($job, $value);
