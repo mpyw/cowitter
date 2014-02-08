@@ -198,24 +198,24 @@ class TwistExecuter extends TwistUnserializable {
             throw new TwistException('Failed to select stream.', 0);
         }
         // process responses
-        foreach ($this->jobs as $job) {
+        foreach ($this->jobs as $i => $job) {
             switch ($job->step) {
                 case self::STEP_WRITE_REQUEST_HEADERS:
-                    self::writeRequestHeaders($job);
+                    isset($write[$i]) and self::writeRequestHeaders($job);
                     break;
                 case self::STEP_READ_RESPONSE_HEADERS:
-                    self::readResponseHeaders($job);
+                    isset($read[$i]) and self::readResponseHeaders($job);
                     break;
                 case self::STEP_READ_RESPONSE_CHUNKED_SIZE:
-                    self::readResponseChunkedSize($job);
+                    isset($read[$i]) and self::readResponseChunkedSize($job);
                     break;
                 case self::STEP_READ_RESPONSE_LONGED:
-                    if (null !== $result = self::readResponseLonged($job)) {
+                    if (isset($read[$i]) and null !== $result = self::readResponseLonged($job)) {
                         $results[] = $job->request->setResponse($result);
                     }
                     break;
                 case self::STEP_READ_RESPONSE_CHUNKED_CONTENT:
-                    if (null !== $result = self::readResponseChunkedContent($job)) {
+                    if (isset($read[$i]) and null !== $result = self::readResponseChunkedContent($job)) {
                         $results[] = $job->request->setResponse($result);
                     }
             }
@@ -303,7 +303,7 @@ class TwistExecuter extends TwistUnserializable {
             // generate request headers at first
             $job->buffer = $job->request->buildHeaders();
         }
-        if (false !== $tmp = fwrite($job->fp, $job->buffer)) {
+        if (false !== $tmp = fwrite($job->fp, $job->buffer, 8192)) {
             // reset $job::buffer with remaining bytes
             $job->buffer = (string)substr($job->buffer, $tmp);
         }

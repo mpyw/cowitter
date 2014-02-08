@@ -9,3 +9,6 @@ TwistOAuth - changelog
 + Renamed some classes
 + Supported Para-xAuth authorization
 + Fixed some bugs
+
+0.2.1 (2014-02-09)
++ Fixed fwrite() Open SSL bug
