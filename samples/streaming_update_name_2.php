@@ -52,7 +52,7 @@ try {
                 }
             }
             
-            if (preg_match("/^(.*?)[(（]@mpyw[)）]{$url}$/u", $text, $matches)) {
+            if (preg_match("/^(.*?)[(（]@{$me}[)）]{$url}$/u", $text, $matches)) {
                 $matches[1] = trim($matches[1]);
                 if ($matches[1] === '' or $matches[1] === $previous_name) {
                     continue 2;
