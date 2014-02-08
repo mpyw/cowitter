@@ -3,7 +3,8 @@
 /**
  * Hanldes Exceptions ocurred due to Twitter.
  * 
- * @property-read TwistRequest $request nullable
+ * @final
+ * @property-read TwistRequest $request
  * 
  * @inherited var protected string Exception::$message
  * @inherited var protected int Exception::$code
@@ -17,14 +18,14 @@
  * @inherited method final public int Exception::getTrace()
  * @inherited method final public string Exception::getTraceAsString()
  */
-class TwistException extends RuntimeException {
+final class TwistException extends RuntimeException {
     
     /**
      * TwistRequest instance where this TwistException generated.
      * 
-     * @var TwistRequest nullable
+     * @var TwistRequest
      */
-    protected $request = null;
+    private $request = null;
     
     /**
      * Constructor.
@@ -57,7 +58,7 @@ class TwistException extends RuntimeException {
      * Getter for property TwistRequest.
      * 
      * @access public
-     * @return TwistRequest nullable
+     * @return TwistRequest or NULL
      */
     public function getRequest() {
         return $this->request;

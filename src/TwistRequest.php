@@ -6,12 +6,14 @@
  * @property-read string $host
  * @property-read string $endpoint
  * @property-read string $method
- * @property-read array $params
- * @property-read bool $multipart
+ * @property-read array $extraParams
  * @property-read bool $streaming
+ * @property-read bool $multipart
  * @property-read bool $waitResponse
  * @property-read bool $throw
- * @property-read TwistCredential $credential nullable
+ * @property-read bool $login
+ * @property-read TwistCredential $credential
+ * @property-read array $params
  * @property-read mixed $response
  *
  * @inherited method final protected static mixed TwistBase::filter()
@@ -21,10 +23,10 @@ class TwistRequest extends TwistBase {
    /**
     * Request.
     * 
-    * @var string (final)
-    * @var string (final)
-    * @var string (final)
-    * @var array  (final)
+    * @var string
+    * @var string
+    * @var string
+    * @var array
     */
     private $host;
     private $endpoint;
@@ -34,15 +36,22 @@ class TwistRequest extends TwistBase {
    /**
     * Request flags.
     *
-    * @var bool (final)
-    * @var bool (final)
-    * @var bool (final)
-    * @var bool (final)
+    * @var bool
+    * @var bool
+    * @var bool
+    * @var bool
     */
     private $streaming;
     private $multipart;
     private $waitResponse;
     private $throw;
+    
+   /**
+    * Para-xAuth authorization flag.
+    * 
+    * @var bool
+    */
+    private $login = false;
     
    /**
     * Request parameters.
@@ -63,6 +72,7 @@ class TwistRequest extends TwistBase {
     /**
      * Create instance for "GET" endpoints.
      * 
+     * @final
      * @static
      * @access public
      * @param string [$endpoint]
@@ -72,26 +82,26 @@ class TwistRequest extends TwistBase {
      * @param mixed [$params]
      *   e.g. "count=1"
      *        array("count" => 1)
-     * @param TwistCredential [$credential] nullable
+     * @param TwistCredential [$credential]
      * @return TwistRequest
      */
     // Normal.
-    public static function get($endpoint = '', $params = array(), TwistCredential $credential = null) {
+    final public static function get($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
-            'method' => 'GET',
+            'method'       => 'GET',
             'waitResponse' => true,
-            'throw' => false,
+            'throw'        => false,
         );
         return new self($args);
     }
     // Automatically throw TwistException.
-    public static function getAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
+    final public static function getAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
-            'method' => 'GET',
+            'method'       => 'GET',
             'waitResponse' => true,
-            'throw' => true,
+            'throw'        => true,
         );
         return new self($args);
     }
@@ -100,6 +110,7 @@ class TwistRequest extends TwistBase {
      * Create instance for "POST" endpoints.
      * Filenames are specified with putting "@" on its KEY.
      * 
+     * @final
      * @static
      * @access public
      * @param string $endpoint
@@ -107,38 +118,62 @@ class TwistRequest extends TwistBase {
      * @param mixed [$params]
      *   e.g. "@image=me.jpg"
      *        array("@image" => "me.jpg")
-     * @param TwistCredential [$credential] nullable
+     * @param TwistCredential [$credential]
      * @return TwistRequest
      */
     // Normal.
-    public static function post($endpoint = '', $params = array(), TwistCredential $credential = null) {
+    final public static function post($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
-            'method' => 'POST',
+            'method'       => 'POST',
             'waitResponse' => true,
-            'throw' => false,
+            'throw'        => false,
         );
         return new self($args);
     }
     // Automatically throw TwistException.
-    public static function postAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
+    final public static function postAuto($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
-            'method' => 'POST',
+            'method'       => 'POST',
             'waitResponse' => true,
-            'throw' => true,
+            'throw'        => true,
         );
         return new self($args);
     }
     // Receive no response.
-    public static function send($endpoint = '', $params = array(), TwistCredential $credential = null) {
+    final public static function send($endpoint = '', $params = array(), TwistCredential $credential = null) {
         $args = get_defined_vars();
         $args += array(
-            'method' => 'POST',
+            'method'       => 'POST',
             'waitResponse' => false,
-            'throw' => false,
+            'throw'        => false,
         );
         return new self($args);
+    }
+    
+    /**
+     * Create instance for Para-xAuth authorization.
+     * TwistCredential instance cannot be changed.
+     *
+     * @final
+     * @static
+     * @access public
+     * @param TwistCredential $credential
+     * @return TwistRequest
+     */
+    final public static function login(TwistCredential $credential) {
+        $args = array(
+            'endpoint'     => 'oauth/request_token',
+            'method'       => 'POST',
+            'params'       => array(),
+            'credential'   => $credential,
+            'waitResponse' => true,
+            'throw'        => true,
+        );
+        $self = new self($args);
+        $self->login = true; // set flag
+        return $self;
     }
     
     /**
@@ -161,11 +196,18 @@ class TwistRequest extends TwistBase {
     /**
      * Bind or unset request parameters.
      *
+     * @final
      * @access public
      * @param mixed [$params]
+     * @throw BadMethodCallException(LogicException)
      * @return TwistRequest $this
      */
-    public function setParams($params = array()) {
+    final public function setParams($params = array()) {
+        if ($this->login) {
+            throw new BadMethodCallException(
+                'This object is created by TwistRequest::login() call.'
+            );
+        }
         $this->params = 
             is_array($params) ?
             self::filter($params, 1) :
@@ -176,12 +218,19 @@ class TwistRequest extends TwistBase {
     
     /**
      * Bind or unset TwistCredential instance.
-     *
+     * 
+     * @final
      * @access public
      * @param TwistCredential [$credential]
+     * @throw BadMethodCallException(LogicException)
      * @return TwistRequest $this
      */
-    public function setCredential(TwistCredential $credential = null) {
+    final public function setCredential(TwistCredential $credential = null) {
+        if ($this->login) {
+            throw new BadMethodCallException(
+                'This object is created by TwistRequest::login() call.'
+            );
+        }
         $this->credential = $credential;
         return $this;
     }
@@ -189,11 +238,12 @@ class TwistRequest extends TwistBase {
     /**
      * Bind or unset response.
      *
+     * @final
      * @access public
      * @param mixed [$body]
      * @return TwistRequest $this
      */
-    public function setResponse($body = null) {
+    final public function setResponse($body = null) {
         $this->response = $body;
         return $this;
     }
@@ -201,14 +251,69 @@ class TwistRequest extends TwistBase {
     /**
      * Easy execution using TwistIterator.
      * 
+     * @final
      * @access public
      * @throw TwistException(RuntimeException)
      * @return mixed TwistRequest $this or TwistExcepion
      */
-    public function execute() {
+    final public function execute() {
         foreach (new TwistIterator($this) as $result) {
             return $result;
         }
+    }
+    
+    /**
+     * Proceed Para-xAuth authorization step.
+     * TwistCredential instance cannot be changed.
+     *
+     * @final
+     * @access public
+     * @return TwistRequest $this
+     */
+    final public function proceed() {
+        switch (true) {
+            case !$this->login:
+                throw new BadMethodCallException(
+                    'This object is not created by TwistRequest::login() call.'
+                );
+            case $this->response instanceof TwistException:
+            case $this->endpoint === '/oauth/access_token':
+                $args = array(
+                    'method'   => 'POST',
+                    'endpoint' => '/oauth/request_token',
+                );
+                break;
+            case $this->endpoint === '/oauth/request_token':
+                $args = array(
+                    'method'   => 'GET',
+                    'endpoint' => '/oauth/authorize',
+                );
+                break;
+            case $this->endpoint === '/oauth/authorize'
+            and $this->method === 'GET':
+                $args = array(
+                    'method'   => 'POST',
+                    'endpoint' => '/oauth/authorize',
+                );
+                break;
+            case $this->endpoint === '/oauth/authorize'
+            and $this->method === 'POST':
+                $args = array(
+                    'method'   => 'POST',
+                    'endpoint' => '/oauth/access_token',
+                );
+                break;
+            default:
+                throw new BsdMethodCallException('Unexpected endpoint.');
+        }
+        $args += array(
+            'params'       => array(),
+            'credential'   => $this->credential,
+            'waitResponse' => true,
+            'throw'        => true,
+        );
+        $this->__construct($args);
+        return $this;
     }
     
     /**
@@ -229,12 +334,7 @@ class TwistRequest extends TwistBase {
         $params = $this->solveParams();
         $connection = $this->streaming ? 'keep-alive' : 'close';
         $user_agent = urlencode($this->credential->userAgent);
-        if ($this->scraping) {
-            $content = self::buildQuery($params);
-            $params = array();
-        } else {
-            $content = $this->buildOAuthPart($params);
-        }
+        $content = $this->buildOAuthPart($params);
         if ($this->method === 'GET') {
             // GET
             if ('' !== $query = self::buildQuery($params)) {
@@ -375,9 +475,13 @@ class TwistRequest extends TwistBase {
      * @param array $args
      */
     private function __construct(array $args) {
+        $this->params = 
+            is_array($args['params']) ?
+            self::filter($args['params'], 1) :
+            self::parseQuery(self::filter($args['params']))
+        ; 
+        $this->credential = $args['credential'];
         $this->setEndpoint($args['endpoint']);
-        $this->setParams($args['params']);
-        $this->setCredential($args['credential']);
         $this->method = $args['method'];
         $this->waitResponse = $args['waitResponse'];
         $this->throw = $args['throw'];
@@ -399,7 +503,7 @@ class TwistRequest extends TwistBase {
             case !$count = preg_match_all('/(?![\d.])[\w.]++/', $p['path'], $parts):
                 throw new InvalidArgumentException("invalid endpoint: {$endpoint}");
         }
-        $streaming = $scraping = $multipart = $old = !$host = 'api.twitter.com';
+        $streaming = $multipart = $old = !$host = 'api.twitter.com';
         foreach ($parts[0] as $i => &$part) {
             $part = strtolower($part);
             if ($count === $i + 1) {
@@ -476,7 +580,21 @@ class TwistRequest extends TwistBase {
      * @param array &params
      * @return array
      */
-    private function buildOAuthPart(array &$params) {
+    private function buildOAuthPart(array $params) {
+        if (in_array(
+            $this->endpoint,
+            array('/oauth/authorize', '/oauth/authenticate'),
+            true
+        )) {
+            $bodies['oauth_token'] = $this->credential->requestToken;
+            $bodies['force_login'] = '1';
+            if ($this->method === 'POST') {
+                $bodies['authenticity_token'] = $this->credential->authenticityToken;
+                $bodies['session[username_or_email]'] = $this->credential->screenName;
+                $bodies['session[password]'] = $this->credential->password;
+            }
+            return self::buildQuery($bodies);
+        }
         $bodies = array(
             'oauth_consumer_key'     => $this->credential->consumerKey,
             'oauth_signature_method' => 'HMAC-SHA1',
@@ -486,11 +604,8 @@ class TwistRequest extends TwistBase {
         );
         $keys = array($this->credential->consumerSecret, '');
         if ($this->endpoint === '/oauth/access_token') {
-            $bodies['oauth_token'] = $credential->requestToken;
-            if (isset($params['oauth_verifier'])) {
-                $bodies['oauth_verifier'] = $params['oauth_verifier'];
-                unset($params['oauth_verifier']);
-            }
+            $bodies['oauth_token'] = $this->credential->requestToken;
+            $bodies['oauth_verifier'] = $this->credential->verifier;
             $keys[1] = $this->credential->requestTokenSecret;
         } elseif ($this->endpoint !== '/oauth/request_token') {
             $bodies['oauth_token'] = $this->credential->accessToken;

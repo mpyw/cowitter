@@ -20,7 +20,7 @@ abstract class TwistBase {
     final protected static function filter($input, $array_demention = 0) {
         $array_demention = (int)$array_demention;
         if ($array_demention < 1) {
-            // 0-demention
+            // 0 demention
             switch (true) {
                 case is_array($input):
                 case is_object($input) and !method_exists($input, '__toString'):
@@ -30,10 +30,10 @@ abstract class TwistBase {
             // stringify
             return (string)$input;
         }
-        // X-demention
+        // X demention (X > 0)
         $output = array();
         foreach ((array)$input as $key => $value) {
-            // force (X-1)-demention
+            // force (X - 1) demention
             $output[self::filter($key)] = self::filter($array_demention - 1);
         }
         return $output;

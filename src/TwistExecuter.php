@@ -27,6 +27,19 @@ class TwistExecuter extends TwistUnserializable {
     const STEP_FINISHED = 5;
     
     /**
+     * Interval function.
+     *
+     * @var callable 
+     * @var array
+     * @var float
+     * @var float
+     */
+    private $callback;
+    private $args = array();    
+    private $interval = 0;
+    private $timer = 0;
+    
+    /**
      * Array of job object stdClass.
      * Internally used only in this class.
      *
@@ -35,7 +48,7 @@ class TwistExecuter extends TwistUnserializable {
     private $jobs = array();
     
     /**
-     * Timeout parameter for stream_select()
+     * Timeout parameter for stream_select().
      *
      * @var float seconds
      */
@@ -45,12 +58,13 @@ class TwistExecuter extends TwistUnserializable {
      * Constructor.
      * 
      * @magic
+     * @final
      * @access public
      * @params mixed $args TwistRequest or array<TwistRequest>
      * @throw InvalidArgumentException(LogicException)
      * @return stdClass or array or TwistException
      */
-    public function __construct($args) {
+    final public function __construct($args) {
         if (!$args = func_get_args()) {
             throw new InvalidArgumentException('Required at least 1 TwistReuest instance.');
         }
@@ -59,13 +73,32 @@ class TwistExecuter extends TwistUnserializable {
     }
     
     /**
-     * Set Timeout parameter for stream_select()
+     * Set or unset interval function.
      *
+     * @final
+     * @access public
+     * @param callable $callback
+     * @param float [$interval] microseconds
+     * @param array [$args]
+     * @return TwistIterator $this
+     */
+    final public function setInterval($callback = null, $interval = 0, array $args = array()) {
+        $this->callback = is_callable($callback) ? $callback : null;
+        $this->interval = abs((float)$interval);
+        $this->args     = $args;
+        $this->timer    = microtime(true) + $this->interval;
+        return $this;
+    }
+    
+    /**
+     * Set Timeout parameter for stream_select().
+     *
+     * @final
      * @access public
      * @param float [$sec]
      * @return TwistExecuter $this
      */
-    public function setTimeout($sec = 1.0) {
+    final public function setTimeout($sec = 1.0) {
         // ensure positive float value
         $this->timeout = abs((float)$sec);
         return $this;
@@ -74,29 +107,15 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Start asynchronized multiple requests execution.
      *
+     * @final
      * @access public
      * @throw TwistException(RuntimeException)
      * @return TwistExecuter $this
      */
-    public function start() {
+    final public function start() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
-            switch (true) {
-                case !($job->request instanceof TwistRequest):
-                case !($job->request->credential instanceof TwistCredential):
-                    // skip invalid TwistRequest object
-                    continue 2;
-                case !$fp = fsockopen("ssl://{$job->request->host}", 443):
-                case !stream_set_blocking($fp, 0):
-                    throw new TwistException(
-                        "Failed to connect: {$job->request->host}",
-                        0,
-                        $job->request
-                    );
-                default:
-                    $job->step = self::STEP_WRITE_REQUEST_HEADERS;
-                    $job->fp   = $fp;
-            }
+            self::connect($job);
         }
         return $this;
     }
@@ -104,10 +123,11 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Abort all requests.
      *
+     * @final
      * @access public
      * @return TwistExecuter $this
      */
-    public function abort() {
+    final public function abort() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
         }
@@ -116,11 +136,12 @@ class TwistExecuter extends TwistUnserializable {
     
     /**
      * Returns if responses are remained.
-     *
+     * 
+     * @final
      * @access public
      * @return bool
      */
-    public function isRunning() {
+    final public function isRunning() {
         foreach ($this->jobs as $job) {
             if ($job->step !== self::STEP_FINISHED) {
                 return true;
@@ -132,11 +153,20 @@ class TwistExecuter extends TwistUnserializable {
     /**
      * Execute available requests and fetch responses.
      *
+     * @final
      * @access public
      * @throw TwistException(RuntimeException)
      * @return array<stdClass or array or TwistException>
      */
-    public function run() {
+    final public function run() {
+        // execute interval function
+        if ($this->callback) {
+            $time = microtime(true);
+            if ($this->timer <= $time) {
+                $this->timer += $this->interval;
+                call_user_func_array($this->callback, $this->args);
+            }
+        }
         // stream preparation
         $read = $write = $results = array();
         $except = null;
@@ -161,6 +191,7 @@ class TwistExecuter extends TwistUnserializable {
         if (false === stream_select($read, $write, $except, $sec, $msec)) {
             throw new TwistException('Failed to select stream.', 0);
         }
+        // process responses
         foreach ($this->jobs as $job) {
             switch ($job->step) {
                 case self::STEP_WRITE_REQUEST_HEADERS:
@@ -187,18 +218,6 @@ class TwistExecuter extends TwistUnserializable {
     }
     
     /**
-     * Callback for constructor.
-     * 
-     * @access private
-     * @param TwistRequest $request
-     */
-    private function setRequest(TwistRequest $request) {
-        $job = self::initialize();
-        $job->request = $request;
-        $this->jobs[] = $job;
-    }
-    
-    /**
      * Initialize job object.
      * 
      * @static
@@ -218,6 +237,56 @@ class TwistExecuter extends TwistUnserializable {
         $job->length     = 0;                   // content length
         $job->info       = array();             // response headers
         return $job;
+    }
+    
+    /**
+     * Establish connection on specified job.
+     * 
+     * @static
+     * @access private
+     * @param stdClass [$job]
+     * @return stdClass $job
+     */
+    private static function connect(stdClass $job) {
+        switch (true) {
+            case !($job->request instanceof TwistRequest):
+            case !($job->request->credential instanceof TwistCredential):
+                // skip invalid TwistRequest object
+                continue 2;
+            case !$fp = self::createSocket($job->request->host):
+            case !stream_set_blocking($fp, 0):
+                throw new TwistException(
+                    "Failed to connect: {$job->request->host}",
+                    0,
+                    $job->request
+                );
+            default:
+                // start sending headers
+                $job->step = self::STEP_WRITE_REQUEST_HEADERS;
+                $job->fp   = $fp;
+        }
+        return $job;
+    }
+    
+    /**
+     * Wrapper for fsockopen() or stream_socket_client().
+     * 
+     * @static
+     * @access private
+     * @param string $host
+     * @return resource(stream) or FALSE
+     */
+    private static function createSocket($host) {
+        static $flag;
+        if ($flag === null) {
+            // check if not asynchronous SSL connection opening available
+            $flag = PHP_OS === 'WINNT' || version_compare(PHP_VERSION, '5.3.1') < 0;
+        }
+        return
+            $flag ?
+            @fsockopen("ssl://{$host}", 443) :
+            @stream_socket_client("ssl://{$host}:443", $dummy, $dummy, 0, 6)
+        ;
     }
     
     /**
@@ -245,7 +314,12 @@ class TwistExecuter extends TwistUnserializable {
             ; // next step
         }
         // update history
-        $job->request->credential->setHistory($job->request->endpoint);
+        $job->request->credential->setHistory(
+            $job->request->endpoint,
+            isset($job->request->credential->history[$job->request->endpoint]) ?
+            $job->request->credential->history[$job->request->endpoint] + 1 :
+            1
+        );
         return;
     }
     
@@ -293,7 +367,7 @@ class TwistExecuter extends TwistUnserializable {
      * @static
      * @access private
      * @param stdClass $job
-     * @return array<stdClass or array or TwistException>
+     * @return array<stdClass or array or TwistException> or NULL
      */
     private static function readResponseLonged(stdClass $job) {
         if (is_string($buffers = self::freadUntilLength($job->fp, $job->buffer, $job->length))) {
@@ -302,10 +376,7 @@ class TwistExecuter extends TwistUnserializable {
             return;
         }
         $job->step = self::STEP_FINISHED; // next step
-        $buffers[0] = gzinflate(substr($buffers[0], 10, -8));
-        $buffers[0] = self::decode($job, $buffers[0]);
-        self::initialize($job);
-        return $buffers[0];
+        return self::decode($job, gzinflate(substr($buffers[0], 10, -8)));
     }
     
     /**
@@ -315,7 +386,6 @@ class TwistExecuter extends TwistUnserializable {
      * @access private
      * @throw TwistException(RuntimeException)
      * @param stdClass $job
-     * @return array<stdClass or array or TwistException>
      */
     private static function readResponseChunkedSize(stdClass $job) {
         if (is_string($buffers = self::freadUntilSeparator($job->fp, $job->size, "\r\n"))) {
@@ -325,7 +395,7 @@ class TwistExecuter extends TwistUnserializable {
         }
         switch (true) {
             case $buffers[0] === '0': // end of stream
-                $job->step = self::STEP_FINISHED; // next step
+                $job->step       = self::STEP_FINISHED; // next step
                 $job->buffer     = '';
                 $job->size       = '';
                 $job->incomplete = '';
@@ -352,7 +422,7 @@ class TwistExecuter extends TwistUnserializable {
      * @static
      * @access private
      * @param stdClass $job
-     * @return array<stdClass or array or TwistException>
+     * @return array<stdClass or array or TwistException> or NULL
      */
     private static function readResponseChunkedContent(stdClass $job) {
         if (is_string($buffers = self::freadUntilLength($job->fp, $job->buffer, $job->length))) {
@@ -400,7 +470,7 @@ class TwistExecuter extends TwistUnserializable {
                     break;
                 default:
                     // set assoc
-                    $job->info[$key] = $value;
+                    $job->info[$key] = trim($value, '"');
             }
         } else {
             // "HTTP/1.1 CODE MESSAGE"
@@ -461,7 +531,7 @@ class TwistExecuter extends TwistUnserializable {
     }
     
     /**
-     * Decode various types of response. 
+     * Decode wrapper function.
      * 
      * @static
      * @access private
@@ -471,6 +541,37 @@ class TwistExecuter extends TwistUnserializable {
      * @return mixed stdClass or array or TwistException
      */
     private static function decode(stdClass $job, $value) {
+        if (in_array(
+            $job->request->endpoint,
+            array('/oauth/authorize', '/oauth/authenticate'),
+            true
+        )) {
+            $object = self::decodeScraping($job, $value);
+        } else {
+            $object = self::decodeNormal($job, $value);
+        }
+        if ($object instanceof TwistException and $job->request->throw) {
+            throw $object;
+        }
+        if ($job->request->login and $job->request->endpoint !== '/oauth/access_token') {
+            $job->request->proceed();
+            self::initialize($job);
+            self::connect($job);
+            return null;
+        }
+        return $object;
+    }
+    
+    /**
+     * Decode various types of normal response. 
+     * 
+     * @static
+     * @access private
+     * @param stdClass $job
+     * @param string $value
+     * @return mixed stdClass or array or TwistException
+     */
+    private static function decodeNormal(stdClass $job, $value) {
         switch (true) {
             // try decoding as json
             case null !== $object = json_decode($value):
@@ -493,16 +594,14 @@ class TwistExecuter extends TwistUnserializable {
         // update user credentials
         if (isset($object->oauth_token, $object->oauth_token_secret)) {
             if (isset($object->screen_name, $object->user_id)) {
-                $job->request->credential->screenName = $object->screen_name;
-                $job->request->credential->userId = $object->userId;
+                $job->request->credential->setScreenName($object->screen_name);
+                $job->request->credential->setUserId($object->user_id);
             }
-            if ($job->endpoint === '/oauth/request_token') {
-                $job->request->credential->requestToken       = $object->oauth_token;
-                $job->request->credential->requestTokenSecret = $object->oauth_token_secret;
+            if ($job->request->endpoint === '/oauth/request_token') {
+                $job->request->credential->setRequestToken($object->oauth_token, $object->oauth_token_secret);
             }
-            if ($job->endpoint === '/oauth/access_token') {
-                $job->request->credential->accessToken       = $object->oauth_token;
-                $job->request->credential->accessTokenSecret = $object->oauth_token_secret;
+            if ($job->request->endpoint === '/oauth/access_token') {
+                $job->request->credential->setAccessToken($object->oauth_token, $object->oauth_token_secret);
             }
         }
         // set xAuth info
@@ -526,11 +625,57 @@ class TwistExecuter extends TwistUnserializable {
                     $job->request
                 );
         }
-        // return response
-        if ($object instanceof TwistException and $job->request->throw) {
-            throw $object;
-        }
         return $object;
+    }
+    
+    /**
+     * Decode response on scraping.
+     * 
+     * @static
+     * @access private
+     * @param stdClass $job
+     * @param string $value
+     * @return mixed stdClass or array or TwistException
+     */
+    private static function decodeScraping(stdClass $job, $value) {
+        if ($job->request->method === 'GET') {
+            // fetch authenticity_token
+            $pattern = '@<input name="authenticity_token" type="hidden" value="([^"]++)" />@';
+            if (!preg_match($pattern, $value, $matches)) {
+                return new TwistException(
+                    'Failed to fetch authenticity_token.',
+                    (int)$job->info['code'],
+                    $job->request
+                );
+            }
+            $job->request->credential->setAuthenticityToken($matches[1]);
+            return (object)array('authenticity_token' => $matches[1]);
+        } else {
+            // fetch oauth_verifier
+            $pattern = '@oauth_verifier=([^"]++)"|<code>([^<]++)</code>@';
+            if (!preg_match($pattern, $value, $matches)) {
+                return new TwistException(
+                    'Wrong screenName or password.',
+                    (int)$job->info['code'],
+                    $job->request
+                );
+            }
+            $match = implode('', array_slice($matches, 1));
+            $job->request->credential->setVerifier($match);
+            return (object)array('oauth_verifier' => $match);
+        }
+    }
+    
+    /**
+     * Callback for constructor.
+     * 
+     * @access private
+     * @param TwistRequest $request
+     */
+    private function setRequest(TwistRequest $request) {
+        $job = self::initialize();
+        $job->request = $request;
+        $this->jobs[] = $job;
     }
     
 }

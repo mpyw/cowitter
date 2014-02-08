@@ -1,14 +1,11 @@
 <?php
 
 chdir(__DIR__);
-$buffers = array();
-foreach (glob('*.php') as $name) {
-    if ($name === 'build.php') {
-        continue;
-    }
+$buffers = array(file_get_contents('VersionChecker.php'));
+foreach (glob('Twist*.php') as $name) {
     $buffers[] = file_get_contents($name, false, null, 5);
 }
-file_put_contents('../build/TwistOAuth.php', '<?php' . implode(' ', $buffers));
+file_put_contents('../build/TwistOAuth.php', implode(' ', $buffers));
 file_put_contents('../build/TwistOAuth.php', compress_php_src(file_get_contents('../build/TwistOAuth.php')));
 
 function compress_php_src($src) {
@@ -122,9 +119,6 @@ function compress_php_src($src) {
                 } elseif($tn == T_COMMENT || $tn == T_DOC_COMMENT) {
                     $iw = true;
                 } else {
-                    if(!$ih) {
-                        //$ts = strtolower($ts);
-                    }
                     $new .= $ts;
                     $iw = false;
                 }

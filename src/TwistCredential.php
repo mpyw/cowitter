@@ -3,15 +3,18 @@
 /**
  * Consumer Keys and OAuth Tokens are bundled here.
  * 
+ * @property-read string $userAgent
  * @property-read string $consumerKey
  * @property-read string $consumerSecret
  * @property-read string $requestToken
  * @property-read string $requestTokenSecret
  * @property-read string $accessToken
  * @property-read string $accessTokenSecret
- * @property-read string $screenName
  * @property-read string $userId
- * @property-read string $userAgent
+ * @property-read string $screenName
+ * @property-read string $password
+ * @property-read string $authenticityToken
+ * @property-read string $verifier
  * @property-read array<string, string> $history
  * @property-read array<string, string> $cookies
  *
@@ -24,17 +27,30 @@ class TwistCredential extends TwistBase {
     *
     * @var string 
     */
-    private $consumerKey        = '';
-    private $consumerSecret     = '';
-    private $requestToken       = ''; // automatically set after "oauth/request_token" calls.
-    private $requestTokenSecret = ''; // automatically set after "oauth/request_token" calls.
-    private $accessToken        = ''; // automatically set after "oauth/access_token" calls.
-    private $accessTokenSecret  = ''; // automatically set after "oauth/access_token" calls.
-    private $authenticityToken  = ''; // automatically set after first "oauth/authenticate" "oauth/authorize" calls.
-    private $verifier           = ''; // automatically set after second "oauth/authenticate" "oauth/authorize" calls.
-    private $screenName         = ''; // automatically set after "oauth/access_token" calls.
-    private $userId             = ''; // automatically set after "oauth/access_token" calls.
-    private $userAgent          = 'TwistOAuth';
+    // required.
+    private $userAgent = 'TwistOAuth';
+    // required.
+    private $consumerKey = '';
+    // required.
+    private $consumerSecret = '';
+    // automatically set after "oauth/request_token" calls.
+    private $requestToken = '';
+    // automatically set after "oauth/request_token" calls.
+    private $requestTokenSecret = '';
+    // automatically set after "oauth/access_token" calls.
+    private $accessToken = ''; 
+    // automatically set after "oauth/access_token" calls.
+    private $accessTokenSecret = '';
+    // automatically set after "oauth/access_token" calls.
+    private $userId = ''; 
+    // automatically set after "oauth/access_token" calls. used for Para-xAuth authorization.
+    private $screenName = '';
+    // used for Para-xAuth authorization.
+    private $password = '';
+    // automatically set after "GET oauth/authorize" "GET oauth/authenticate" calls. used for Para-xAuth authorization.
+    private $authenticityToken = '';
+    // automatically set after "POST oauth/authorize" "POST oauth/authenticate" calls. used for Para-xAuth authorization.
+    private $verifier = ''; 
     
    /**
     * API call history.
@@ -54,36 +70,45 @@ class TwistCredential extends TwistBase {
      * Constructor.
      * 
      * @magic
+     * @final
      * @access public
      * @param string [$consumerKey]
      * @param string [$consumerSecret]
      * @param string [$accessToken]
      * @param string [$accessTokenSecret]
+     * @param string [$screenName]
+     * @param string [$password]
      */
-    public function __construct(
+    final public function __construct(
         $consumerKey       = '',
         $consumerSecret    = '',
         $accessToken       = '',
-        $accessTokenSecret = ''
+        $accessTokenSecret = '',
+        $screenName        = '',
+        $password          = ''
     ) {
         $this->setConsumer($consumerKey, $consumerSecret)
-             ->setAccessToken($accessToken, $accessTokenSecret);
+             ->setAccessToken($accessToken, $accessTokenSecret)
+             ->setScreenName($screenName)
+             ->setPassword($password)
+        ;
     }
     
     /**
      * Stringificator.
      *
      * @magic
+     * @final
      * @access public
      * @return string
      */
-    public function __toString() {
+    final public function __toString() {
         $string = '';
         if ($this->screenName !== '') {
-            $string .= $this->screenName;
+            $string .= "@{$this->screenName}";
         }
         if ($this->userId !== '') {
-            $string .= "({$this->userId})";
+            $string .= "(#{$this->userId})";
         }
         return $string;
     }
@@ -106,14 +131,29 @@ class TwistCredential extends TwistBase {
     }
     
     /**
+     * Set userAgent.
+     * 
+     * @final
+     * @access public
+     * @param string [$userId]
+     * @param string [$screenName]
+     * @return TwistCredential $this
+     */
+    final public function setUserAgent($userAgent) {
+        $this->userAgent = self::filter($userAgent);
+        return $this;
+    }
+    
+    /**
      * Set consumerKey and consumerSecret.
      * 
+     * @final
      * @access public
      * @param string [$consumerKey]
      * @param string [$consumerSecret]
      * @return TwistCredential $this
      */
-    public function setConsumer($consumerKey = '', $consumerSecret = '') {
+    final public function setConsumer($consumerKey = '', $consumerSecret = '') {
         $this->consumerKey    = self::filter($consumerKey);
         $this->consumerSecret = self::filter($consumerSecret);
         return $this;
@@ -122,12 +162,13 @@ class TwistCredential extends TwistBase {
     /**
      * Set requestToken and requestTokenSecret.
      * 
+     * @final
      * @access public
      * @param string [$requestToken]
      * @param string [$requestTokenSecret]
      * @return TwistCredential $this
      */
-    public function setRequestToken($requestToken = '', $requestTokenSecret = '') {
+    final public function setRequestToken($requestToken = '', $requestTokenSecret = '') {
         $this->requestToken       = self::filter($requestToken);
         $this->requestTokenSecret = self::filter($requestTokenSecret);
         return $this;
@@ -136,25 +177,66 @@ class TwistCredential extends TwistBase {
     /**
      * Set accessToken and accessTokenSecret.
      * 
+     * @final
      * @access public
      * @param string [$requestToken]
      * @param string [$requestTokenSecret]
      * @return TwistCredential $this
      */
-    public function setAccessToken($accessToken = '', $accessTokenSecret = '') {
+    final public function setAccessToken($accessToken = '', $accessTokenSecret = '') {
         $this->accessToken       = self::filter($accessToken);
         $this->accessTokenSecret = self::filter($accessTokenSecret);
         return $this;
     }
     
     /**
+     * Set userId.
+     * 
+     * @final
+     * @access public
+     * @param string [$userId]
+     * @return TwistCredential $this
+     */
+    final public function setUserId($userId = '') {
+        $this->userId = self::filter($userId);
+        return $this;
+    }
+    
+    /**
+     * Set screenName.
+     * 
+     * @final
+     * @access public
+     * @param string [$screenName]
+     * @return TwistCredential $this
+     */
+    final public function setScreenName($screenName = '') {
+        $this->screenName = self::filter($screenName);
+        return $this;
+    }
+    
+    /**
+     * Set password.
+     * 
+     * @final
+     * @access public
+     * @param string [$password]
+     * @return TwistCredential $this
+     */
+    final public function setPassword($password = '') {
+        $this->password = self::filter($password);
+        return $this;
+    }
+    
+    /**
      * Set authenticityToken.
      * 
+     * @final
      * @access public
      * @param string [$authenticityToken]
      * @return TwistCredential $this
      */
-    public function setAuthenticityToken($authenticityToken = '') {
+    final public function setAuthenticityToken($authenticityToken = '') {
         $this->authenticityToken = self::filter($authenticityToken);
         return $this;
     }
@@ -162,93 +244,69 @@ class TwistCredential extends TwistBase {
     /**
      * Set verifier.
      * 
+     * @final
      * @access public
      * @param string [$verifier]
      * @return TwistCredential $this
      */
-    public function setVerifier($verifier = '') {
+    final public function setVerifier($verifier = '') {
         $this->verifier = self::filter($verifier);
-        return $this;
-    }
-    
-    /**
-     * Set userId and screenName.
-     * 
-     * @access public
-     * @param string [$userId]
-     * @param string [$screenName]
-     * @return TwistCredential $this
-     */
-    public function setUserInfo($userId = '', $screenName = '') {
-        $this->userId     = self::filter($userId);
-        $this->screenName = self::filter($screenName);
-        return $this;
-    }
-    
-    /**
-     * Set userAgent.
-     * 
-     * @access public
-     * @param string [$userId]
-     * @param string [$screenName]
-     * @return TwistCredential $this
-     */
-    public function setUserAgent($userAgent) {
-        $this->userAgent = self::filter($userAgent);
         return $this;
     }
     
     /**
      * Get auth URL for "GET oauth/authorize"
      * 
+     * @final
      * @access public
      * @param bool $force_login
      * @return string
      */ 
-    public function getAuthorizeUrl($force_login = false) {
+    final public function getAuthorizeUrl($force_login = false) {
         return $this->getAuthUrl('authorize', $force_login);
     }
     
     /**
      * Get auth URL for "GET oauth/authenticate"
      *
+     * @final
      * @access public
      * @param bool $force_login
      * @return string
      */ 
-    public function getAuthenticateUrl($force_login = false) {
+    final public function getAuthenticateUrl($force_login = false) {
         return $this->getAuthUrl('authenticate', $force_login);
     }
     
     /**
      * Set API call history.
      *
+     * @final
      * @access public
      * @param string $name
+     * @param int $value
      * @return TwistCredential $this
      */ 
-    public function setHistory($name) {
-        $name = self::filter($name);
-        // insert 0 on duplicate key update +1
-        $this->history += array($name => 0);
-        ++$this->history[$name];
+    final public function setHistory($name, $value) {
+        $this->history[self::filter($name)] = (int)$value;
         return $this;
     }
     
     /**
      * Set cookie mainly for scraping.
      *
+     * @final
      * @access public
      * @param string $name
      * @return TwistCredential $this
      */ 
-    public function setCookie($key, $value) {
+    final public function setCookie($key, $value) {
         $this->cookies[self::filter($key)] = self::filter($value);
         return $this;
     }
     
     /**
-     * Get authorrize or authenticate URL.
+     * Get authorize or authenticate URL.
      *
      * @access private
      * @param string $mode "authorize" or "authenticate"
