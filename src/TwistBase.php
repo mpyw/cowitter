@@ -34,7 +34,7 @@ abstract class TwistBase {
         $output = array();
         foreach ((array)$input as $key => $value) {
             // force (X - 1) demention
-            $output[self::filter($key)] = self::filter($array_demention - 1);
+            $output[self::filter($key)] = self::filter($value, $array_demention - 1);
         }
         return $output;
     }

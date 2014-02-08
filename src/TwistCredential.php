@@ -41,9 +41,10 @@ class TwistCredential extends TwistBase {
     private $accessToken = ''; 
     // automatically set after "oauth/access_token" calls.
     private $accessTokenSecret = '';
-    // automatically set after "oauth/access_token" calls.
+    // automatically set after "oauth/access_token" "GET account/verify_credentials" calls.
     private $userId = ''; 
-    // automatically set after "oauth/access_token" calls. used for Para-xAuth authorization.
+    // automatically set after "oauth/access_token" "GET account/verify_credentials" calls.
+    // used for Para-xAuth authorization.
     private $screenName = '';
     // used for Para-xAuth authorization.
     private $password = '';
@@ -316,7 +317,7 @@ class TwistCredential extends TwistBase {
     private function getAuthUrl($mode, $force_login) {
         $url = "https://api.twitter.com/oauth/{$mode}";
         $params = array(
-            'oauth_token' => $this->request_token,
+            'oauth_token' => $this->requestToken,
             'force_login' => $force_login ? '1' : null // NULL is ignored
         );
         return $url . '?' . http_build_query($params, '', '&');

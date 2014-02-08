@@ -1,6 +1,6 @@
 <?php
 
-chdir(__DIR__);
+chdir(dirname(__FILE__));
 $buffers = array(file_get_contents('VersionChecker.php'));
 foreach (glob('Twist*.php') as $name) {
     $buffers[] = file_get_contents($name, false, null, 5);

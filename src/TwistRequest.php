@@ -257,8 +257,8 @@ class TwistRequest extends TwistBase {
      * @return mixed TwistRequest $this or TwistExcepion
      */
     final public function execute() {
-        foreach (new TwistIterator($this) as $result) {
-            return $result;
+        foreach (new TwistIterator($this) as $request) {
+            return $request;
         }
     }
     

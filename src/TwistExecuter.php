@@ -378,7 +378,10 @@ class TwistExecuter extends TwistUnserializable {
             return;
         }
         $job->step = self::STEP_FINISHED; // next step
-        return self::decode($job, gzinflate(substr($buffers[0], 10, -8)));
+        if (isset($job->info['content-encoding'])) {
+            $buffers[0] = gzinflate(substr($buffers[0], 10, -8));
+        }
+        return self::decode($job, $buffers[0]);
     }
     
     /**
@@ -438,14 +441,14 @@ class TwistExecuter extends TwistUnserializable {
         $job->step   = self::STEP_READ_RESPONSE_CHUNKED_SIZE; // next step
         if (substr($buffers[0], -1) === "\n") {
             // end of message
-            $value           = $job->incomplete . substr($buffers[0], 0, -1);
+            $value           = $job->incomplete . $buffers[0];
             $job->size       = $buffers[1];
             $job->incomplete = '';
-            return self::decode($job, $value);
+            return preg_match('/\A\s*+\z/', $buffers[0]) ? null : self::decode($job, $value);
         }
         // incomplete message
-        $job->size       = $buffers[1];
-        $job->incomplete = $buffers[0];
+        $job->size       += $buffers[1];
+        $job->incomplete .= $buffers[0];
         return;
     }
     
@@ -604,6 +607,12 @@ class TwistExecuter extends TwistUnserializable {
             }
             if ($job->request->endpoint === '/oauth/access_token') {
                 $job->request->credential->setAccessToken($object->oauth_token, $object->oauth_token_secret);
+            }
+        }
+        if ($job->request->endpoint === '/1.1/account/verify_credentials.json') {
+            if (isset($object->screen_name, $object->id_str)) {
+                $job->request->credential->setScreenName($object->screen_name);
+                $job->request->credential->setUserId($object->id_str);
             }
         }
         // set xAuth info
