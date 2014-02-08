@@ -7,8 +7,7 @@ set_time_limit(0);
 
 try {
     
-    $tc = new TwistCredential(CK, CS, AT, ATS);
-    TwistRequest::getAuto('account/verify_credentials', '', $tc)->execute();
+    $tc = new TwistCredential(CK, CS, AT, ATS, SN, '');
     $ust = TwistRequest::getAuto('user', '', $tc);
     $upd = TwistRequest::post('account/update_profile', '', $tc);  
     foreach (new TwistIterator($ust) as $ust) {
