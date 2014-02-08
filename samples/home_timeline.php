@@ -24,7 +24,7 @@ echo "\n";
 
 // Manual Mode
 $req = TwistRequest::getAuto(
-    'statuses/user_timeline',
+    'statuses/home_timeline',
     'count=3',
     $tc
 );
