@@ -23,7 +23,7 @@ try {
 echo "\n";
 
 // Manual Mode
-$req = TwistRequest::getAuto(
+$req = TwistRequest::get(
     'statuses/home_timeline',
     'count=3',
     $tc
