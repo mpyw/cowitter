@@ -2,4 +2,10 @@ TwistOAuth - changelog
 ========================
 
 0.1.0 (2014-02-05)
-First Release
++ First Release
+
+0.2.0 (2014-02-08)
++ Add version checker
++ Renamed some classes
++ Supported Para-xAuth authorization
++ Fixed some bugs
