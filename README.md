@@ -1,15 +1,15 @@
 TwistOAuth
 ==========
 
-Highly object-oriented PHP Twitter library for RESTAPIs and StreamingAPIs.  
-All `src` files are packed into `build` file.
+Highly object-oriented PHP Twitter library for REST APIs and Streaming APIs.  
+All `src` files are compressed into `build` file.
 
-Comparison with other libraries
+Comparison With Other Libraries
 ===============================
 
 | Item   | tmhOAuth | twitteroauth | codebird | twitter-async | UltimateOAuth | TwistOAuth |
 | :----: | :------: | :----------: | :------: | :-----------: | :-----------: | :--------: |
-| **Supported PHP version (as far back) | 5.1.2 | 5.2.0 | 5.3.0 | 5.2.0 | 5.2.0 | 5.2.0** |
+| **Supported PHP version (as far back)** | 5.1.2 | 5.2.0 | 5.3.0 | 5.2.0 | 5.2.0 | 5.2.0 |
 | **Connection** | cURL | cURL | cURL | cURL | Socket | Socket |
 | **Automatically decode responses** | No | Yes | Yes | Yes | Yes | Yes |
 | **Automatically fix weird responses** | No | No | Yes | Partial | Yes | Yes |
@@ -19,12 +19,12 @@ Comparison with other libraries
 | **Multiple streamings** | No | No | No | No | No | Yes |
 | **OAuth 2.0** | Yes | No | Yes | No | No | No |
 | **Uploading images** | Yes | No | Yes | Yes | Yes | Yes |
-| **Asynchronized requests** | No | No | No | Yes | Yes | Yes |
+| **Asynchronous requests** | No | No | No | Yes | Yes | Yes |
 | **Para-xAuth authorization** | No | No | No | No | Yes | Yes |
 | **Avoid API Limits** | No | No | No | No | Yes | Yes |
 
-Overview of classes
-===================
+Class Overview
+==============
 
 TwistException
 --------------
@@ -108,16 +108,33 @@ TwistException
 
 ### Properties
 
-### final public __construct()
+### final public string getMessage()
+
+Return error message.
+
+### final public int getCode()
+
+Return **HTTP Status Code**.
+
+### final public mixed getRequest()
+
+Return `TwistRequest` instance on which an error occurred.  
+In the case of error on `stream_select()`, the return value will be **null**.
 
 ### final public string __toString()
 
-### final public TwistRequest getRequest()
+Return string according to the following format.
+
+```php
+return sprintf('[%d] %s', $this->getCode(), $this->getMessage());
+```
 
 TwistCredential
 ---------------
 
 ### Properties
+
+#### Prototype
 
 - **User Agent**
 
@@ -160,76 +177,330 @@ private readonly string $password   = '';
 
 Constructor.
 
+#### Prototype
+
 ```php
-$TwistCredential = new TwistCredential(
-    (string) $consumerKey       = '', // Required.
-    (string) $consumerSecret    = '', // Required.
-    (string) $accessToken       = '', // Required unless authorize or authenticate later.
-    (string) $accessTokenSecret = '', // Required unless authorize or authenticate later.
-    (string) $screenName        = '', // Required if Para-xAuth authorize later.
-    (string) $password          = ''  // Required if Para-xAuth authorize later.
+new TwistCredential(
+    string $consumerKey       = '', // Required.
+    string $consumerSecret    = '', // Required.
+    string $accessToken       = '', // Required unless authorize or authenticate later.
+    string $accessTokenSecret = '', // Required unless authorize or authenticate later.
+    string $screenName        = '', // Required if Para-xAuth authorize later.
+    string $password          = ''  // Required if Para-xAuth authorize later.
 )
 ```
 
 ### final public string __toString()
 
-### final public mixed __get()
-
-Getter for properties.
+Return string according to the following format.
 
 ```php
-$userAgent          = $TwistCredential->userAgent;
-$consumerKey        = $TwistCredential->consumerKey;
-$consumerSecret     = $TwistCredential->consumerSecret;
-$requestToken       = $TwistCredential->requestToken;
-$requestTokenSecret = $TwistCredential->requestTokenSecret;
-$userId             = $TwistCredential->userId;
-$screenName         = $TwistCredential->screenName;
-$password           = $TwistCredential->password;
-$verifier           = $TwistCredential->verifier;
+$string = '';
+if ($this->screenName !== '') {
+    $string .= "@{$this->screenName}";
+}
+if ($this->userId !== '') {
+    $string .= "(#{$this->userId})";
+}
+return $string;
 ```
 
 ### final public `$this` setUserAgent()<br />final public `$this` setConsumer()<br />final public `$this` setRequestToken()<br />final public `$this` setAccessToken()<br />final public `$this` setUserId()<br />final public `$this` setScreenName()<br />final public `$this` setPassword()<br />final public `$this` setVerifier()
 
-### final public string getAuthorizeUrl()<br />final public string getAuthenticateUrl()
+Setter for properties.
 
-### final public string getAuthorizeUrl()<br />final public string getAuthenticateUrl()
+#### Prototype
+
+```php
+$TwistCredential
+    ->setUserAgent    (string $userAgent    = '')
+    ->setConsumer     (string $consumerKey  = '', string $consumerSecret     = '')
+    ->setRequestToken (string $requestToken = '', string $requestTokenSecret = '')
+    ->setAccessToken  (string $accessToken  = '', string $accessTokenSecret  = '')
+    ->setUserId       (string $userId       = '')
+    ->setScreenName   (string $screenName   = '')
+    ->setPassword     (string $password     = '')
+    ->setVerifier     (string $verifier     = '')
+```
+
+### final public string getAuthenticateUrl()<br />final public string getAuthorizeUrl()
+
+Return URL for **authentication** or **authorization**.
+
+#### Prototype
+
+```php
+(string) $TwistCredential->getAuthenticateUrl (bool $force_login = false)
+(string) $TwistCredential->getAuthorizeUrl    (bool $force_login = false)
+```
+
+#### Note: What is the difference between *Authenticate* and *Authorize* ?
+
+|                | Authenticate  |  Authorize   |
+| :-------------: |:---------------:| :-----------:|
+| New User,<br />Authed User on **force_login** | Jump to Twitter | Jump to Twitter |
+| Authed User   | Jump to Twitter, however, if you set your application<br /> **__Allow this application to be used to Sign in with Twitter__**, <br />quickly jump back to your callback URL.  |  Jump to Twitter  |
 
 TwistRequest
 ------------
 
+This class has a private constructor.  
+Use static **factory methods** instead.
+
 ### Properties
+
+#### Prototype
+
+```php
+private readonly string $host;     // e.g. "api.twitter.com"
+private readonly string $endpoint; // e.g. "/1.1/statuses/update.json"
+private readonly string $method;   // e.g. "POST"
+private readonly TwistCredential $credential;
+private readonly mixed $response;  // Response object is set here
+```
 
 ### final public static TwistRequest get()<br />final public static TwistRequest getAuto()<br />final public static TwistRequest post()<br />final public static TwistRequest postAuto()<br />final public static TwistRequest send()
 
+Create a new `TwistRequest` instance for specified request.  
+`$params` and `$credential` can be altered later.
+
+- `get` `getAuto` are used for **GET** requests.
+- `post` `postAuto` `send` are used for **POST** requests.
+- `getAuto` `postAuto` automatically throw `TwistException`.
+- `send` never waits responses.
+
+#### Prototype
+
+```php
+(TwistRequest) TwistRequest::get      (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
+(TwistRequest) TwistRequest::getAuto  (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
+(TwistRequest) TwistRequest::post     (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
+(TwistRequest) TwistRequest::postAuto (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
+(TwistRequest) TwistRequest::send     (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
+```
+
+#### Examples
+
+Each request has same meaning on each group.
+
+```php
+$TwistRequest = TwistRequest::getAuto('users/show'); 
+$TwistRequest = TwistRequest::getAuto('users/show.json');
+$TwistRequest = TwistRequest::getAuto('users/show.json?');
+$TwistRequest = TwistRequest::getAuto('users/show?');
+$TwistRequest = TwistRequest::getAuto('/users/show');
+$TwistRequest = TwistRequest::getAuto('1.1/users/show'); 
+$TwistRequest = TwistRequest::getAuto('/1.1/users/show'); 
+$TwistRequest = TwistRequest::getAuto('https://api.twitter.com/1.1/users/show.json'); 
+```
+
+```php
+$TwistRequest = TwistRequest::getAuto('users/show', array('id' => '12345')); 
+$TwistRequest = TwistRequest::getAuto('users/show', 'id=12345'); // WITHOUT URL ENCODED!!
+```
+
+```php
+$TwistRequest = TwistRequest::postAuto('account/update_profile_image', array('@image' => 'test.png'));
+$TwistRequest = TwistRequest::postAuto('account/update_profile_image', '@image=test.png');
+$TwistRequest = TwistRequest::postAuto('account/update_profile_image', array(
+    'image' => base64_encode(file_get_contents('test.png')), // BASE64 ENCODED!!
+));
+```
+
+```php
+$TwistRequest = TwistRequest::postAuto('statuses/update_with_media', array(
+    '@media[]' => 'test.png',
+    'status'   => 'TEST',
+));
+$TwistRequest = TwistRequest::postAuto('statuses/update_with_media',
+    '@media[]=test.png&status=TEST',
+);
+$TwistRequest = TwistRequest::postAuto('statuses/update_with_media', array(
+    'media[]' => file_get_contents('test.png'), // WITHOUT BASE64 ENCODED!!
+    'status'  => 'TEST',
+));
+```
+
 ### final public static TwistRequest login()
 
-### final public mixed __get()
+Provides a model for **Para-xAuth** authorization.
+
+#### Prototype
+
+```php
+(TwistRequest) TwistRequest::login(TwistCredential $credential)
+```
 
 ### final public `$this` setParams()<br />final public `$this` setCredential()
 
-### final public mixed execute()
+Setter for properties.  
+Exceptionally, the instances created by `TwistRequest::login()` cannot be applied.
 
+#### Prototype
+
+```php
+$TwistRequest
+    ->setParams     (mixed $params     = array())
+    ->setCredential (mixed $credential = null)
+```
+
+### final public `$this` mixed execute()
+
+#### Prototype
+
+```php
+$TwistRequest->execute()
+```
+
+Execute request internally using `TwistIterator` and return response.  
+
+#### Return Value Types
+
+| Methods     | Value                                                                |
+|:-----------:|:--------------------------------------------------------------------:|
+|get          | **stdClass** or **array** or `TwistException`                        |
+|post         | **stdClass** or **array** or `TwistException`                        |
+|getAuto      | **stdClass** or **array** (`TwistException` is automatically thrown) |
+|postAuto     | **stdClass** or **array** (`TwistException` is automatically thrown) |
+|send         | **null**                                                             |
+|login        | **stdClass** (`TwistException` is automatically thrown)              |
+
+#### Examples
+
+```php
+try {
+    $statuses = TwistRequest::getAuto('statuses/home_timeline', '', $credential)->execute();
+    foreach ($statuses as $status) {
+        echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
+    }
+} catch (TwistException $e) {
+    die($e);
+}
+```
+
+```php
+$statuses = TwistRequest::get('statuses/home_timeline', '', $credential)->execute();
+if ($statuses instanceof TwistException) {
+    die($statuses);
+}
+foreach ($statuses as $status) {
+    echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
+}
+```
 
 TwistIterator
 -------------
 
+Manually use this instance insteadof `$TwistRequest->execute()` for **Multiple Requests** or **Streaming Requests**.  
+
 ### final public __construct()
 
-Manually use this instance for **Multiple Requests** or **Streaming Requests**.  
-Just use `foreach` statement.
+#### Prototype
+
+```php
+$TwistIterator = new TwistIterator(TwistRequest $request1, TwistRequest $request2, ...)
+$TwistIteraotr = new TwistIterator(array<TwistRequest> $requests)
+```
+
+### final public `$this` setInterval()
+
+Set interval function called while looping `foreach` block.
+
+#### Prototype
+
+```php
+$TwistIterator->setInterval(callable $callback, float $interval = 0, array $args = array())
+```
+
+### Examples
 
 #### Example 1: Multiple REST requests
 
-#### Example 2: Single streaming requests
+```php
+$TwistRequests = array(
+    TwistRequest::send('statuses/update', 'status=@BarackObama FOO!!', $credential),
+    TwistRequest::send('statuses/update', 'status=@BarackObama BAR!!', $credential),
+    TwistRequest::send('statuses/update', 'status=@BarackObama BAZ!!', $credential),
+);
+foreach (new TwistIterator($TwistRequests) as $dummy) { }
+```
+
+#### Example 2: Single streaming request
+
+```php
+set_time_limit(0);
+try {
+    $TwistRequest = TwistRequest::getAuto('user', '', $credential);
+    foreach (new TwistIterator($TwistRequest) as $TwistRequest) {
+        var_dump($TwistRequest->response);
+    }
+} catch (TwistException $e) {
+    die($e);
+}
+```
 
 #### Example 3: Multiple streaming requests
+
+```php
+set_time_limit(0);
+try {
+    $TwistRequests = array(
+        TwistRequest::getAuto('user', '', $credential),
+        TwistRequest::getAuto('statuses/sample', '', $credential),
+        TwistRequest::postAuto('statuses/filter', 'track=youtube', $credential),
+    );
+    foreach (new TwistIterator($TwistRequests) as $TwistRequest) {
+        var_dump($TwistRequest->response);
+    }
+} catch (TwistException $e) {
+    die($e);
+}
+```
 
 TwistOAuth
 ----------
 
+Basically use this instance for **Single REST Request**.  
+In the case of **POST** method, **Only first credential** is used.  
+In the case of **GET** method, all credentials are **rotationally** used for **API limit avoidance**.  
+Unauthorized credentials are automatically tried to be authorized usnig **Para-xAuth** authorization.  
+The instances are **not serializable**! Please serialize array of `TwistCredential` itself instead.
+
 ### final public __construct()
 
+#### Prototype
+
+```php
+new TwistOAuth(TwistCredential $credential1, TwistCredential $credential2, ...)
+new TwistOAuth(array<TwistCredential> $credentials)
+```
+
 ### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public mixed send()
+
+#### Prototype
+
+```php
+(mixed) $TwistOAuth->get      (string $endpoint, mixed $params = array())
+(mixed) $TwistOAuth->getAuto  (string $endpoint, mixed $params = array())
+(mixed) $TwistOAuth->post     (string $endpoint, mixed $params = array())
+(mixed) $TwistOAuth->postAuto (string $endpoint, mixed $params = array())
+(null)  $TwistOAuth->send     (string $endpoint, mixed $params = array())
+```
+
+### Example
+
+```php
+try {
+    $TwistOAuth = new TwistOAuth($credential);
+    foreach ($TwistOAuth->getAuto('statuses/home_timeline') as $status) {
+        var_dump($stauts);
+    }
+    $TwistOAuth->postAuto('statuses/update', 'status=test');
+} catch (TwistException $e) {
+    die($e);
+}
+```
+
+
 
 
