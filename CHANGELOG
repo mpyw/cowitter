@@ -12,3 +12,8 @@ TwistOAuth - changelog
 
 0.2.1 (2014-02-09)
 + Fixed fwrite() Open SSL bug
+
+0.3.0 (2014-02-09)
++ Added TwistOAuth class
+
+
