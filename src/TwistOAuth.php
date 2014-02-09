@@ -63,12 +63,12 @@ class TwistOAuth extends TwistUnserializable {
     // Normal.
     final public function get($endpoint, $params = array()) {
         $tc = $this->autoSelect(self::filter($endpoint));
-        return TwistRequest::get($endpoint, $params, $tc)->execute()->response;
+        return TwistRequest::get($endpoint, $params, $tc)->execute();
     }
     // Automatically throw TwistException.
     final public function getAuto($endpoint, $params = array()) {
         $tc = $this->autoSelect(self::filter($endpoint));
-        return TwistRequest::getAuto($endpoint, $params, $tc)->execute()->response;
+        return TwistRequest::getAuto($endpoint, $params, $tc)->execute();
     }
     
     /**
@@ -87,15 +87,15 @@ class TwistOAuth extends TwistUnserializable {
      */
     // Normal.
     final public function post($endpoint, $params = array()) {
-        return TwistRequest::post($endpoint, $params, $this->credentials[0])->execute()->response;
+        return TwistRequest::post($endpoint, $params, $this->credentials[0])->execute();
     }
     // Automatically throw TwistException.
     final public function postAuto($endpoint, $params = array()) {
-        return TwistRequest::postAuto($endpoint, $params, $this->credentials[0])->execute()->response;
+        return TwistRequest::postAuto($endpoint, $params, $this->credentials[0])->execute();
     }
     // Receive no response.
     final public function send($endpoint, $params = array()) {
-        return TwistRequest::send($endpoint, $params, $this->credentials[0])->execute()->response;
+        return TwistRequest::send($endpoint, $params, $this->credentials[0])->execute();
     }
     
     /**

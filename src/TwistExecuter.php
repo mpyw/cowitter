@@ -116,6 +116,8 @@ class TwistExecuter extends TwistUnserializable {
     final public function start() {
         foreach ($this->jobs as $job) {
             self::initialize($job);
+            // clear response
+            $job->request->setResponse();
             switch (true) {
                 case !($job->request instanceof TwistRequest):
                 case !($job->request->credential instanceof TwistCredential):
@@ -308,14 +310,12 @@ class TwistExecuter extends TwistUnserializable {
             // reset $job::buffer with remaining bytes
             $job->buffer = (string)substr($job->buffer, $tmp);
         }
-        if ($job->buffer === '') {
-            // complated
-            $job->step =
-                $job->request->waitResponse ?
-                self::STEP_READ_RESPONSE_HEADERS :
-                self::STEP_FINISHED
-            ; // next step
-        }
+        // complated
+        $job->step =
+            $job->request->waitResponse ?
+            self::STEP_READ_RESPONSE_HEADERS :
+            self::STEP_FINISHED
+        ;
         // update history
         $job->request->credential->setHistory(
             $job->request->endpoint,

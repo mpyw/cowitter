@@ -253,12 +253,11 @@ class TwistRequest extends TwistBase {
      * 
      * @final
      * @access public
-     * @throw TwistException(RuntimeException)
-     * @return mixed TwistRequest $this or TwistExcepion
+     * @return mixed stdClass or array or TwistException or NULL
      */
     final public function execute() {
         foreach (new TwistIterator($this) as $request) {
-            return $request;
+            return $request instanceof TwistException ? $request : $request->response;
         }
     }
     

@@ -35,8 +35,8 @@ try {
     // tweet
     if (isset($_POST['tweet'])) {
         $to = new TwistOAuth($tc);
-        $result = $to->postAuto('statuses/update', array('status' => $_POST['tweet']));
-        $messages[] = "Tweeted: {$result->text}";
+        $response = $to->postAuto('statuses/update', array('status' => $_POST['tweet']));
+        $messages[] = "Tweeted: {$response->text}";
     }
 
 } catch (TwistException $e) { }

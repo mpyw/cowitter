@@ -34,9 +34,7 @@ $tc = new TwistCredential(CK, CS, AT, ATS);
 
 // [TwistRequest] Auto Exception Throw Mode
 try {
-    $response = TwistRequest::getAuto('statuses/home_timeline', 'count=3', $tc)
-                ->execute()
-                ->response;
+    $response = TwistRequest::getAuto('statuses/home_timeline', 'count=3', $tc)->execute();
     foreach ($response as $status) {
         var_dump($status->text);
     }
@@ -47,9 +45,7 @@ try {
 echo "\n";
 
 // [TwistRequest] Manual Mode
-$response = TwistRequest::get('statuses/home_timeline?count=3', '', $tc)
-            ->execute()
-            ->response;
+$response = TwistRequest::get('statuses/home_timeline?count=3', '', $tc)->execute();
 if (!($response instanceof TwistException)) {
     foreach ($response as $status) {
         var_dump($status->text);

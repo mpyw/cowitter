@@ -22,7 +22,7 @@ try {
     
     $tc = new TwistCredential(CK, CS, '', '', SN, PW);
     TwistRequest::login($tc)->execute();
-    $result = TwistRequest::postAuto('statuses/update', 'status=test', $tc)->execute()->response;
+    $result = TwistRequest::postAuto('statuses/update', 'status=test', $tc)->execute();
     var_dump($result);
     
 } catch (TwistException $e) {

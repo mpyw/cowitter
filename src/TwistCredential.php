@@ -122,7 +122,7 @@ class TwistCredential extends TwistBase {
      * @access public
      * @param string $name
      * @throw OutOfRangeException(LogicException)
-     * @return string
+     * @return mixed
      */
     final public function __get($name) {
         if (!property_exists($this, $name = self::filter($name))) {
@@ -301,8 +301,8 @@ class TwistCredential extends TwistBase {
      * @param string $name
      * @return TwistCredential $this
      */ 
-    final public function setCookie($key, $value) {
-        $this->cookies[self::filter($key)] = self::filter($value);
+    final public function setCookie($name, $value) {
+        $this->cookies[self::filter($name)] = self::filter($value);
         return $this;
     }
     
