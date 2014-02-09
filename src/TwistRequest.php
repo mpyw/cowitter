@@ -184,7 +184,7 @@ class TwistRequest extends TwistBase {
      * @access public
      * @param string $name
      * @throw OutOfRangeException(LogicException)
-     * @return string
+     * @return mixed
      */
     final public function __get($name) {
         if (!property_exists($this, $name = self::filter($name))) {

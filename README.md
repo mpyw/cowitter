@@ -9,21 +9,21 @@ Comparison with other libraries
 
 | Item   | tmhOAuth | twitteroauth | codebird | twitter-async | UltimateOAuth | TwistOAuth |
 | :----: | :------: | :----------: | :------: | :-----------: | :-----------: | :--------: |
-| Supported PHP version (as far back) | 5.1.2 | 5.2.0 | 5.3.0 | 5.2.0 | 5.2.0 | 5.2.0 |
-| Connection | cURL | cURL | cURL | cURL | Socket | Socket |
-| Automatically decode responses | No | Yes | Yes | Yes | Yes | Yes |
-| Automatically fix weird responses | No | No | Yes | Partial | Yes | Yes |
-| Exception handling | No | No | Partial | Yes | No | Yes |
-| GZIP on REST APIs | No | No | No | No | No | Yes |
-| Streaming APIs | Yes | No | No | No | No | Yes |   
-| Multiple streamings | No | No | No | No | No | Yes |
-| OAuth 2.0 | Yes | No | Yes | No | No | No |
-| Uploading images | Yes | No | Yes | Yes | Yes | Yes |
-| Asynchronize requests | No | No | No | Yes | Yes | Yes |
-| Para-xAuth authorization | No | No | No | No | Yes | Yes |
-| Avoid API Limits | No | No | No | No | Yes | Yes |
+| **Supported PHP version (as far back) | 5.1.2 | 5.2.0 | 5.3.0 | 5.2.0 | 5.2.0 | 5.2.0** |
+| **Connection** | cURL | cURL | cURL | cURL | Socket | Socket |
+| **Automatically decode responses** | No | Yes | Yes | Yes | Yes | Yes |
+| **Automatically fix weird responses** | No | No | Yes | Partial | Yes | Yes |
+| **Exception handling** | No | No | Partial | Yes | No | Yes |
+| **GZIP on REST APIs** | No | No | No | No | No | Yes |
+| **Streaming APIs** | Yes | No | No | No | No | Yes |   
+| **Multiple streamings** | No | No | No | No | No | Yes |
+| **OAuth 2.0** | Yes | No | Yes | No | No | No |
+| **Uploading images** | Yes | No | Yes | Yes | Yes | Yes |
+| **Asynchronized requests** | No | No | No | Yes | Yes | Yes |
+| **Para-xAuth authorization** | No | No | No | No | Yes | Yes |
+| **Avoid API Limits** | No | No | No | No | Yes | Yes |
 
-Overview of Clasess
+Overview of classes
 ===================
 
 TwistException
@@ -98,25 +98,26 @@ class TwistOAuth extends TwistUnserializable
 Wrapper for `TwistCredential` and `TwistRequest` and `TwistIterator`.  
 This instance also provides you **API limit avoidance**.  
 
-Methods and Properties
-======================
+Class Details
+=============
 
-Only important classes are documented here.
+Only important classes, properties and methods are documented here.
 
-TwistException - Properties
----------------------------
+TwistException
+--------------
 
-final public TwistCredential::__construct()
--------------------------------------------
+### Properties
 
-final public string TwistCredential::__toString()
-------------------------------------------------
+### final public __construct()
 
-final public TwistRequest TwistCredential::getRequest()
--------------------------------------------------------
+### final public string __toString()
 
-TwistCredential - Properties
-----------------------------
+### final public TwistRequest getRequest()
+
+TwistCredential
+---------------
+
+### Properties
 
 - **User Agent**
 
@@ -151,26 +152,11 @@ private readonly string $screenName = '';
 - **Parameters for Para-xAuth authorization**
 
 ```php
-private readonly string $screenName        = '';
-private readonly string $password          = '';
-private readonly string $authenticityToken = '';
-private readonly string $verifier          = '';
+private readonly string $screenName = '';
+private readonly string $password   = '';
 ```
 
-- **API call history**
-
-```php
-private readonly array<string, string> $history = array();
-```
-
-- **Cookies**
-
-```php
-private readonly array<string, string> $cookies = array();
-```
-
-final public TwistCredential::__construct()
--------------------------------------------
+### final public __construct()
 
 Constructor.
 
@@ -185,12 +171,9 @@ $TwistCredential = new TwistCredential(
 )
 ```
 
-final public string TwistCredential::__toString()
------------------------------------------------
+### final public string __toString()
 
-
-final public mixed TwistCredential::__get()
--------------------------------------------
+### final public mixed __get()
 
 Getter for properties.
 
@@ -203,27 +186,50 @@ $requestTokenSecret = $TwistCredential->requestTokenSecret;
 $userId             = $TwistCredential->userId;
 $screenName         = $TwistCredential->screenName;
 $password           = $TwistCredential->password;
-$authenticityToken  = $TwistCredential->authenticityToken;
 $verifier           = $TwistCredential->verifier;
-$history            = $TwistCredential->history;
 ```
 
-final public `$this` TwistCredential::setUserAgent()<br />final public `$this` TwistCredential::setConsumer()<br />final public `$this` TwistCredential::setRequestToken()<br />final public `$this` TwistCredential::setAccessToken()<br />final public `$this` TwistCredential::setUserId()<br />final public `$this` TwistCredential::setScreenName()<br />
-final public `$this` TwistCredential::setPassword()<br />
-final public `$this` TwistCredential::setAuthenticityToken()<br />
-final public `$this` TwistCredential::setVerifier()
----------------------------------------------------
+### final public `$this` setUserAgent()<br />final public `$this` setConsumer()<br />final public `$this` setRequestToken()<br />final public `$this` setAccessToken()<br />final public `$this` setUserId()<br />final public `$this` setScreenName()<br />final public `$this` setPassword()<br />final public `$this` setVerifier()
 
-final public `$this` TwistCredential::setHistory()<br />final public `$this` TwistCredential::setCookie()
----------------------------------------------------
+### final public string getAuthorizeUrl()<br />final public string getAuthenticateUrl()
 
-final public string TwistCredential::getAuthorizeUrl()<br />final public string TwistCredential::getAuthenticateUrl()
--------------------------------------
+### final public string getAuthorizeUrl()<br />final public string getAuthenticateUrl()
+
+TwistRequest
+------------
+
+### Properties
+
+### final public static TwistRequest get()<br />final public static TwistRequest getAuto()<br />final public static TwistRequest post()<br />final public static TwistRequest postAuto()<br />final public static TwistRequest send()
+
+### final public static TwistRequest login()
+
+### final public mixed __get()
+
+### final public `$this` setParams()<br />final public `$this` setCredential()
+
+### final public mixed execute()
 
 
+TwistIterator
+-------------
 
+### final public __construct()
 
+Manually use this instance for **Multiple Requests** or **Streaming Requests**.  
+Just use `foreach` statement.
 
+#### Example 1: Multiple REST requests
 
+#### Example 2: Single streaming requests
+
+#### Example 3: Multiple streaming requests
+
+TwistOAuth
+----------
+
+### final public __construct()
+
+### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public mixed send()
 
 
