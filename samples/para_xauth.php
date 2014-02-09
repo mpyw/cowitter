@@ -4,12 +4,25 @@ require 'settings.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
+// [TwistOAuth] Auto Authorization
 try {
     
-    $tc = new TwistCredential(CK, CS);
-    $tc->setScreenName(SN)->setPassword(PW);
+    $to = new TwistOAuth(new TwistCredential(CK, CS, '', '', SN, PW));
+    $result = $to->postAuto('statuses/update', 'status=test');
+    var_dump($result);
+    
+} catch (TwistException $e) {
+
+    var_dump($e->__toString());
+    
+}
+
+// [TwistRequest] Manual Authorizatin
+try {
+    
+    $tc = new TwistCredential(CK, CS, '', '', SN, PW);
     TwistRequest::login($tc)->execute();
-    $result = TwistRequest::post('statuses/update', 'status=test', $tc)->execute()->response;
+    $result = TwistRequest::postAuto('statuses/update', 'status=test', $tc)->execute()->response;
     var_dump($result);
     
 } catch (TwistException $e) {

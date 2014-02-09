@@ -4,16 +4,12 @@ require 'settings.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
-$tc = new TwistCredential(CK, CS, AT, ATS);
+$to = new TwistOAuth(new TwistCredential(CK, CS, AT, ATS));
 
-// Auto Exception Throw Mode
+// [TwistOAuth] Auto Exception Throw Mode
 try {
-    $req = TwistRequest::getAuto(
-        'statuses/home_timeline',
-        array('count' => 3),
-        $tc
-    );
-    foreach ($req->execute()->response as $status) {
+    $response = $to->getAuto('statuses/home_timeline', array('count' => 3));
+    foreach ($response as $status) {
         var_dump($status->text);
     }
 } catch (TwistException $e) {
@@ -22,15 +18,40 @@ try {
 
 echo "\n";
 
-// Manual Mode
-$req = TwistRequest::get(
-    'statuses/home_timeline',
-    'count=3',
-    $tc
-);
-$result = $req->execute()->response;
-if (!($result instanceof TwistException)) {
-    foreach ($result as $status) {
+// [TwistOAuth] Manual Mode
+$response = $to->get('statuses/home_timeline', 'count=3');
+if (!($response instanceof TwistException)) {
+    foreach ($response as $status) {
+        var_dump($status->text);
+    }
+} else {
+    var_dump($result->__toString());
+}
+
+echo "\n";
+
+$tc = new TwistCredential(CK, CS, AT, ATS);
+
+// [TwistRequest] Auto Exception Throw Mode
+try {
+    $response = TwistRequest::getAuto('statuses/home_timeline', 'count=3', $tc)
+                ->execute()
+                ->response;
+    foreach ($response as $status) {
+        var_dump($status->text);
+    }
+} catch (TwistException $e) {
+    var_dump($e->__toString());
+}
+
+echo "\n";
+
+// [TwistRequest] Manual Mode
+$response = TwistRequest::get('statuses/home_timeline?count=3', '', $tc)
+            ->execute()
+            ->response;
+if (!($response instanceof TwistException)) {
+    foreach ($response as $status) {
         var_dump($status->text);
     }
 } else {

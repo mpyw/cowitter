@@ -23,7 +23,7 @@ try {
             if (isset($_GET['oauth_verifier'])) {
                 $tc->setVerifier($_GET['oauth_verifier']);
             }
-            TwistRequest::getAuto('oauth/access_token', '', $tc)->execute();
+            TwistRequest::postAuto('oauth/access_token', '', $tc)->execute();
             $_SESSION['authed'] = true;
             $messages[] = "Hello, @{$tc->screenName}!!";
         } catch (TwistException $e) {
@@ -34,8 +34,8 @@ try {
     
     // tweet
     if (isset($_POST['tweet'])) {
-        $params = array('status' => $_POST['tweet']);
-        $result = TwistRequest::postAuto('statuses/update', $params, $tc)->execute()->response;
+        $to = new TwistOAuth($tc);
+        $result = $to->postAuto('statuses/update', array('status' => $_POST['tweet']));
         $messages[] = "Tweeted: {$result->text}";
     }
 

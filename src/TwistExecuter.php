@@ -4,6 +4,8 @@
  * Base class for TwistRequest execution.
  * All requests are executed asynchronizedly.
  * 
+ * @inherited method final public void TwistUnserializable::__sleep()
+ * @inherited method final public void TwistUnserializable::__wakeup()
  * @inherited method final protected static mixed TwistBase::filter() 
  */
 class TwistExecuter extends TwistUnserializable {
@@ -62,7 +64,6 @@ class TwistExecuter extends TwistUnserializable {
      * @access public
      * @params mixed $args TwistRequest or array<TwistRequest>
      * @throw InvalidArgumentException(LogicException)
-     * @return stdClass or array or TwistException
      */
     final public function __construct($args) {
         if (!$args = func_get_args()) {
