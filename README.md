@@ -85,7 +85,7 @@ TwistIterator
 class TwistCredential extends TwistExecuter
 ```
 
-Implemented `iterator` on TwistExecuter.
+Implemented `Iterator` on `TwistExecuter`.
 
 
 TwistOAuth
@@ -105,8 +105,6 @@ Only important classes, properties and methods are documented here.
 
 TwistException
 --------------
-
-### Properties
 
 ### final public string getMessage()
 
@@ -133,8 +131,6 @@ TwistCredential
 ---------------
 
 ### Properties
-
-#### Prototype
 
 - **User Agent**
 
@@ -177,8 +173,6 @@ private readonly string $password   = '';
 
 Constructor.
 
-#### Prototype
-
 ```php
 new TwistCredential(
     string $consumerKey       = '', // Required.
@@ -209,8 +203,6 @@ return $string;
 
 Setter for properties.
 
-#### Prototype
-
 ```php
 $TwistCredential
     ->setUserAgent    (string $userAgent    = '')
@@ -227,8 +219,6 @@ $TwistCredential
 
 Return URL for **authentication** or **authorization**.
 
-#### Prototype
-
 ```php
 (string) $TwistCredential->getAuthenticateUrl (bool $force_login = false)
 (string) $TwistCredential->getAuthorizeUrl    (bool $force_login = false)
@@ -238,8 +228,8 @@ Return URL for **authentication** or **authorization**.
 
 |                | Authenticate  |  Authorize   |
 | :-------------: |:---------------:| :-----------:|
-| New User,<br />Authed User on **force_login** | Jump to Twitter | Jump to Twitter |
-| Authed User   | Jump to Twitter, however, if you set your application<br /> **__Allow this application to be used to Sign in with Twitter__**, <br />quickly jump back to your callback URL.  |  Jump to Twitter  |
+| New User, Authed User on **force_login** | Jump to Twitter | Jump to Twitter |
+| Authed User   | Jump to Twitter, however, if you set your application **__Allow this application to be used to Sign in with Twitter__**, quickly jump back to your callback URL.  |  Jump to Twitter  |
 
 TwistRequest
 ------------
@@ -248,8 +238,6 @@ This class has a private constructor.
 Use static **factory methods** instead.
 
 ### Properties
-
-#### Prototype
 
 ```php
 private readonly string $host;     // e.g. "api.twitter.com"
@@ -268,8 +256,6 @@ Create a new `TwistRequest` instance for specified request.
 - `post` `postAuto` `send` are used for **POST** requests.
 - `getAuto` `postAuto` automatically throw `TwistException`.
 - `send` never waits responses.
-
-#### Prototype
 
 ```php
 (TwistRequest) TwistRequest::get      (string $endpoint, mixed $params = array(), TwistCredential $credential = null)
@@ -300,7 +286,9 @@ $TwistRequest = TwistRequest::getAuto('users/show', 'id=12345'); // WITHOUT URL 
 ```
 
 ```php
-$TwistRequest = TwistRequest::postAuto('account/update_profile_image', array('@image' => 'test.png'));
+$TwistRequest = TwistRequest::postAuto('account/update_profile_image', array(
+    '@image' => 'test.png',
+));
 $TwistRequest = TwistRequest::postAuto('account/update_profile_image', '@image=test.png');
 $TwistRequest = TwistRequest::postAuto('account/update_profile_image', array(
     'image' => base64_encode(file_get_contents('test.png')), // BASE64 ENCODED!!
@@ -325,8 +313,6 @@ $TwistRequest = TwistRequest::postAuto('statuses/update_with_media', array(
 
 Provides a model for **Para-xAuth** authorization.
 
-#### Prototype
-
 ```php
 (TwistRequest) TwistRequest::login(TwistCredential $credential)
 ```
@@ -336,20 +322,16 @@ Provides a model for **Para-xAuth** authorization.
 Setter for properties.  
 Exceptionally, the instances created by `TwistRequest::login()` cannot be applied.
 
-#### Prototype
-
 ```php
 $TwistRequest
     ->setParams     (mixed $params     = array())
     ->setCredential (mixed $credential = null)
 ```
 
-### final public `$this` mixed execute()
-
-#### Prototype
+### final public mixed execute()
 
 ```php
-$TwistRequest->execute()
+(mixed) $TwistRequest->execute()
 ```
 
 Execute request internally using `TwistIterator` and return response.  
@@ -395,18 +377,14 @@ Manually use this instance insteadof `$TwistRequest->execute()` for **Multiple R
 
 ### final public __construct()
 
-#### Prototype
-
 ```php
-$TwistIterator = new TwistIterator(TwistRequest $request1, TwistRequest $request2, ...)
-$TwistIteraotr = new TwistIterator(array<TwistRequest> $requests)
+new TwistIterator(TwistRequest $request1, TwistRequest $request2, ...)
+new TwistIterator(array<TwistRequest> $requests)
 ```
 
 ### final public `$this` setInterval()
 
 Set interval function called while looping `foreach` block.
-
-#### Prototype
 
 ```php
 $TwistIterator->setInterval(callable $callback, float $interval = 0, array $args = array())
@@ -414,7 +392,7 @@ $TwistIterator->setInterval(callable $callback, float $interval = 0, array $args
 
 ### Examples
 
-#### Example 1: Multiple REST requests
+#### Multiple REST requests
 
 ```php
 $TwistRequests = array(
@@ -425,7 +403,7 @@ $TwistRequests = array(
 foreach (new TwistIterator($TwistRequests) as $dummy) { }
 ```
 
-#### Example 2: Single streaming request
+#### Single streaming request
 
 ```php
 set_time_limit(0);
@@ -439,7 +417,7 @@ try {
 }
 ```
 
-#### Example 3: Multiple streaming requests
+#### Multiple streaming requests
 
 ```php
 set_time_limit(0);
@@ -468,16 +446,12 @@ The instances are **not serializable**! Please serialize array of `TwistCredenti
 
 ### final public __construct()
 
-#### Prototype
-
 ```php
 new TwistOAuth(TwistCredential $credential1, TwistCredential $credential2, ...)
 new TwistOAuth(array<TwistCredential> $credentials)
 ```
 
 ### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public mixed send()
-
-#### Prototype
 
 ```php
 (mixed) $TwistOAuth->get      (string $endpoint, mixed $params = array())
