@@ -1,5 +1,5 @@
-TwistOAuth
-==========
+TwistOAuth (Beta)
+=================
 
 Highly object-oriented PHP Twitter library for REST APIs and Streaming APIs.  
 All `src` files are compressed into `build` file.
@@ -92,7 +92,7 @@ TwistOAuth
 ----------
 
 ```php
-class TwistOAuth extends TwistUnserializable
+class TwistOAuth extends TwistUnserializable implements Iterator
 ```
 
 Wrapper for `TwistCredential` and `TwistRequest` and `TwistIterator`.  
