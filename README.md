@@ -82,7 +82,7 @@ TwistIterator
 -------------
 
 ```php
-class TwistCredential extends TwistExecuter
+class TwistCredential extends TwistExecuter implements Iterator
 ```
 
 Implemented `Iterator` on `TwistExecuter`.
@@ -92,7 +92,7 @@ TwistOAuth
 ----------
 
 ```php
-class TwistOAuth extends TwistUnserializable implements Iterator
+class TwistOAuth extends TwistUnserializable
 ```
 
 Wrapper for `TwistCredential` and `TwistRequest` and `TwistIterator`.  
@@ -311,7 +311,7 @@ $TwistRequest = TwistRequest::postAuto('statuses/update_with_media', array(
 
 ### final public static TwistRequest login()
 
-Provides a model for **Para-xAuth** authorization.
+Provide a model for **Para-xAuth** authorization.
 
 ```php
 (TwistRequest) TwistRequest::login(TwistCredential $credential)
