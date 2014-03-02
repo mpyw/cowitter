@@ -210,7 +210,7 @@ class TwistRequest extends TwistBase {
         }
         $this->params = 
             is_array($params) ?
-            self::filter($params, 1) :
+            $params :
             self::parseQuery(self::filter($params))
         ; 
         return $this;
@@ -259,6 +259,18 @@ class TwistRequest extends TwistBase {
         foreach (new TwistIterator($this) as $request) {
             return $request instanceof TwistException ? $request : $request->response;
         }
+    }
+    
+    /**
+     * Easy multiple execution using TwistIterator.
+     * 
+     * @final
+     * @access public
+     * @return TwistRequest $this
+     */
+    final public function runAll() {
+        foreach (new TwistIterator($this) as $request) { }
+        return $this;
     }
     
     /**
@@ -476,7 +488,7 @@ class TwistRequest extends TwistBase {
     private function __construct(array $args) {
         $this->params = 
             is_array($args['params']) ?
-            self::filter($args['params'], 1) :
+            $args['params'] :
             self::parseQuery(self::filter($args['params']))
         ; 
         $this->credential = $args['credential'];
@@ -500,7 +512,7 @@ class TwistRequest extends TwistBase {
             case !$p = parse_url($endpoint):
             case !isset($p['path']):
             case !$count = preg_match_all('/(?![\d.])[\w.]++/', $p['path'], $parts):
-                throw new InvalidArgumentException("invalid endpoint: {$endpoint}");
+                throw new InvalidArgumentException("Invalid endpoint: {$endpoint}");
         }
         $streaming = $multipart = $old = !$host = 'api.twitter.com';
         foreach ($parts[0] as $i => &$part) {
@@ -509,7 +521,7 @@ class TwistRequest extends TwistBase {
                 switch (true) {
                     case $parts[0][0] === 'oauth2':
                         throw new InvalidArgumentException(
-                            "this library does not support OAuth 2.0 authentication"
+                            "This library does not support OAuth 2.0 authentication"
                         );
                     case $parts[0][0] === 'oauth':
                         $part = basename($part, '.json');
@@ -547,7 +559,7 @@ class TwistRequest extends TwistBase {
         $params = $this->params + $this->extraParams;
         foreach ($params as $key => $value) {
             if ($value === null) {
-                // FALSE should be treated as "0"
+                // NULL should be treated as undefined
                 continue;
             }
             if ($value === false) {

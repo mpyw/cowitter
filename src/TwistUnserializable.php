@@ -4,8 +4,10 @@
  * Unserializable class.
  * 
  * @abstract
+ *
+ * @inherited method final protected static mixed TwistBase::filter() 
  */
-abstract class TwistUnserializable {
+abstract class TwistUnserializable extends TwistBase {
     
     /**
      * @magic

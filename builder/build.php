@@ -1,12 +1,23 @@
 <?php
 
-chdir(dirname(__FILE__));
-$buffers = array(file_get_contents('VersionChecker.php'));
-foreach (glob('Twist*.php') as $name) {
+$basedir = dirname(dirname(__FILE__));
+foreach (glob($basedir . '/src/*.php') as $name) {
     $buffers[] = file_get_contents($name, false, null, 5);
 }
-file_put_contents('../build/TwistOAuth.php', implode(' ', $buffers));
-file_put_contents('../build/TwistOAuth.php', compress_php_src(file_get_contents('../build/TwistOAuth.php')));
+$body = substr(compress_php_src('<?php ' . implode(' ', $buffers)), 5);
+$source = <<<EOD
+<?php
+/**
+ * TwistOAuth bundled in the single file
+ * 
+ * @author CertaiN
+ * @github http://github.com/certainist/TwistOAuth
+ */
+{$body}
+EOD;
+if (file_put_contents($basedir . '/build/TwistOAuth.php', $source)) {
+    echo "Bundled successfully!\n";
+}
 
 function compress_php_src($src) {
     // Whitespaces left and right from this signs can be ignored

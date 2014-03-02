@@ -3,53 +3,55 @@
 /**
  * Main class.
  *
- * @inherited method final public void TwistUnserializable::__sleep()
- * @inherited method final public void TwistUnserializable::__wakeup()
+ * @property-read TwistCredential $credential
+ * @property-read array<TwistCredential> $subCredentials
+ * 
  * @inherited method final protected static mixed TwistBase::filter() 
  */
-class TwistOAuth extends TwistUnserializable {
+class TwistOAuth extends TwistBase {
     
     /**
      * Credentials.
      * 
+     * @var TwistCredential
      * @var array<TwistCredential>
      */
-    private $credentials = array();
+    private $credential;
+    private $subCredentials = array();
     
     /**
      * Constructor.
-     * Only first credential is used for POST requests.
-     * Other credentials are rotationally used for GET requests.
-     * Unauthorized credentials are automatically tried
-     * to be authorized by Para-xAuth authorization.
      * 
      * @magic
      * @final
      * @access public
-     * @params mixed $args TwistRequest or array<TwistRequest>
-     * @throw InvalidArgumentException(LogicException)
+     * @params TwistCredential $credential
      */
-    final public function __construct($args) {
-        if (!$args = func_get_args()) {
-            throw new InvalidArgumentException('Required at least 1 TwistCredential instance.');
+    final public function __construct(TwistCredential $credential) {
+        $this->credential = $credential;
+    }
+    
+    /**
+     * Getter for properties.
+     * 
+     * @magic
+     * @final
+     * @access public
+     * @param string $name
+     * @throw OutOfRangeException(LogicException)
+     * @return mixed
+     */
+    final public function __get($name) {
+        if (!property_exists($this, $name = self::filter($name))) {
+            throw new OutOfRangeException("Invalid property name: {$name}");
         }
-        array_walk_recursive($args, array($this, 'setCredential'));
-        foreach ($this->credentials as $credential) {
-            if ($credential->accessToken === '' or $credential->accessTokenSecret === '') {
-                $logins[] = TwistRequest::login($credential);
-            }
-        }
-        if (isset($logins)) {
-            // Para-xAuth authorization
-            foreach (new TwistIterator($logins) as $dummy) { }
-        }
+        return $this->$name;
     }
     
     /**
      * Call "GET" endpoints.
      * 
      * @final
-     * @static
      * @access public
      * @param string [$endpoint]
      *   e.g. "statuses/home_timeline"
@@ -62,13 +64,11 @@ class TwistOAuth extends TwistUnserializable {
      */
     // Normal.
     final public function get($endpoint, $params = array()) {
-        $tc = $this->autoSelect(self::filter($endpoint));
-        return TwistRequest::get($endpoint, $params, $tc)->execute();
+        return TwistRequest::get($endpoint, $params, $this->autoSelect($endpoint))->execute();
     }
     // Automatically throw TwistException.
     final public function getAuto($endpoint, $params = array()) {
-        $tc = $this->autoSelect(self::filter($endpoint));
-        return TwistRequest::getAuto($endpoint, $params, $tc)->execute();
+        return TwistRequest::getAuto($endpoint, $params, $this->autoSelect($endpoint))->execute();
     }
     
     /**
@@ -76,7 +76,6 @@ class TwistOAuth extends TwistUnserializable {
      * Filenames are specified with putting "@" on its KEY.
      * 
      * @final
-     * @static
      * @access public
      * @param string $endpoint
      *   e.g. "account/update_profile_image"
@@ -87,25 +86,64 @@ class TwistOAuth extends TwistUnserializable {
      */
     // Normal.
     final public function post($endpoint, $params = array()) {
-        return TwistRequest::post($endpoint, $params, $this->credentials[0])->execute();
+        return TwistRequest::post($endpoint, $params, $this->credential)->execute();
     }
     // Automatically throw TwistException.
     final public function postAuto($endpoint, $params = array()) {
-        return TwistRequest::postAuto($endpoint, $params, $this->credentials[0])->execute();
+        return TwistRequest::postAuto($endpoint, $params, $this->credential)->execute();
     }
     // Receive no response.
     final public function send($endpoint, $params = array()) {
-        return TwistRequest::send($endpoint, $params, $this->credentials[0])->execute();
+        return TwistRequest::send($endpoint, $params, $this->credential)->execute();
     }
     
     /**
-     * Set TwistCredential instance.
-     * 
-     * @access private
+     * Execute Para-xAuth authorization.
+     *
+     * @final
+     * @access public
      * @param TwistCredential $credential
+     * @return stdClass
      */
-    private function setCredential(TwistCredential $credential) {     
-        $this->credentials[] = $credential;
+    final public function login() {
+        return TwistRequest::login($this->credential)->execute();
+    }
+    
+    /**
+     * Register sub TwistCredential instance.
+     * 
+     * @final
+     * @access public
+     * @throw InvalidArgumentException
+     * @return TwistOAuth $this
+     */
+    final public function registerSub(TwistCredential $credential) {
+        $hash = spl_object_hash($credential);
+        $main_hash = spl_object_hash($this->credential);
+        if ($hash === $main_hash) {
+            throw new InvalidArgumentException(
+                'Specified credential is already registered as main credential'
+            );
+        }
+        if (isset($this->subCredentials[$hash])) {
+            throw new InvalidArgumentException(
+                'Specified credential is already registered as sub credential'
+            );
+        }
+        $this->subCredentials[$hash] = $credential;
+        return $this;
+    }
+    
+    /**
+     * Clear all sub TwistCredential instances.
+     * 
+     * @final
+     * @access public
+     * @return TwistOAuth $this
+     */
+    final public function clearSub() {
+        $this->subCredentials = array();
+        return $this;
     }
     
     /**
@@ -117,17 +155,18 @@ class TwistOAuth extends TwistUnserializable {
     private function autoSelect($endpoint) {
         $tmp = TwistRequest::get($endpoint);
         $endpoint = $tmp->endpoint;
-        foreach ($this->credentials as $i => $credential) {
+        $credentials = array_merge($this->subCredentials, array($this->credential));
+        foreach ($credentials as $i => $credential) {
             switch (true) {
                 case !isset($credential->history[$endpoint]):
                     $credential->setHistory($endpoint, 0);
-                case !isset($tc):
+                case !isset($selected):
                 case $min > $credential->history[$endpoint]:
-                    $tc  = $credential;
-                    $min = $credential->history[$endpoint];
+                    $selected = $credential;
+                    $min      = $credential->history[$endpoint];
             }
         }
-        return $tc;
+        return $selected;
     }
     
 }

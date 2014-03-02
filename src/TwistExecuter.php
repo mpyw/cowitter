@@ -310,6 +310,9 @@ class TwistExecuter extends TwistUnserializable {
             // reset $job::buffer with remaining bytes
             $job->buffer = (string)substr($job->buffer, $tmp);
         }
+        if ($job->buffer !== '') {
+            return;
+        }
         // complated
         $job->step =
             $job->request->waitResponse ?

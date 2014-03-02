@@ -19,3 +19,12 @@ TwistOAuth - changelog
 0.3.1 (2014-02-09)
 + TwistRequest::execute() returns response itself
 
+0.3.2 (2014-02-28)
+- class TwistUnserializable { ... }
++ class TwistUnserializable extends TwistBase { ... }
+
+1.0.0 (2014-03-02)
+- Removed version checker
++ Refactored classes, directories and examples
++ Fixed TwistExecuter::writeRequestHeaders()
++ Attached PHPUnit tests
