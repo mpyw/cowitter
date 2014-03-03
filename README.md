@@ -1,5 +1,5 @@
-TwistOAuth (Beta)
-=================
+TwistOAuth
+==========
 
 Highly object-oriented PHP Twitter library for REST APIs and Streaming APIs.  
 All `src` files are compressed into `build` file.
