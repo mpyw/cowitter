@@ -412,7 +412,7 @@ $ex = new TwistExecuter($TwistRequests);
 $ex->runAll();
 ```
 
-```
+```php
 $TwistRequests = array(
     TwistRequest::send('statuses/update', 'status=@BarackObama FOO!!', $credential),
     TwistRequest::send('statuses/update', 'status=@BarackObama BAR!!', $credential),
@@ -450,7 +450,7 @@ try {
         var_dump($TwistRequest->response);
     }
 } catch (TwistException $e) {
-    die((string)$e);
+    var_dump((string)$e);
 }
 ```
 
@@ -477,14 +477,15 @@ $TwistOAuth->setSub(array<TwistCredential> $credentials)
 $TwistOAuth->setSub()
 ```
 
-### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public mixed send()
+### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public void send()<br />final public stdClass login()
 
 ```php
-(mixed) $TwistOAuth->get      (string $endpoint, mixed $params = array())
-(mixed) $TwistOAuth->getAuto  (string $endpoint, mixed $params = array())
-(mixed) $TwistOAuth->post     (string $endpoint, mixed $params = array())
-(mixed) $TwistOAuth->postAuto (string $endpoint, mixed $params = array())
-(null)  $TwistOAuth->send     (string $endpoint, mixed $params = array())
+(mixed)    $TwistOAuth->get      (string $endpoint, mixed $params = array())
+(mixed)    $TwistOAuth->getAuto  (string $endpoint, mixed $params = array())
+(mixed)    $TwistOAuth->post     (string $endpoint, mixed $params = array())
+(mixed)    $TwistOAuth->postAuto (string $endpoint, mixed $params = array())
+(null)     $TwistOAuth->send     (string $endpoint, mixed $params = array())
+(stdClass) $TwistOAuth->login    ()
 ```
 
 ### Example
