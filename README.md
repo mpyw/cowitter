@@ -6,8 +6,7 @@ Highly object-oriented PHP Twitter library for REST APIs and Streaming APIs.
 Download
 ========
 
-Compressed Archive
-------------------
+### Compressed Archive
 
 1. Download **[ZIP Archive](https://github.com/Certainist/TwistOAuth/archive/master.zip)**.
 2. Take the file **TwistOAuth.php** in the directory **`build`**.
@@ -15,11 +14,10 @@ Compressed Archive
 4. Enjoy!
 
 ```php
-require_once 'TwistOAuth.php';
+require_once __DIR__ . '/TwistOAuth.php';
 ```
 
-Raw Files
----------
+### Raw Files
 
 1. Download **[ZIP Archive](https://github.com/Certainist/TwistOAuth/archive/master.zip)**.
 2. Take all files in the directory **`src`**.
@@ -28,7 +26,7 @@ Raw Files
 
 ```php
 spl_autoload_register(function ($name) {
-    $path = __DIR__ . '/' . $name;
+    $path = __DIR__ . '/' . $name . '.php';
     if (is_file($path)) {
         require $path;
     }
