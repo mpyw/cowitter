@@ -226,6 +226,19 @@ class TwistExecuter extends TwistUnserializable {
         return $results;
     }
     
+    
+    /**
+     * Easy multiple execution using TwistIterator.
+     * 
+     * @final
+     * @access public
+     * @return TwistExecuter $this
+     */
+    final public function runAll() {
+        foreach (new TwistIterator($this) as $request) { }
+        return $this;
+    }
+    
     /**
      * Initialize job object.
      * 

@@ -1,6 +1,6 @@
 <?php
 
-require '../settings_for_tests_and_examples.php';
+require_once dirname(dirname(__FILE__)) . '/settings_for_tests_and_examples.php';
 
 class VariousExceptionHadlingTest extends PHPUnit_Framework_TestCase {
     

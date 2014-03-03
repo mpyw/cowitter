@@ -92,7 +92,7 @@ TwistOAuth
 ----------
 
 ```php
-class TwistOAuth extends TwistUnserializable
+class TwistOAuth extends TwistBase
 ```
 
 Wrapper for `TwistCredential` and `TwistRequest` and `TwistIterator`.  
@@ -356,14 +356,14 @@ try {
         echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
     }
 } catch (TwistException $e) {
-    die($e);
+    echo $e . "\n";
 }
 ```
 
 ```php
 $statuses = TwistRequest::get('statuses/home_timeline', '', $credential)->execute();
 if ($statuses instanceof TwistException) {
-    die($statuses);
+    die($statuses . "\n");
 }
 foreach ($statuses as $status) {
     echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
@@ -390,6 +390,14 @@ Set interval function called while looping `foreach` block.
 $TwistIterator->setInterval(callable $callback, float $interval = 0, array $args = array())
 ```
 
+### final public `$this` runAll()
+
+Execute all requests internally using `TwistIterator`.
+
+```php
+$TwistRequest->runAll()
+```
+
 ### Examples
 
 #### Multiple REST requests
@@ -400,7 +408,18 @@ $TwistRequests = array(
     TwistRequest::send('statuses/update', 'status=@BarackObama BAR!!', $credential),
     TwistRequest::send('statuses/update', 'status=@BarackObama BAZ!!', $credential),
 );
-foreach (new TwistIterator($TwistRequests) as $dummy) { }
+$ex = new TwistExecuter($TwistRequests);
+$ex->runAll();
+```
+
+```
+$TwistRequests = array(
+    TwistRequest::send('statuses/update', 'status=@BarackObama FOO!!', $credential),
+    TwistRequest::send('statuses/update', 'status=@BarackObama BAR!!', $credential),
+    TwistRequest::send('statuses/update', 'status=@BarackObama BAZ!!', $credential),
+);
+$it = new TwistIterator($TwistRequests);
+$it->runAll();
 ```
 
 #### Single streaming request
@@ -413,7 +432,7 @@ try {
         var_dump($TwistRequest->response);
     }
 } catch (TwistException $e) {
-    die($e);
+    var_dump((string)$e);
 }
 ```
 
@@ -431,7 +450,7 @@ try {
         var_dump($TwistRequest->response);
     }
 } catch (TwistException $e) {
-    die($e);
+    die((string)$e);
 }
 ```
 
@@ -439,16 +458,23 @@ TwistOAuth
 ----------
 
 Basically use this instance for **Single REST Request**.  
-In the case of **POST** method, **Only first credential** is used.  
-In the case of **GET** method, all credentials are **rotationally** used for **API limit avoidance**.  
-Unauthorized credentials are automatically tried to be authorized usnig **Para-xAuth** authorization.  
-The instances are **not serializable**! Please serialize array of `TwistCredential` itself instead.
+In the case of **POST** method, only main credential is used.  
+In the case of **GET** method, main credential and sub credentials are **rotationally** used for **API limit avoidance**.  
 
 ### final public __construct()
 
 ```php
-new TwistOAuth(TwistCredential $credential1, TwistCredential $credential2, ...)
-new TwistOAuth(array<TwistCredential> $credentials)
+new TwistOAuth(TwistCredential $credential)
+```
+
+### final public `$this` setSub()
+
+Register or unregister sub TwistCredential instances.
+
+```php
+$TwistOAuth->setSub(TwistCredential $credential1, TwistCredential $credential2, ...)
+$TwistOAuth->setSub(array<TwistCredential> $credentials)
+$TwistOAuth->setSub()
 ```
 
 ### final public mixed get()<br />final public mixed getAuto()<br />final public mixed post()<br />final public mixed postAuto()<br />final public mixed send()
@@ -463,15 +489,36 @@ new TwistOAuth(array<TwistCredential> $credentials)
 
 ### Example
 
+#### Basic usage
+
 ```php
 try {
     $TwistOAuth = new TwistOAuth($credential);
     foreach ($TwistOAuth->getAuto('statuses/home_timeline') as $status) {
-        var_dump($stauts);
+        var_dump($status);
     }
-    $TwistOAuth->postAuto('statuses/update', 'status=test');
+    $TwistOAuth->postAuto('statuses/update', array('status' => 'test'));
 } catch (TwistException $e) {
-    die($e);
+    var_dump((string)$e);
+}
+```
+
+#### API limit avoidance
+
+```php
+try {
+    $TwistOAuth = new TwistOAuth($mainCredential);
+    $TwistOAuth->setSub($subCredential1, $subCredential2);
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    $TwistOAuth->getAuto('statuses/home_timeline');
+    ...
+} catch (TwistException $e) {
+    var_dump((string)$e);
 }
 ```
 

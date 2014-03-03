@@ -262,18 +262,6 @@ class TwistRequest extends TwistBase {
     }
     
     /**
-     * Easy multiple execution using TwistIterator.
-     * 
-     * @final
-     * @access public
-     * @return TwistRequest $this
-     */
-    final public function runAll() {
-        foreach (new TwistIterator($this) as $request) { }
-        return $this;
-    }
-    
-    /**
      * Proceed Para-xAuth authorization step.
      * TwistCredential instance cannot be changed.
      *

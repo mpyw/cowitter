@@ -9,6 +9,7 @@
  * @inherited method final public TwistExecuter TwistExcecuter::start()
  * @inherited method final public bool TwistExcecuter::isRunning()
  * @inherited method final public array<stdClass or array or TwistException> run()
+ * @inherited method final public TwistExecuter runAll()
  * @inherited method final protected static mixed TwistBase::filter() 
  */
 class TwistIterator extends TwistExecuter implements Iterator {

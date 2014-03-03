@@ -110,40 +110,39 @@ class TwistOAuth extends TwistBase {
     }
     
     /**
-     * Register sub TwistCredential instance.
+     * Register or unregister sub TwistCredential instances.
      * 
      * @final
      * @access public
      * @throw InvalidArgumentException
      * @return TwistOAuth $this
      */
-    final public function registerSub(TwistCredential $credential) {
+    final public function setSub() {
+        $args = func_get_args();
+        $this->subCredentials = array();
+        array_walk_recursive($args, array($this, 'setSubCallback'));
+    }
+    
+    /**
+     * Callback for TwistOAuth::setSub()
+     * 
+     * @access private
+     * @param TwistCredential $credential
+     */
+    private function setSubCallback(TwistCredential $credential) {
         $hash = spl_object_hash($credential);
         $main_hash = spl_object_hash($this->credential);
         if ($hash === $main_hash) {
             throw new InvalidArgumentException(
-                'Specified credential is already registered as main credential'
+                'Specified credential is already registered as main credential.'
             );
         }
         if (isset($this->subCredentials[$hash])) {
             throw new InvalidArgumentException(
-                'Specified credential is already registered as sub credential'
+                'Specified credential is already registered as sub credential.'
             );
         }
         $this->subCredentials[$hash] = $credential;
-        return $this;
-    }
-    
-    /**
-     * Clear all sub TwistCredential instances.
-     * 
-     * @final
-     * @access public
-     * @return TwistOAuth $this
-     */
-    final public function clearSub() {
-        $this->subCredentials = array();
-        return $this;
     }
     
     /**
