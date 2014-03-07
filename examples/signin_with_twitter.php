@@ -35,7 +35,12 @@ try {
         $messages[] = "Tweeted: {$response->text}";
     }
 
-} catch (TwistException $e) { }
+} catch (TwistException $e) {
+    
+    // Set error message
+    $messages[] = $e->getMessage();
+    
+}
 
 header('Content-Type: text/html; charset=utf-8');
 
