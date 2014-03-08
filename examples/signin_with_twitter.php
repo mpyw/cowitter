@@ -51,9 +51,6 @@ header('Content-Type: text/html; charset=utf-8');
   <title>TEST</title>
 </head>
 <body>
-<?php if (isset($e)): ?>
-  <p style="color:red;"><?php echo $e; ?></p>
-<?php endif; ?>
 <?php if (!empty($messages)): ?>
   <ul>
 <?php foreach ($messages as $msg): ?>
