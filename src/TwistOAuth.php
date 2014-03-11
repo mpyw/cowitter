@@ -49,6 +49,20 @@ class TwistOAuth extends TwistBase {
     }
     
     /**
+     * Checker for property existence.
+     * 
+     * @magic
+     * @final
+     * @access public
+     * @param string $name
+     * @throw OutOfRangeException(LogicException)
+     * @return mixed
+     */
+    final public function __isset($name) {
+        return isset($this->{self::filter($name)});
+    }
+    
+    /**
      * Call "GET" endpoints.
      * 
      * @final

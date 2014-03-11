@@ -28,3 +28,6 @@ TwistOAuth - changelog
 + Refactored classes, directories and examples
 + Fixed TwistExecuter::writeRequestHeaders()
 + Attached PHPUnit tests
+
+1.0.1 (2014-03-11)
++ Added __isset()
