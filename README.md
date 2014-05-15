@@ -382,7 +382,7 @@ Execute request internally using `TwistIterator` and return response.
 try {
     $statuses = TwistRequest::getAuto('statuses/home_timeline', '', $credential)->execute();
     foreach ($statuses as $status) {
-        echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
+        echo "<p>@{$status->user->screen_name}: {$status->text}<p>\n";
     }
 } catch (TwistException $e) {
     echo $e . "\n";
@@ -395,7 +395,7 @@ if ($statuses instanceof TwistException) {
     die($statuses . "\n");
 }
 foreach ($statuses as $status) {
-    echo "<p>@{$status->screen_name}: {$status->text}<p>\n";
+    echo "<p>@{$status->user->screen_name}: {$status->text}<p>\n";
 }
 ```
 
