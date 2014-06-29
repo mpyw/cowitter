@@ -526,7 +526,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     public static function curlMultiStreaming(array $curls) {
-        self::curlMultiExecAction($curls, false);
+        self::curlMultiExecAction($curls, true);
     }
     
     /**
