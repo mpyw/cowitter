@@ -31,3 +31,6 @@ TwistOAuth - changelog
 
 1.0.1 (2014-03-11)
 + Added __isset()
+
+2.0.0 (2014-06-30)
++ Extreamly refreshed!
