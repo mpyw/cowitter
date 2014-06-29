@@ -44,7 +44,7 @@ Properties
 This means the following value.
 
 ```php
-substr('Content-Type: ***`, 14);
+substr('Content-Type: ***', 14);
 ```
 
 ### `$ti->binaryData`
