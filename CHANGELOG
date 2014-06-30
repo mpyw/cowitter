@@ -48,3 +48,6 @@ TwistOAuth - changelog
 + Improved streaming callback features
 + Renamed TwistImage::$contentType into TwistImage::$type
 + Renamed TwistImage::$binaryData into TwistImage::$data
+
+2.1.1 (2014-07-01)
++ Performance tuning of TwistOAuth::url()
