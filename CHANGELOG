@@ -36,7 +36,15 @@ TwistOAuth - changelog
 + Extreamly refreshed!
 
 2.0.1 (2014-06-30)
-+ fixed bool in curlMultiStreaming()
++ Fixed bool in TwistOAuth::curlMultiStreaming()
 
 2.0.2 (2014-06-30)
-+ fixed argument order of streaming()
++ Fixed argument order of TwistOAuth::streaming()
+
+2.1.0 (2014-07-01)
+- Removed reinitialize prevention
++ With invalid endpoint, TwistOAuth::url() throws InvalidArgumentException
++ Directly use TwistException::__construct() instead of new TwistException
++ Improved streaming callback features
++ Renamed TwistImage::$contentType into TwistImage::$type
++ Renamed TwistImage::$binaryData into TwistImage::$data
