@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.0.2
+Version 2.1.0
 
 Requirements
 ============
@@ -38,7 +38,7 @@ Some `TwistOAuth` methods return an instance of `TwistImage` when `Content-Type:
 Properties
 ----------
 
-### `$ti->contentType`
+### (String) `$ti->type`
 
 *Readonly*.  
 This means the following value.
@@ -47,14 +47,15 @@ This means the following value.
 substr('Content-Type: ***', 14);
 ```
 
-### `$ti->binaryData`
+### (String) `$ti->data`
 
 *Readonly*.  
+This means binary image data.
 
 Methods
 -------
 
-### `$ti->getDataUri()`
+### (String) `$ti->getDataUri()`
 
 #### Return Value
 
@@ -66,22 +67,22 @@ Class - TwistOAuth
 Properties
 ----------
 
-### `$to->ck`
+### (String) `$to->ck`
 
 *Readonly*.  
 consumer\_key.
 
-### `$to->cs`
+### (String) `$to->cs`
 
 *Readonly*.  
 consumer\_secret.
 
-### `$to->ot`
+### (String) `$to->ot`
 
 *Readonly*.  
 oauth\_token. (request\_token or access\_token)
 
-### `$to->os`
+### (String) `$to->os`
 
 *Readonly*.  
 oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
@@ -89,17 +90,120 @@ oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
 Basic Methods
 -------------
 
-### `TwistOAuth::url()`
+### (String) `TwistOAuth::url()`
 
-### `TwistOAuth::login()`
+#### Arguments
 
-### `TwistOAuth::multiLogin()`
+- (String) __*$endpoint*__<br />Required.<br />e.g. `statuses/update` `users/lookup` `user`
 
-### `$to = new TwistOAuth()`
+#### Return Value
 
-### `$to->getAuthenticateUrl()`
+An endpoint URL.<br />e.g. `https://api.twitter.com/1.1/statuses/update.json`
 
-### `$to->getAuthorizeUrl()`
+#### Note
+
+See [Twitter API documentation](https://dev.twitter.com/docs/api/1.1).
+
+### (TwistOAuth) `TwistOAuth::login()`
+
+#### Arguments
+
+- (String) __*$ck*__<br />Required.<br />consumer\_key.
+- (String) __*$cs*__<br />Required.<br />consumer\_secret.
+- (String) __*$username*__<br />Required.<br />screen\_name or email.
+- (String) __*$password*__<br />Required.
+
+#### Return Value
+
+A new instance of `TwistOAuth`.
+
+#### Exception
+
+Throws `TwistException`.
+
+#### Note
+
+Do not use this method a lot. You'll seem to be abusing.
+
+### (Array) `TwistOAuth::multiLogin()`
+
+#### Arguments
+
+- (array) __*$credentials*__<br />Required.<br />An array consisting of the following structure.
+
+```php
+$credentials = array(
+    'YOUR SCREEN_NAME 0' => array(
+        'YOUR CONSUMER KEY 0',
+        'YOUR CONSUMER SECRET 0',
+        'YOUR USERNAME 0',
+        'YOUR PASSWORD 0',
+    ),
+    'YOUR SCREEN_NAME 1' => array(
+        'YOUR CONSUMER KEY 1',
+        'YOUR CONSUMER SECRET 1',
+        'YOUR USERNAME 1',
+        'YOUR PASSWORD 1',
+    ),
+    'YOUR SCREEN_NAME 2' => array(
+        'YOUR CONSUMER KEY 2',
+        'YOUR CONSUMER SECRET 2',
+        'YOUR USERNAME 2',
+        'YOUR PASSWORD 2',
+    ),
+    ...
+);
+```
+
+#### Return Value
+
+An array consisting of the following structure.
+
+```php
+$return_value = array(
+    'YOUR SCREEN_NAME 0' => new TwistOAuth(...),
+    'YOUR SCREEN_NAME 1' => new TwistOAuth(...),
+    'YOUR SCREEN_NAME 2' => new TwistOAuth(...),
+    ...
+);
+```
+
+#### Exception
+
+Throws `TwistException`.
+
+#### Note
+
+Do not use this method a lot. You'll seem to be abusing.
+
+### (TwistOAuth) `new TwistOAuth()`
+
+#### Arguments
+
+- (String) __*$ck*__<br />Required.<br />consumer\key.
+- (String) __*$cs*__<br />Required.<br />consumer\_secret.
+- (String) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
+- (String) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
+
+### (String) `$to->getAuthenticateUrl()`
+
+#### Arguments
+
+- (bool) __*$force\_login*__<br />Whether we force logined users to relogin.
+
+#### Return Value
+
+An URL for **Authentication**.
+
+### (String) `$to->getAuthorizeUrl()`
+
+#### Arguments
+
+- (bool) __*$force\_login*__<br />Whether we force logined users to relogin.
+
+#### Return Value
+
+An URL for **Authorization**.
 
 ### `$to->renewWithRequestToken()`
 
@@ -127,8 +231,6 @@ Advanced Methods
 
 ### `TwistOAuth::curlMultiStreaming()`
 
-### `TwistOAuth::decode()`
-
 ### `$to->curlPostRequestToken()`
 
 ### `$to->curlPostAccessToken()`
@@ -146,6 +248,8 @@ Advanced Methods
 ### `$to->curlPostMultipartOut()`
 
 ### `$to->curlStreaming()`
+
+### `TwistOAuth::decode()`
 
 Notices
 =======

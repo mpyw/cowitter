@@ -24,17 +24,10 @@ final class TwistOAuth {
      * @property-read string $ot RequestToken or AccessToken 
      * @property-read string $os RequestTokenSecret or AccessTokenSecret
      */
-    private $ck = ''; 
-    private $cs = '';
-    private $ot = '';
-    private $os = '';
-    
-    /**
-     * A flag for reinitialize prevention.
-     * 
-     * @property bool $constructed
-     */
-    private $constructed = false;
+    private $ck; 
+    private $cs;
+    private $ot;
+    private $os;
     
     /**
      * Parse endpoint url.
@@ -355,7 +348,11 @@ final class TwistOAuth {
                 'https://api.twitter.com/1.1/prompts/suggest.json',
             );
         }
-        return preg_replace($from, $to, self::validateString('endpoint', $endpoint));
+        $endpoint = preg_replace($from, $to, self::validateString('endpoint', $endpoint), 1, $count);
+        if ($count === 0) {
+            throw new InvalidArgumentException('Invalid endpoint.');
+        }
+        return $endpoint;
     }
     
     /**
@@ -369,13 +366,13 @@ final class TwistOAuth {
      * @throws TwistException
      */
     public static function login($ck, $cs, $username, $password) {
-        $ch = self::curlInit();
-        $to = new self($ck, $cs);
+        $ch       = self::curlInit();
+        $to       = new self($ck, $cs);
         $username = self::validateString('username', $username);
         $password = self::validateString('password', $password);
-        $to = $to->renewWithRequestToken();
+        $to       = $to->renewWithRequestToken();
         self::curlSetOptForAuthenticityToken($ch, $to);
-        $token = self::parseAuthenticityToken($ch, curl_exec($ch));
+        $token    = self::parseAuthenticityToken($ch, curl_exec($ch));
         self::curlSetOptForVerifier($ch, $to, $token, $username, $password);
         $verifier = self::parseVerifier($ch, curl_exec($ch));
         return $to->renewWithAccessToken($verifier);
@@ -480,7 +477,8 @@ final class TwistOAuth {
                                 curl_multi_remove_handle($mh, $raised['handle']);
                         }
                     } catch (TwistException $e) {
-                        throw new TwistException('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                        $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                        throw $e;
                     }
                 } while ($remains);
         } while ($running || $add);
@@ -583,10 +581,6 @@ final class TwistOAuth {
      * @param string [$os] RequestTokenSecret or AccessTokenSecret
      */
     public function __construct($ck, $cs, $ot = '', $os = '') {
-        if ($this->constructed) {
-            throw new BadMethodCallExceptpion('Do not call __construct() by yourself.');
-        }
-        $this->constructed = true;
         $this->ck = self::validateString('ConsumerKey', $ck);
         $this->cs = self::validateString('ConsumerSecret', $cs);
         $this->ot = self::validateString('OAuthToken', $ot);
@@ -640,7 +634,7 @@ final class TwistOAuth {
      *
      * @param string $url endpoint URL
      * @param array|string [$params] 1-demensional array or query string
-     * @return stdClass|array
+     * @return stdClass|array|TwistImage
      * @throws TwistException
      */
     public function get($url, $params = array()) {
@@ -654,7 +648,7 @@ final class TwistOAuth {
      *
      * @param string $url endpoint URL
      * @param array|string [$params] 1-demensional array or query string
-     * @return stdClass|array
+     * @return stdClass|array|TwistImage
      * @throws TwistException
      */
     public function getOut($url, $params = array()) {
@@ -667,13 +661,17 @@ final class TwistOAuth {
      * Execute streaming GET request.
      *
      * @param string $url endpoint URL
-     * @param callable $callback function for processing each message
+     * @param callable $callback function for processing each message.
+     *                           if it returns True, your connection will be aborted.
      * @param array|string [$params] 1-demensional array or query string
      * @throws TwistException
      */
     public function streaming($url, $callback, $params = array()) {
-        curl_exec($this->curlStreaming($url, $callback, $params));
-        throw new TwistException('Streaming stopped.');
+        curl_exec($ch = $this->curlStreaming($url, $callback, $params));
+        if (!self::isWriteFailure($ch)) {
+            $info = curl_getinfo($ch);
+            throw new TwistException('Streaming stopped unexpectedly.', $info['http_code']);
+        }
     }
     
     /**
@@ -801,7 +799,8 @@ final class TwistOAuth {
      * Prepare cURL resource for streaming GET request.
      *
      * @param string $url endpoint URL
-     * @param callable $callback function for processing each message
+     * @param callable $callback function for processing each message.
+     *                           if it returns True, your connection will be aborted.
      * @param array|string [$params] 1-demensional array or query string
      * @return resource cURL
      * @throws TwistException
@@ -952,6 +951,17 @@ final class TwistOAuth {
     }
     
     /**
+     * Return whether the cURL connection is aborted by ourselves.
+     * Errno will always be 0 on curl_multi SAPI, so we have to judge by Error.
+     * 
+     * @param resource $ch cURL
+     * @return bool
+     */
+    private static function isWriteFailure($ch) {
+        return stripos(curl_error($ch), 'Failed writing body') !== false;
+    }
+    
+    /**
      * Set cURL options for authenticity_token.
      *
      * @param resource $ch cURL 
@@ -1012,31 +1022,40 @@ final class TwistOAuth {
             return array();
         }
         foreach ($curls as $i => $ch) {
-            try {
-                $chs[$i] = self::validateCurl($ch);
-                curl_multi_add_handle($mh, $ch);
-            } catch (TwistException $e) {
-                throw new TwistException('(' . $i . ') ' . $e->getMessage(), $e->getCode());
-            }
+            $chs[$i] = self::validateCurl($ch);
+            $responses[$i] = null;
+            curl_multi_add_handle($mh, $ch);
         }
         while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
         if (!$running || $stat !== CURLM_OK) {
             throw new TwistException('Failed to start multiple requests.');
         }
-        do {
-            curl_multi_select($mh, 10);
-            while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
+        do switch (curl_multi_select($mh, 10)) {
+            case -1:
+                usleep(10);
+                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+            case 0:
+                continue 2;
+            default:
+                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+                do if ($raised = curl_multi_info_read($mh, $remains)) {
+                    $i = array_search($raised['handle'], $chs, true);
+                    if ($is_streaming) {
+                        if (!self::isWriteFailure($raised['handle'])) {
+                            $info = curl_getinfo($raised['handle']);
+                            throw new TwistException('(' . $i . ') Streaming stopped unexpectedly.', $info['http_code']);
+                        }
+                    } else {
+                        try {
+                            $responses[$i] = self::decode($info['raised'], curl_multi_getcontent($info['raised']));
+                        } catch (TwistException $e) {
+                            $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                            throw $e;
+                        }
+                    }
+                } while ($remains);
         } while ($running);
-        if ($is_streaming) {
-            throw new TwistException('Streaming stopped.');
-        } else {
-            foreach ($chs as $i => $ch) {
-                try {
-                    $responses[$i] = self::decode($ch, curl_multi_getcontent($ch));
-                } catch (TwistException $e) {
-                    throw new TwistException('(' . $i . ') ' . $e->getMessage(), $e->getCode());
-                }
-            }
+        if (!$is_streaming) {
             return $responses;
         }
     }
@@ -1419,31 +1438,21 @@ final class TwistOAuth {
 final class TwistImage {
     
     /**
-     * @property-read string $contentType
-     * @property-read string $binaryData
+     * @property-read string $type
+     * @property-read string $data
      */
-    private $contentType;
-    private $binaryData;
-    
-    /**
-     * A flag for reinitialize prevention.
-     * 
-     * @property bool $constructed
-     */
-    private $constructed = false;
+    private $type;
+    private $data;
     
     /**
      * Constructor.
      * 
-     * @param string $content_type
-     * @param string $binary_data
+     * @param string $type Content-Type
+     * @param string $data Binary data
      */
-    public function __construct($content_type, $binary_data) {
-        if ($this->constructed) {
-            throw new BadMethodCallExceptpion('Do not call __construct() by yourself.');
-        }
-        $this->contentType = filter_var($content_type);
-        $this->binaryData = filter_var($binary_data);
+    public function __construct($type, $data) {
+        $this->type = filter_var($type);
+        $this->data = filter_var($data);
     }
     
     /**
@@ -1467,7 +1476,7 @@ final class TwistImage {
      * @return string
      */
     public function getDataUri() {
-        return sprintf('data:%s;base64,%s', $this->contentType, base64_encode($this->binaryData));
+        return sprintf('data:%s;base64,%s', $this->type, base64_encode($this->data));
     }
     
 }
