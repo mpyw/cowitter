@@ -672,7 +672,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     public function streaming($url, $callback, $params = array()) {
-        curl_exec($this->curlStreaming($url, $params, $callback));
+        curl_exec($this->curlStreaming($url, $callback, $params));
         throw new TwistException('Streaming stopped.');
     }
     
