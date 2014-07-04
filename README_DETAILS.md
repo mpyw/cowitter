@@ -317,27 +317,29 @@ Multiple **Direct OAuth**. (Scraping Logins)
 
 #### Arguments
 
-- (array) __*$credentials*__<br />An array consisting of the following structure.
+- (array) __*$credentials*__<br />See example.
 - (bool) __*$throw\_in\_process*__<br />See information about **static TwistOAuth::curlMultiExec()**.
+
+Example value of __*$credentials*__:
 
 ```php
 $credentials = array(
     'YOUR SCREEN_NAME 0' => array(
         'YOUR CONSUMER KEY 0',
         'YOUR CONSUMER SECRET 0',
-        'YOUR USERNAME 0',
+        'YOUR SCREEN_NAME 0',
         'YOUR PASSWORD 0',
     ),
     'YOUR SCREEN_NAME 1' => array(
         'YOUR CONSUMER KEY 1',
         'YOUR CONSUMER SECRET 1',
-        'YOUR USERNAME 1',
+        'YOUR SCREEN_NAME 1',
         'YOUR PASSWORD 1',
     ),
     'YOUR SCREEN_NAME 2' => array(
         'YOUR CONSUMER KEY 2',
         'YOUR CONSUMER SECRET 2',
-        'YOUR USERNAME 2',
+        'YOUR SCREEN_NAME 2',
         'YOUR PASSWORD 2',
     ),
     ...
@@ -414,7 +416,7 @@ try {
         printf("[%s] %s\n", $k, $v instanceof stdClass ? $v->screen_name : $v->getMessage());
     }
     
-} (TwistException $e) {
+} (catch TwistException $e) {
     
     echo "Flow B\n";
     printf("%s\n", $e->getMessage());
