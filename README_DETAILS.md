@@ -293,7 +293,7 @@ Multiple **Direct OAuth**. (Scraping Logins)
 #### Arguments
 
 - (array) __*$credentials*__<br />An array consisting of the following structure.
-- (bool) __*$throw\_in\_process<br />See information about **static TwistOAuth::curlMultiExec()**.
+- (bool) __*$throw\_in\_process*__<br />See information about **static TwistOAuth::curlMultiExec()**.
 
 ```php
 $credentials = array(
@@ -363,8 +363,8 @@ A cURL resource.
 ```php
 (array) TwistOAuth::curlMultiExec(array $curls, $throw_in_process = false)
 (array) $to->curlMultiExec(array $curls, $throw_in_process = false)
-(void) TwistOAuth::curlMultiStreaming(array $curls) /* $throw_in_process is always true * /
-(void) $to->curlMultiStreaming(array $curls) /* $throw_in_process is always true * /
+(void) TwistOAuth::curlMultiStreaming(array $curls) // $throw_in_process is always true
+(void) $to->curlMultiStreaming(array $curls) // $throw_in_process is always true
 ```
 
 #### Arguments, Return Value, Exception
