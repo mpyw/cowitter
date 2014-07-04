@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.2.2
+ * TwistOAuth Version 2.3.0
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
