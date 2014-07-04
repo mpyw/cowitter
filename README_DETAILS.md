@@ -15,7 +15,7 @@ Properties
 ### TwistImage::$type
 
 ```php
-(String) $img->type
+(string) $img->type
 ```
 
 *Readonly*.  
@@ -28,7 +28,7 @@ substr('Content-Type: image/***', 14)
 ### TwistImage::$data
 
 ```php
-(String) $img->data
+(string) $img->data
 ```
 
 *Readonly*.  
@@ -40,7 +40,7 @@ Methods
 ### TwistImage::getDataUri()
 
 ```php
-(String) $img->getDataUri()
+(string) $img->getDataUri()
 ```
 
 #### Return Value
@@ -62,10 +62,10 @@ Properties
 All properties are *Readonly*.
 
 ```php
-(String) $to->ck // consumer_key
-(String) $to->cs // consumer_secret
-(String) $to->ot // oauth_token (request_token or access_token)
-(String) $to->os // oauth_token_secret (request_token_secret or access_token_secret)
+(string) $to->ck // consumer_key
+(string) $to->cs // consumer_secret
+(string) $to->ot // oauth_token (request_token or access_token)
+(string) $to->os // oauth_token_secret (request_token_secret or access_token_secret)
 ```
 
 Basic Methods
@@ -81,18 +81,18 @@ new TwistOAuth($ck, $cs, $ot = '', $os = '')
 
 #### Arguments
 
-- (String) __*$ck*__<br />consumer\_key.
-- (String) __*$cs*__<br />consumer\_secret.
-- (String) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
-- (String) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
+- (string) __*$ck*__<br />consumer\_key.
+- (string) __*$cs*__<br />consumer\_secret.
+- (string) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
+- (string) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
 
 ### TwistOAuth::getAuthenticateUrl()<br />TwistOAuth::getAuthorizeUrl()
 
 Easily generate URL for users to login.
 
 ```php
-(String) $to->getAuthenticateUrl($force_login = false)
-(String) $to->getAuthorizeUrl($force_login = false)
+(string) $to->getAuthenticateUrl($force_login = false)
+(string) $to->getAuthorizeUrl($force_login = false)
 ```
 
 #### Arguments
@@ -256,6 +256,31 @@ Throws `TwistException`.
 Abusing Methods
 ---------------
 
+### static TwistOAuth::androidSignUp()
+
+Create a new account.
+
+```php
+(TwistOAuth) TwistOAuth::androidSignUp($fullname, $screen_name, $email, $password, $proxy = '')
+(TwistOAuth) $to->androidSignUp($fullname, $screen_name, $email, $password, $proxy = '')
+```
+
+#### Arguments
+
+- (string) __*$fullname*__
+- (string) __*$screen\_name*__
+- (string) __*$email*__
+- (string) __*$password*__
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+
+#### Return Value
+
+A new instance of `TwistOAuth`.
+
+#### Exception
+
+Throws `TwistException`.
+
 ### static TwistOAuth::login()
 
 **Direct OAuth**. (Scraping Login)
@@ -267,11 +292,11 @@ Abusing Methods
 
 #### Arguments
 
-- (String) __*$ck*__<br />consumer\_key.
-- (String) __*$cs*__<br />consumer\_secret.
-- (String) __*$username*__<br />screen\_name or email.
-- (String) __*$password*__
-- (String) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+- (string) __*$ck*__<br />consumer\_key.
+- (string) __*$cs*__<br />consumer\_secret.
+- (string) __*$username*__<br />screen\_name or email.
+- (string) __*$password*__
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
 
 #### Return Value
 
