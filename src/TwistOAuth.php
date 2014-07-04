@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.2.1
+ * TwistOAuth Version 2.2.2
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -113,6 +113,11 @@ final class TwistOAuth {
     
     /**
      * Execute multiple direct OAuth logins.
+     * If $throw_in_process is false...
+     *    TwistException is thrown only in case all requests fatally failed.
+     *    In non-fatal case, return value contains TwistException as its elements.
+     * If $throw_in_process is true...
+     *    TwistException is thrown in all failure cases.
      * 
      * @param array $credentials
      *     e.g.
@@ -122,19 +127,20 @@ final class TwistOAuth {
      *         'baz' => array('CONSUMER_KEY_baz', 'CONSUMER_SECRET_baz', 'USERNAME_baz', 'PASSWORD_baz'),
      *         ...
      *     )
-     * @param string [$proxy] full proxy URL.
-     *                        e.g. https://111.222.333.444:8080
+     * @param bool   [$throw_in_process] 
+     * @param string [$proxy]            full proxy URL.
+     *                                   e.g. https://111.222.333.444:8080
      * @return array
      *     e.g.
      *     array(
-     *         'foo' => TwistOAuth object of foo,
-     *         'bar' => TwistOAuth object of bar,
-     *         'baz' => TwistOAuth object of baz,
+     *         'foo' => TwistOAuth or TwistException,
+     *         'bar' => TwistOAuth or TwistException,
+     *         'baz' => TwistOAuth or TwistException,
      *         ...
      *     )
      * @throws TwistException
      */
-    public static function multiLogin(array $credentials, $proxy = '') {
+    public static function multiLogin(array $credentials, $throw_in_process = false, $proxy = '') {
         static $names = array('consumer_key', 'consumer_secret', 'username', 'password');
         $mh = curl_multi_init();
         $tos    = array(); // TwistOAuth objects
@@ -226,8 +232,12 @@ final class TwistOAuth {
                                 curl_multi_remove_handle($mh, $raised['handle']);
                         }
                     } catch (TwistException $e) {
-                        $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
-                        throw $e;
+                        if ($throw_in_process) {
+                            $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                            throw $e;
+                        }
+                        $tos[$i] = $e;
+                        curl_multi_remove_handle($mh, $raised['handle']);
                     }
                 } while ($remains);
         } while ($running || $add); // continue if still running or added new cURL resources
@@ -236,6 +246,11 @@ final class TwistOAuth {
     
     /**
      * Execute multiple cURL requests.
+     * If $throw_in_process is false...
+     *    TwistException is thrown only in case all requests fatally failed.
+     *    In non-fatal case, return value contains TwistException as its elements.
+     * If $throw_in_process is true...
+     *    TwistException is thrown in all failure cases.
      * 
      * @param array $curls
      *     e.g.
@@ -245,22 +260,24 @@ final class TwistOAuth {
      *         'baz' => cURL resource of baz
      *         ...
      *     )
+     * @param bool [$throw_in_process]
      * @return array
      *     e.g.
      *     array(
-     *         'foo' => stdClass or array or TwistImage,
-     *         'bar' => stdClass or array or TwistImage,
-     *         'baz' => stdClass or array or TwistImage,
+     *         'foo' => stdClass or array or TwistImage or TwistException,
+     *         'bar' => stdClass or array or TwistImage or TwistException,
+     *         'baz' => stdClass or array or TwistImage or TwistException,
      *         ...
      *     )
      * @throws TwistException
      */
-    public static function curlMultiExec(array $curls) {
-        return self::curlMultiExecAction($curls, false);
+    public static function curlMultiExec(array $curls, $throw_in_process = false) {
+        return self::curlMultiExecAction($curls, false, $throw_in_process);
     }
     
     /**
      * Execute multiple cURL streaming requests.
+     * TwistException is thrown in all failure cases.
      * 
      * @param array $curls
      *     e.g.
@@ -273,7 +290,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     public static function curlMultiStreaming(array $curls) {
-        self::curlMultiExecAction($curls, true);
+        self::curlMultiExecAction($curls, true, true);
     }
     
     /**
@@ -1184,10 +1201,11 @@ final class TwistOAuth {
      * 
      * @param array $curls
      * @param bool $is_streaming
+     * @param bool $throw_in_process
      * @return array
      * @throws TwistException
      */
-    private static function curlMultiExecAction(array $curls, $is_streaming) {
+    private static function curlMultiExecAction(array $curls, $is_streaming, $throw_in_process) {
         $mh = curl_multi_init();
         $chs       = array(); // cURL resources for API connection
         $responses = array(); // responses
@@ -1230,15 +1248,16 @@ final class TwistOAuth {
                             $info = curl_getinfo($raised['handle']);
                             $responses[$i] = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
                         } catch (TwistException $e) {
-                            $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
-                            throw $e;
+                            $responses[$i] = $e;
+                            if ($throw_in_process) {
+                                $responses[$i]->__construct('(' . $i . ') ' . $responses[$i]->getMessage(), $responses[$i]->getCode());
+                                throw $responses[$i];
+                            }
                         }
                     }
                 } while ($remains);
         } while ($running); // continue if still running
-        if (!$is_streaming) {
-            return $responses;
-        }
+        return $responses;
     }
     
     /**

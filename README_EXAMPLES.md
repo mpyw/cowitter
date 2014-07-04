@@ -363,7 +363,7 @@ while (ob_get_level()) {
     ob_end_clean();
 }
 // Start streaming.
-$to->curlStreaming('user', function($status) {
+$to->streaming('user', function($status) {
     // Treat only tweets.
     if (isset($status->text)) {
         printf(

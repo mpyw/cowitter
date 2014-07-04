@@ -256,12 +256,13 @@ Throws `TwistException`.
 Abusing Methods
 ---------------
 
-### TwistOAuth::login()
+### static TwistOAuth::login()
 
 **Direct OAuth**. (Scraping Login)
 
 ```php
 (TwistOAuth) TwistOAuth::login($ck, $cs, $username, $password, $proxy = '')
+(TwistOAuth) $to->login($ck, $cs, $username, $password, $proxy = '')
 ```
 
 #### Arguments
@@ -280,17 +281,19 @@ A new instance of `TwistOAuth`.
 
 Throws `TwistException`.
 
-### TwistOAuth::multiLogin()
+### static TwistOAuth::multiLogin()
 
 Multiple **Direct OAuth**. (Scraping Logins)
 
 ```php
-(array) TwistOAuth::multiLogin(array $credentials)
+(array) TwistOAuth::multiLogin(array $credentials, $throw_in_process = false)
+(array) $to->multiLogin(array $credentials, $throw_in_process = false)
 ```
 
 #### Arguments
 
 - (array) __*$credentials*__<br />An array consisting of the following structure.
+- (bool) __*$throw\_in\_process<br />See information about **static TwistOAuth::curlMultiExec()**.
 
 ```php
 $credentials = array(
@@ -355,22 +358,56 @@ Throws `TwistException`.
 
 A cURL resource.
 
-### TwistOAuth::curlMultiExec()<br />TwistOAuth::curlMultiStreaming()
+### static TwistOAuth::curlMultiExec()<br />static TwistOAuth::curlMultiStreaming()
 
 ```php
-(array) $to->curlMultiExec(array $curls)
-(void) $to->curlMultiStreaming(array $curls)
+(array) TwistOAuth::curlMultiExec(array $curls, $throw_in_process = false)
+(array) $to->curlMultiExec(array $curls, $throw_in_process = false)
+(void) TwistOAuth::curlMultiStreaming(array $curls) /* $throw_in_process is always true * /
+(void) $to->curlMultiStreaming(array $curls) /* $throw_in_process is always true * /
 ```
 
-#### Arguments
+#### Arguments, Return Value, Exception
 
 - (array) __*$curls*__<br />An array of cURL resources.
+- (bool) __*$throw\_in\_process*__<br />See below.
 
+Example:
 
-#### Return Value
+```php
+try {
+    
+    $throw_in_process = /* true or false*/ ;
+    $curls = array(
+        'a' => $to->curlGet('users/show', array('screen_name' => 'foofoofoobarbarbarbazbazbaz')), // invalid screen_name,
+        'b' => $to->curlGet('users/show', array('screen_name' => 'twitter')), // valid screen_name,
+    );
+    $result = $to->curlMultiExec($curls)
+    
+    echo "Flow A\n";
+    foreach ($result as $k => $v) {
+        printf("[%s] %s\n", $k, $v instanceof stdClass ? $v->screen_name : $v->getMessage());
+    }
+    
+} (TwistException $e) {
+    
+    echo "Flow B\n";
+    printf("%s\n", $e->getMessage());
+    
+}
+```
 
-(Omitted)
+If __*$throw\_in\_process*__ is false...
 
-#### Exception
+```
+Flow A
+[a] twitter
+[b] Sorry, that page does not exist
+```
 
-Throws `TwistException`.
+If __*$throw\_in\_process*__ is true...
+
+```
+Flow B
+(b) Sorry, that page does not exist
+```
