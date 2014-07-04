@@ -66,7 +66,7 @@ header('Content-Type: text/html; charset=utf-8');
 </html>
 ```
 
-### Updating tweets
+### Update tweets
 
 ```html+php
 <?php
@@ -196,7 +196,7 @@ try {
         throw new RuntimeException('Access to prepare.php at first.');
     }
     
-    // Apply access_token.
+    // Apply access_token with oauth_verifier.
     $_SESSION['to'] = $_SESSION['to']->renewWithAccessToken(filter_input(INPUT_GET, 'oauth_verifier'));
     
     // Set authenticated flag.
@@ -235,6 +235,12 @@ function h($str) {
 
 // Start session.
 @session_start();
+
+// If user is not already authenticated, redirect to the preparation page.
+if (isset($_SESSION['authed'])) {
+    header('Location: http://127.0.0.1/my_twitter_app/prepare.php');
+    exit;
+}
 
 // Get user input.
 // (I recommend you not to use $_POST.)
@@ -297,7 +303,7 @@ Direct OAuth
 This requires heavy traffic. **Abusing**.
 
 ```php
-$to = self::('CK', 'CS', 'screen_name', 'password');
+$to = self::login('CK', 'CS', 'screen_name', 'password');
 ```
 
 ## Level-3: Advanced usage
@@ -351,8 +357,7 @@ $to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
 ));
 ```
 
-Simple CUI application for your own streaming
----------------------------------------------
+### Simple CUI application for your own streaming
 
 ```php
 // Finish all buffering.
@@ -361,13 +366,14 @@ while (ob_get_level()) {
 }
 // Start streaming.
 $to->curlStreaming('statuses/sample', function($status) {
-    // Treats only tweets.
+    // Treat only tweets.
     if (isset($status->text)) {
         printf(
             "@%s: %s\n",
             $status->user->screen_name,
             htmlspecialchars_decode($status->text, ENT_NOQUOTES)
         );
+        flush();
     }
 });
 ```

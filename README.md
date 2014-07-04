@@ -78,18 +78,28 @@ Contents
 - **[Examples](https://github.com/Certainist/TwistOAuth/blob/master/README_EXAMPLES.md)**
 - **[Details](https://github.com/Certainist/TwistOAuth/blob/master/README_DETAILS.md)**
 
-Notices
-=======
+FAQ
+====
 
-### All classes are **Immutable**.
+### Are all classes are immutable?
+
+Yes.
 
 ```php
-$a = new TwistOAuth('CK', 'CS', 'AT', 'AS');
+$a = new TwistOAuth('CK', 'CS');
 $b = $a->renewWithRequestToken();
 var_dump($a === $b); // false
 ```
 
-### OAuth 2.0 is **<ins>not</ins>** available.
+however, you can change propety values by directly calling `__construct()`.
+
+```php
+$obj = new TwistOAuth('a', 'b');
+$obj->__construct('c', 'd'); // Break immutable rules
+```
+
+
+### Is OAuth 2.0 is **<ins>not</ins>** available.
 
 Sorry. Use OAuth 1.0a instead.
 
@@ -109,7 +119,7 @@ The following snippet may print broken HTML.
 <input type="text" name="text" value="<?=$status->text?>">
 ```
 
-You should do like this:
+You should do like this.
 
 ```html+php
 <input type="text" name="text" value="<?=str_replace('"', '&#039;', $status->text)?>">
@@ -132,7 +142,7 @@ The following snippet may print broken HTML.
 name: <?=$user->name?><br>
 ```
 
-You should do like this:
+You should do like this.
 
 ```html+php
 name: <?=htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')?><br>

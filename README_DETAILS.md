@@ -1,5 +1,5 @@
 Class Description - TwistException
-======================
+=============================
 
 Simply extended from `RuntimeException`.  
 Treats errors caused on Twitter.
@@ -51,7 +51,7 @@ Methods
 'data:image/png;base64,......'
 ```
 
-Class Description  - TwistOAuth
+Class Description - TwistOAuth
 ==================
 
 Properties
@@ -71,30 +71,207 @@ All properties are *Readonly*.
 Basic Methods
 -------------
 
-### 
+### TwistOAuth::\_\_construct()
 
-(String) `TwistOAuth::url()`
+Constructor.
+
+```php
+new TwistOAuth($ck, $cs, $ot = '', $os = '')
+```
 
 #### Arguments
 
-- (String) __*$endpoint*__<br />Required.<br />e.g. `statuses/update` `users/lookup` `user`
+- (String) __*$ck*__<br />consumer\key.
+- (String) __*$cs*__<br />consumer\_secret.
+- (String) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
+- (String) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
+
+### TwistOAuth::getAuthenticateUrl()<br />TwistOAuth::getAuthorizeUrl()
+
+Easily generate URL for user to login.
+
+```php
+(String) $to->getAuthenticateUrl($force_login = false)
+(String) $to->getAuthorizeUrl($force_login = false)
+```
+
+#### Arguments
+
+- (bool) __*$force\_login*__<br />Whether we force logined users to relogin.
 
 #### Return Value
 
-An endpoint URL.<br />e.g. `https://api.twitter.com/1.1/statuses/update.json`
+A URL for authentication or authorization.
 
-#### Note
+### TwistOAuth::renewWithRequestToken()<br />TwistOAuth::renewWithAccessToken()<br />TwistOAuth::renewWithAccessTokenX()
 
-See [Twitter API documentation](https://dev.twitter.com/docs/api/1.1).
+Fetch tokens and regenerate instance with them.
 
-### (TwistOAuth) `TwistOAuth::login()`
+```php
+(TwistOAuth) $to->renewWithRequestToken($proxy = '')
+(TwistOAuth) $to->renewWithAccessToken($oauth_verifier, $proxy = '')
+(TwistOAuth) $to->renewWithAccessTokenX($username, $password, $proxy = '')
+```
 
 #### Arguments
 
-- (String) __*$ck*__<br />Required.<br />consumer\_key.
-- (String) __*$cs*__<br />Required.<br />consumer\_secret.
-- (String) __*$username*__<br />Required.<br />screen\_name or email.
-- (String) __*$password*__<br />Required.
+- (string) __*$oauth\_verifier*__
+- (string) __*$username*__<br />screen_name or email.
+- (string) __*$password*__
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+
+#### Return Value
+
+A <ins>new</ins> `TwistOAuth` instance.
+
+#### Exception
+
+Throws `TwistException`.
+
+### TwistOAuth::get()<br />TwistOAuth::post()<br />TwistOAuth::postMultipart()
+
+Execute a request for Twitter.
+
+```php
+(mixed) $to->get($url, $params = array(), $proxy = '')
+(mixed) $to->post($url, $params = array(), $proxy = '')
+(mixed) $to->postMultipart($url, $params = array(), $proxy = '')
+```
+
+#### Arguments
+
+- (string) __*$url*__<br />Full or partial endpoint URL.<br />e.g. `statuses/update` `https://api.twitter.com/1.1/statuses/update.json`
+- (mixed) __*$params*__<br />1-demensional array or query string.<br />File path annotation is `@` on <ins>key</ins>.(not value)<br />`NULL` is ignored.
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+
+Example value of __*$params*__:
+
+```php
+$params = 'status=test&in_reply_to_status_id=123456';
+```
+
+```php
+$params = array(
+    'status => 'test',
+    'in_reply_to_status_id' => '123456',
+);
+```
+
+```php
+$params = array(
+    'status' => 'test',
+    '@media[]' => 'test.jpg',
+);
+```
+
+#### Return Value
+
+Return value will mainly be `stdClass`, array or `TwistImage`.
+
+#### Exception
+
+Throws `TwistException`.
+
+### TwistOAuth::getOut()<br />TwistOAuth::postOut()<br />TwistOAuth::postMultipartOut()
+
+Execute a request for third party sites using **OAuth Echo**.
+
+```php
+(mixed) $to->getOut($url, $params = array(), $proxy = '')
+(mixed) $to->postOut($url, $params = array(), $proxy = '')
+(mixed) $to->postMultipartOut($url, $params = array(), $proxy = '')
+```
+
+#### Arguments
+
+- (string) __*$url*__<br />Full URL.<br />e.g. `http://api.twitpic.com/2/upload.json`
+- (mixed) __*$params*__<br />1-demensional array or query string.<br />File path annotation is `@` on <ins>key</ins>.(not value)<br />`NULL` is ignored.
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+
+#### Return Value
+
+Return value will mainly be `stdClass`, array or `TwistImage`.
+
+#### Exception
+
+Throws `TwistException`.
+
+### TwistOAuth::streaming()
+
+Execute a streaming request for Twitter.
+
+```php
+(void) $to->streaming($url, callable $callback, $params = array(), $proxy = '')
+```
+
+#### Arguments
+
+- (string) __*$url*__<br />Full or partial endpoint URL.<br />e.g. `statuses/filter` `https://stream.twitter.com/1.1/statuses/filter.json`
+- (callable) __*$callback*__<br />A callback function.<br />1 argument for each statuses.<br />Return true for disconnecting.
+- (mixed) __*$params*__<br />1-demensional array or query string.<br />File path annotation is `@` on <ins>key</ins>.(not value)<br />`NULL` is ignored.
+- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
+
+Example value of __*$callback*__:
+
+```php
+// A callback closure, which displays tweets unlimitedly.
+$callback = function ($status) {
+    static $i = 0;
+    // Treat only tweets
+    if (isset($status->text)) {
+        printf(
+            "@%s: %s\n",
+            $status->user->screen_name,
+            htmlspecialchars_decode($status->text, ENT_NOQUOTES)
+        );
+        flush();
+    }
+};
+```
+
+```php
+// A callback closure, which displays 10 tweets and then disconnect.
+$callback = function ($status) {
+    static $i = 0;
+    if ($i > 10) {
+        // Return true for disconnecting.
+        return true;
+    }
+    // Treat only tweets
+    if (isset($status->text)) {
+        printf(
+            "@%s: %s\n",
+            $status->user->screen_name,
+            htmlspecialchars_decode($status->text, ENT_NOQUOTES)
+        );
+        ++$i;
+        flush();
+    }
+};
+```
+
+#### Exception
+
+Throws `TwistException`.
+
+Abusing Methods
+---------------
+
+### TwistOAuth::login()
+
+**Direct OAuth**. (Scraping Login)
+
+```php
+(TwistOAuth) TwistOAuth::login($ck, $cs, $username, $password, $proxy = '')
+```
+
+#### Arguments
+
+- (String) __*$ck*__<br />consumer\_key.
+- (String) __*$cs*__<br />consumer\_secret.
+- (String) __*$username*__<br />screen\_name or email.
+- (String) __*$password*__
+- (String) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
 
 #### Return Value
 
@@ -104,15 +281,17 @@ A new instance of `TwistOAuth`.
 
 Throws `TwistException`.
 
-#### Note
+### TwistOAuth::multiLogin()
 
-Do not use this method a lot. You'll seem to be abusing.
+Multiple **Direct OAuth**. (Scraping Logins)
 
-### (Array) `TwistOAuth::multiLogin()`
+```php
+(array) TwistOAuth::multiLogin(array $credentials)
+```
 
 #### Arguments
 
-- (array) __*$credentials*__<br />Required.<br />An array consisting of the following structure.
+- (array) __*$credentials*__<br />An array consisting of the following structure.
 
 ```php
 $credentials = array(
@@ -155,141 +334,45 @@ $return_value = array(
 
 Throws `TwistException`.
 
-#### Note
+### TwistOAuth::curlPostRequestToken()<br />TwistOAuth::curlPostAccessToken()<br />TwistOAuth::curlGet()<br />
+TwistOAuth::curlGetOut()<br />TwistOAuth::curlPost()<br />TwistOAuth::curlPostOut()<br />TwistOAuth::curlPostMultipart()<br />TwistOAuth::curlPostMultipartOut()<br />TwistOAuth::curlStreaming()
 
-Do not use this method a lot. You'll seem to be abusing.
-
-### (TwistOAuth) `new TwistOAuth()`
+```php
+(resource) $to->curlPostRequestToken($proxy = '')
+(resource) $to->curlPostAccessToken($oauth_verifier, $proxy = '')
+(resource) $to->curlGet($url, $params = array(), $proxy = '')
+(resource) $to->curlGetOut($url, $params = array(), $proxy = '')
+(resource) $to->curlPost($url, $params = array(), $proxy = '')
+(resource) $to->curlPostOut($url, $params = array(), $proxy = '')
+(resource) $to->curlPostMultipart($url, $params = array(), $proxy = '')
+(resource) $to->curlPostMultipartOut($url, $params = array(), $proxy = '')
+(resource) $to->curlStreaming($url, callable $callback, $params = array(), $proxy = '')
+```
 
 #### Arguments
 
-- (String) __*$ck*__<br />Required.<br />consumer\key.
-- (String) __*$cs*__<br />Required.<br />consumer\_secret.
-- (String) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
-- (String) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
-
-### (String) `$to->getAuthenticateUrl()`
-
-#### Arguments
-
-- (bool) __*$force\_login*__<br />Whether we force logined users to relogin.
+(Omitted)
 
 #### Return Value
 
-An URL for **Authentication**.
+A cURL resource.
 
-### (String) `$to->getAuthorizeUrl()`
+### TwistOAuth::curlMultiExec()<br />TwistOAuth::curlMultiStreaming()
+
+```php
+(array) $to->curlMultiExec(array $curls)
+(void) $to->curlMultiStreaming(array $curls)
+```
 
 #### Arguments
 
-- (bool) __*$force\_login*__<br />Whether we force logined users to relogin.
+- __*$curls*__<br />An array of cURL resources.
+
 
 #### Return Value
 
-An URL for **Authorization**.
+(Omitted)
 
-### `$to->renewWithRequestToken()`
+#### Exception
 
-### `$to->renewWithAccessToken()`
-
-### `$to->get()`
-
-### `$to->getOut()`
-
-### `$to->post()`
-
-### `$to->postOut()`
-
-### `$to->postMultipart()`
-
-### `$to->postMultipartOut()`
-
-### `$to->streaming()`
-
-
-Advanced Methods
-----------------
-
-### `TwistOAuth::curlMultiExec()`
-
-### `TwistOAuth::curlMultiStreaming()`
-
-### `$to->curlPostRequestToken()`
-
-### `$to->curlPostAccessToken()`
-
-### `$to->curlGet()`
-
-### `$to->curlGetOut()`
-
-### `$to->curlPost()`
-
-### `$to->curlPostOut()`
-
-### `$to->curlPostMultipart()`
-
-### `$to->curlPostMultipartOut()`
-
-### `$to->curlStreaming()`
-
-### `TwistOAuth::decode()`
-
-Notices
-=======
-
-### All classes are **Immutable**.
-
-```php
-$a = new TwistOAuth('CK', 'CS', 'AT', 'AS');
-$b = $a->renewWithRequestToken();
-var_dump($a === $b); // false
-```
-
-### OAuth 2.0 is **<ins>not</ins>** available.
-
-Sorry. Use OAuth 1.0a instead.
-
-### HTML special chars in texts of statuses are already escaped.
-
-They are already filtered like this.
-
-```php
-$status->text = htmlspecialchars($status->text, ENT_NOQUOTES, 'UTF-8');
-```
-
-**WARNING:**  
-The flag is **`ENT_NOQUOTES`**, not `ENT_QUOTES` or `ENT_COMPAT`.  
-The following snippet may print broken HTML.
-
-```html+php
-<input type="text" name="text" value="<?=$status->text?>">
-```
-
-You should do like this:
-
-```html+php
-<input type="text" name="text" value="<?=str_replace('"', '&#039;', $status->text)?>">
-```
-
-### HTML special chars in others are already sanitized.
-
-They are already filtered like this.
-
-```php
-$user->name        = str_replace(array('<', '>'), '', $user->name);
-$user->description = str_replace(array('<', '>'), '', $user->description);
-```
-
-**WARNING:**  
-`&` is not replaced into `&amp;`.  
-The following snippet may print broken HTML.
-
-```html+php
-name: <?=$user->name?><br>
-```
-
-You should do like this:
-
-```html+php
-name: <?=htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')?><br>
-```
+Throws `TwistException`.
