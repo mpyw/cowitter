@@ -81,7 +81,7 @@ new TwistOAuth($ck, $cs, $ot = '', $os = '')
 
 #### Arguments
 
-- (String) __*$ck*__<br />consumer\key.
+- (String) __*$ck*__<br />consumer\_key.
 - (String) __*$cs*__<br />consumer\_secret.
 - (String) __*$ot*__<br />oauth\_token. (request\_token or access\_token)
 - (String) __*$os*__<br />oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
@@ -364,7 +364,7 @@ A cURL resource.
 
 #### Arguments
 
-- __*$curls*__<br />An array of cURL resources.
+- (array) __*$curls*__<br />An array of cURL resources.
 
 
 #### Return Value
