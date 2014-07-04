@@ -51,3 +51,17 @@ TwistOAuth - changelog
 
 2.1.1 (2014-07-01)
 + Performance tuning of TwistOAuth::url()
+
+2.2.0 (2014-07-04)
++ Supported abusing account generating MobileWeb API
++ Supported proxy
++ Supported xAuth authentication with TwistOAuth::renewWithAccessTokenX()
++ Combine multiple errors into string with separator "\n"
++ Return malformed response detail
++ Improved argument validation exception messages
++ Added PRIVATE Twist::OAuth::url(), this method is automatically called
++ Fixed bug in TwistOAuth::validateCurl()
+- Removed PUBLIC TwistOAuth::url()
+- Removed TwistOAuth::validateUrl(), use TwistOAuth::validateString() instead
+- Removed $wait_response flag
+

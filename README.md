@@ -24,13 +24,88 @@ Features
 - Multiple requests
 - **Direct OAuth** authentication
 
-Class - TwistException
+Preparation
+===========
+
+Download this library
+----------------
+
+Click [here](https://github.com/Certainist/TwistOAuth/archive/master.zip) to save `TwistOAuth.php` in your working directory.
+
+Register your application
+-------------------------
+
+You can manage your API keys in [https://apps.twitter.com](https://apps.twitter.com/).
+Now, let's register your own application.
+
+1. Click `Create New App`
+2. Fill `Name` `Description` `WebSite`.
+3. Fill `Callback URL`. Users are redirected here after successfully authenticating.
+4. Read rules and check `Yes, I agree`.
+5. Click `Create your Twitter application`.
+
+**NOTE: `localhost` is not available for Callback URL. Use `127.0.0.1` instead.**
+
+Change application permissions
+------------------------------
+
+By default, you can only read tweets but cannot post tweets.
+You have to configure permission settings.
+
+1. Open detail page of your application.
+2. Click `Permissions` Tab.
+3. Select **`Read, Write and Access direct messages`**.
+4. Click `Update settings`.
+
+Note your *consumer\_key* and *consumer\_secret*
+-------------------------------------------
+
+These parameters are identifier for **your application**.
+
+1. Open detail page of your application.
+2. Click `API Keys` Tab.
+3. Note `API key` and `API secret`. They mean *consumer\_key* and *consumer\_secret*.
+
+Generate your *access\_token* and *access\_token\_secret*
+--------------------------------------------------
+
+Examples and Tutorial
+=====================
+
+Simple GUI application for your own timeline
+--------------------------------------------
+
+Simple GUI application for your own updating tweets
+------------------------------------------
+
+OAuth authentication for general users
+--------------------------------------
+
+**Direct OAuth** authentication
+-------------------------------
+
+Access images in direct messages
+--------------------------------
+
+Update tweets with an image
+---------------------------
+
+Update tweets with images
+-------------------------
+
+Upload images into Twitpic
+------------------------
+
+Simple CUI application for your own streaming
+---------------------------------------------
+
+Class Description - TwistException
 ======================
 
 Simply extended from `RuntimeException`.  
 Treats errors caused on Twitter.
 
-Class - TwistImage
+Class Description - TwistImage
 ==================
 
 Some `TwistOAuth` methods return an instance of `TwistImage` when `Content-Type: image/***` header is detected.
@@ -38,16 +113,24 @@ Some `TwistOAuth` methods return an instance of `TwistImage` when `Content-Type:
 Properties
 ----------
 
-### (String) `$ti->type`
-
-*Readonly*.  
-This means the following value.
+### TwistImage::$type
 
 ```php
-substr('Content-Type: ***', 14);
+(String) $img->type
 ```
 
-### (String) `$ti->data`
+*Readonly*.  
+Content-Type. This means the following value.
+
+```php
+substr('Content-Type: image/***', 14)
+```
+
+### TwistImage::$data
+
+```php
+(String) $img->data
+```
 
 *Readonly*.  
 This means binary image data.
@@ -55,42 +138,43 @@ This means binary image data.
 Methods
 -------
 
-### (String) `$ti->getDataUri()`
+### TwistImage::getDataUri()
+
+```php
+(String) $img->getDataUri()
+```
 
 #### Return Value
 
-**Data URI**, such as `data:image/png;base64,......`.
+**Data URI**. This means the following value.
 
-Class - TwistOAuth
+```php
+'data:image/png;base64,......'
+```
+
+Class Description  - TwistOAuth
 ==================
 
 Properties
 ----------
 
-### (String) `$to->ck`
+### TwistOAuth::$ck<br />TwistOAuth::$cs<br />TwistOAuth::$ot<br />TwistOAuth::$os
 
-*Readonly*.  
-consumer\_key.
+All properties are *Readonly*.
 
-### (String) `$to->cs`
-
-*Readonly*.  
-consumer\_secret.
-
-### (String) `$to->ot`
-
-*Readonly*.  
-oauth\_token. (request\_token or access\_token)
-
-### (String) `$to->os`
-
-*Readonly*.  
-oauth\_token_secret. (request\_token\_secret or access\_token\_secret)
+```php
+(String) $to->ck // consumer_key
+(String) $to->cs // consumer_secret
+(String) $to->ot // oauth_token (request_token or access_token)
+(String) $to->os // oauth_token_secret (request_token_secret or access_token_secret)
+```
 
 Basic Methods
 -------------
 
-### (String) `TwistOAuth::url()`
+### 
+
+(String) `TwistOAuth::url()`
 
 #### Arguments
 

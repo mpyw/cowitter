@@ -1,5 +1,13 @@
 <?php
 
+/* 
+ * TwistOAuth Version 2.2.0
+ * 
+ * @author  CertaiN
+ * @github  https://github.com/Certainist/TwistOAuth
+ * @license BSD 2-Clause
+ */
+
 /**
  * Main class.
  */
@@ -8,26 +16,802 @@ final class TwistOAuth {
     /**
      * Request options.
      * 
-     * @const MODE_DEFAULT       for various endpoints
-     * @const MODE_REQUEST_TOKEN "oauth/request_token"
-     * @const MODE_ACCESS_TOKEN  "oauth/access_token"
+     * @const MODE_DEFAULT       for various endpoints.
+     * @const MODE_REQUEST_TOKEN for "oauth/request_token".
+     * @const MODE_ACCESS_TOKEN  for "oauth/access_token".
      */
-    const MODE_DEFAULT       = 0;
-    const MODE_REQUEST_TOKEN = 1;
-    const MODE_ACCESS_TOKEN  = 2;
+    const MODE_DEFAULT        = 0;
+    const MODE_REQUEST_TOKEN  = 1;
+    const MODE_ACCESS_TOKEN   = 2;
     
     /**
      * OAuth parameters.
      * 
-     * @property-read string $ck ConsumerKey
-     * @property-read string $cs ConsumerSecret
-     * @property-read string $ot RequestToken or AccessToken 
-     * @property-read string $os RequestTokenSecret or AccessTokenSecret
+     * @property-read string $ck consumer_key.
+     * @property-read string $cs consumer_secret.
+     * @property-read string $ot oauth_token. (request_token or access_token)
+     * @property-read string $os oauth_token_secret. (request_token_secret or access_token_secret)
      */
-    private $ck; 
-    private $cs;
-    private $ot;
-    private $os;
+    private $ck = ''; 
+    private $cs = '';
+    private $ot = '';
+    private $os = '';
+    
+    /**
+     * Generate a new account via abusing Mobile Web API.
+     * 
+     * @param string $fullname
+     * @param string $screen_name
+     * @param string $email
+     * @param string $password
+     * @param string [$proxy]     full proxy URL.
+     *                            e.g. https://111.222.333.444:8080
+     * @return TwistOAuth
+     * @throws TwistException
+     */
+    public static function androidSignUp($fullname, $screen_name, $email, $password, $proxy = '') {
+        // abusing API key (unknown) 
+        $to = new self('m9QsrrmJoANGROAiNKaC8g', 'udnsc1IAyTQnkj0KPfZffb9usZ6ZqVoXcdD3oxIVo');
+        // abusing endpoint url
+        $url = 'https://mobile.twitter.com/mobile_client_api/signup';
+        $fullname    = self::validateString('$fullname', $fullname);
+        $screen_name = self::validateString('$screen_name', $screen_name);
+        $email       = self::validateString('$email', $email);
+        $password    = self::validateString('$password', $password);
+        $proxy       = self::validateString('$proxy', $proxy);
+        $params = compact('fullname', 'screen_name', 'email', 'password');
+        $ch = self::curlInit($proxy);
+        curl_setopt_array($ch, array(
+            CURLOPT_HTTPHEADER => $to->getAuthorization($url, 'POST', $params, self::MODE_REQUEST_TOKEN),
+            CURLOPT_URL        => $url,
+            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
+            CURLOPT_POST       => true,
+        ));
+        $response = self::decode($ch, curl_exec($ch));
+        // this endpoint returns special JSON format on errors
+        if (!isset($response->oauth_token, $response->oauth_token_secret)) {
+            $info = curl_getinfo($ch);
+            // each property is an array, so needs to be flatten
+            $it = new RecursiveArrayIterator((array)$response);
+            $it = new RecursiveIteratorIterator($it);
+            throw new TwistException(implode("\n", iterator_to_array($it, false)), $info['http_code']);
+        }
+        // abusing API key (Twitter for Android)
+        return new self(
+            '3nVuSoBZnx6U4vzUxf5w',
+            'Bcs59EFbbsdF6Sl9Ng71smgStWEGwXXKSjYvPVt7qys',
+            $response->oauth_token,
+            $response->oauth_token_secret
+        );
+    }
+    
+    /**
+     * Execute direct OAuth login.
+     * 
+     * @param string $ck       consumer_key.
+     * @param string $cs       consumer_secret.
+     * @param string $username screen_name or email.
+     * @param string $password 
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return TwistOAuth
+     * @throws TwistException
+     */
+    public static function login($ck, $cs, $username, $password, $proxy = '') {
+        $to = new self($ck, $cs);
+        $username = self::validateString('$username', $username);
+        $password = self::validateString('$password', $password);
+        $proxy    = self::validateString('$proxy', $proxy);
+        $ch = self::curlInit($proxy);
+        $to = $to->renewWithRequestToken();
+        self::curlSetOptForAuthenticityToken($ch, $to);
+        $token = self::parseAuthenticityToken($ch, curl_exec($ch));
+        self::curlSetOptForVerifier($ch, $to, $token, $username, $password);
+        $verifier = self::parseVerifier($ch, curl_exec($ch));
+        return $to->renewWithAccessToken($verifier);
+    }
+    
+    /**
+     * Execute multiple direct OAuth logins.
+     * 
+     * @param array $credentials
+     *     e.g.
+     *     array(
+     *         'foo' => array('CONSUMER_KEY_foo', 'CONSUMER_SECRET_foo', 'USERNAME_foo', 'PASSWORD_foo'),
+     *         'bar' => array('CONSUMER_KEY_bar', 'CONSUMER_SECRET_bar', 'USERNAME_bar', 'PASSWORD_bar'),
+     *         'baz' => array('CONSUMER_KEY_baz', 'CONSUMER_SECRET_baz', 'USERNAME_baz', 'PASSWORD_baz'),
+     *         ...
+     *     )
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return array
+     *     e.g.
+     *     array(
+     *         'foo' => TwistOAuth object of foo,
+     *         'bar' => TwistOAuth object of bar,
+     *         'baz' => TwistOAuth object of baz,
+     *         ...
+     *     )
+     * @throws TwistException
+     */
+    public static function multiLogin(array $credentials, $proxy = '') {
+        static $names = array('consumer_key', 'consumer_secret', 'username', 'password');
+        $mh = curl_multi_init();
+        $tos    = array(); // TwistOAuth objects
+        $states = array(); // states
+        $chs    = array(); // cURL resources for API connection
+        $schs   = array(); // cURL resources for scraping connection
+        if (!$credentials) {
+            return array();
+        }
+        foreach ($credentials as $i => &$credential) {
+            if (!is_array($credential)) {
+                throw new InvalidArgumentException(sprintf(
+                    '$credentials[%s] must be an array.',
+                    $i
+                ));
+            }
+            foreach ($names as $j => $name) {
+                switch (true) {
+                    case !isset($credential[$j]):
+                    case false === $credential[$j] = filter_var($credential[$j]):
+                        throw new InvalidArgumentException(sprintf(
+                            'The value of $credentials[%s][%s] must be stringable.',
+                            $i,
+                            $j + 1,
+                            $names[$j]
+                        ));
+                }
+            }
+            $tos[$i]    = new self($credential[0], $credential[1]);
+            $states[$i] = 4;
+            $chs[$i]    = $tos[$i]->curlPostRequestToken($proxy);
+            $schs[$i]   = null;
+            curl_multi_add_handle($mh, $chs[$i]);
+        }
+        unset($credential);
+        // start requests 
+        while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
+        if (!$running || $stat !== CURLM_OK) {
+            throw new TwistException('Failed to start multiple requests.');
+        }
+        // wait cURL events
+        do switch (curl_multi_select($mh, 10)) {
+            case -1: // failed to select for various reason
+                // wait a bit, update $running flag, retry and continue
+                usleep(10);
+                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+            case 0:
+                // timeout! continue
+                continue 2;
+            default:
+                // update $running flag
+                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+                $add = false;
+                // dequeue array of cURL which finished receiving data
+                do if ($raised = curl_multi_info_read($mh, $remains)) {
+                    // search offset corresponds to the resource, in $chs or $schs
+                    if (false === $i = array_search($raised['handle'], $chs, true)) {
+                        $i = array_search($raised['handle'], $schs, true);
+                    }
+                    try {
+                        // step to the next state
+                        switch (--$states[$i]) {
+                            case 3:
+                                $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
+                                $tos[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
+                                $schs[$i] = self::curlInit($proxy);
+                                self::curlSetOptForAuthenticityToken($schs[$i], $tos[$i]);
+                                curl_multi_remove_handle($mh, $raised['handle']);
+                                curl_multi_add_handle($mh, $schs[$i]);
+                                $add = true;
+                                break;
+                            case 2:
+                                $token = self::parseAuthenticityToken($raised['handle'], curl_multi_getcontent($raised['handle']));
+                                self::curlSetOptForVerifier($raised['handle'], $tos[$i], $token, $credentials[$i][2], $credentials[$i][3]);
+                                curl_multi_remove_handle($mh, $raised['handle']);
+                                curl_multi_add_handle($mh, $schs[$i]);
+                                $add = true;
+                                break;
+                            case 1:
+                                $verifier = self::parseVerifier($raised['handle'], curl_multi_getcontent($raised['handle']));
+                                $chs[$i] = $tos[$i]->curlPostAccessToken($verifier, $proxy);
+                                curl_multi_remove_handle($mh, $raised['handle']);
+                                curl_multi_add_handle($mh, $chs[$i]);
+                                $add = true;
+                                break;
+                            case 0:
+                                $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
+                                $tos[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
+                                curl_multi_remove_handle($mh, $raised['handle']);
+                        }
+                    } catch (TwistException $e) {
+                        $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                        throw $e;
+                    }
+                } while ($remains);
+        } while ($running || $add); // continue if still running or added new cURL resources
+        return $tos;
+    }
+    
+    /**
+     * Execute multiple cURL requests.
+     * 
+     * @param array $curls
+     *     e.g.
+     *     array(
+     *         'foo' => cURL resource of foo
+     *         'bar' => cURL resource of bar
+     *         'baz' => cURL resource of baz
+     *         ...
+     *     )
+     * @return array
+     *     e.g.
+     *     array(
+     *         'foo' => stdClass or array or TwistImage,
+     *         'bar' => stdClass or array or TwistImage,
+     *         'baz' => stdClass or array or TwistImage,
+     *         ...
+     *     )
+     * @throws TwistException
+     */
+    public static function curlMultiExec(array $curls) {
+        return self::curlMultiExecAction($curls, false);
+    }
+    
+    /**
+     * Execute multiple cURL streaming requests.
+     * 
+     * @param array $curls
+     *     e.g.
+     *     array(
+     *         'foo' => cURL resource of foo
+     *         'bar' => cURL resource of bar
+     *         'baz' => cURL resource of baz
+     *         ...
+     *     )
+     * @throws TwistException
+     */
+    public static function curlMultiStreaming(array $curls) {
+        self::curlMultiExecAction($curls, true);
+    }
+    
+    /**
+     * Decode response.
+     * 
+     * @param resource $ch
+     * @param string   $response
+     * @return mixed
+     * @throws TwistException
+     */
+    public static function decode($ch, $response) {
+        $ch       = self::validateCurl('$ch', $ch);
+        $response = self::validateString('$response', $response);
+        $info = curl_getinfo($ch);
+        if (curl_errno($ch)) {
+            throw new TwistException(curl_error($ch), $info['http_code']);
+        }
+        if (stripos($info['content_type'], 'image/') === 0) {
+            return new TwistImage($info['content_type'], $response);
+        }
+        if (
+            null  !== $obj = json_decode($response) or
+            false !== $obj = json_decode(json_encode(@simplexml_load_string($response)))
+        ) {
+            if (isset($obj->error)) {       
+                throw new TwistException($obj->error, $info['http_code']);
+            }
+            if (isset($obj->errors)) {
+                if (is_string($obj->errors)) {
+                    throw new TwistException($obj->errors, $info['http_code']);
+                } else {
+                    $messages = array();
+                    foreach ($obj->errors as $error) {
+                        $messages[] = $error->message;
+                    }
+                    throw new TwistException(implode("\n", $messages), $info['http_code']);
+                }
+            }
+            return $obj;
+        }
+        parse_str($response, $obj);
+        $obj = (object)$obj;
+        if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
+            return $obj;
+        }
+        if (preg_match("@Reason:\n<pre>([^<]++)</pre>@", $response, $matches)) {
+            throw new TwistException(trim($matches[1]), $info['http_code']);
+        }
+        if (strip_tags($response) === $response) {
+            throw new TwistException(trim($response), $info['http_code']);
+        }
+        throw new TwistException('Malformed response detected: ' . $response, $info['http_code']);
+    }
+    
+    /**
+     * Constructor.
+     *
+     * @param string $ck   consumer_key.
+     * @param string $cs   consumer_secret.
+     * @param string [$ot] oauth_token. (request_token or access_token)
+     * @param string [$os] oauth_token_secret. (request_token_secret or access_token_secret)
+     */
+    public function __construct($ck, $cs, $ot = '', $os = '') {
+        $this->ck = self::validateString('$ck', $ck);
+        $this->cs = self::validateString('$cs', $cs);
+        $this->ot = self::validateString('$ot', $ot);
+        $this->os = self::validateString('$os', $os);
+    }
+    
+    /**
+     * Getter for private properties.
+     *
+     * @name string $name
+     * @return string
+     */
+    public function __get($name) {
+        $name = filter_var($name);
+        if (!property_exists($this, $name)) {
+            throw new OutOfRangeException('Invalid property: ' . $name);
+        }
+        return $this->$name;
+    }
+    
+    /**
+     * Get URL for authentication.
+     *
+     * @param bool [$force_login]
+     * @return string URL
+     */
+    public function getAuthenticateUrl($force_login = false) {
+        $params = http_build_query(array(
+            'oauth_token' => $this->ot,
+            'force_login' => $force_login ? 1 : null,
+        ), '', '&');
+        return 'https://api.twitter.com/oauth/authenticate?' . $params;
+    }
+    
+    /**
+     * Get URL for authorization.
+     *
+     * @param bool [$force_login]
+     * @return string URL
+     */
+    public function getAuthorizeUrl($force_login = false) {
+        $params = http_build_query(array(
+            'oauth_token' => $this->ot,
+            'force_login' => $force_login ? 1 : null,
+        ), '', '&');
+        return 'https://api.twitter.com/oauth/authorize?' . $params;
+    }
+    
+    /**
+     * Execute GET request.
+     *
+     * @param string $url      full or partial endpoint URL.
+     *                         e.g. "statuses/show", "https://api.twitter.com/1.1/statuses/show.json"
+     * @param mixed  [$params] 1-demensional array or query string.
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function get($url, $params = array(), $proxy = '') {
+        $ch = $this->curlGet($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Execute GET OAuth Echo request.
+     *
+     * @param string $url      full URL.
+     * @param mixed  [$params] 1-demensional array or query string.
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function getOut($url, $params = array(), $proxy = '') {
+        $ch = $this->curlGetOut($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Execute streaming GET request.
+     *
+     * @param string   $url      full or partial endpoint URL.
+     *                           e.g. "statuses/sample", "https://stream.twitter.com/1.1/statuses/sample.json"
+     * @param callable $callback function for processing each message.
+     *                           if it returns true, your connection will be aborted.
+     * @param mixed    [$params] 1-demensional array or query string.
+     * @param string   [$proxy]  full proxy URL.
+     *                           e.g. https://111.222.333.444:8080
+     * @throws TwistException
+     */
+    public function streaming($url, $callback, $params = array(), $proxy = '') {
+        curl_exec($ch = $this->curlStreaming($url, $callback, $params, $proxy));
+        // throw exception unless $callback returned true
+        if (!self::isWriteFailure($ch)) {
+            $info = curl_getinfo($ch);
+            throw new TwistException('Streaming stopped unexpectedly.', $info['http_code']);
+        }
+    }
+    
+    /**
+     * Execute POST request.
+     *
+     * @param string $url     full or partial endpoint URL.
+     *                        e.g. "statuses/update", "https://api.twitter.com/1.1/statuses/update.json"
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function post($url, $params = array(), $proxy = '') {
+        $ch = $this->curlPost($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Execute POST OAuth Echo request.
+     *
+     * @param string $url     full URL.
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function postOut($url, $params = array(), $proxy = '') {
+        $ch = $this->curlPostOut($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Execute POST request for "oauth/request_token".
+     *
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return TwistOAuth
+     * @throws TwistException
+     */
+    public function renewWithRequestToken($proxy = '') {
+        $ch = $this->curlPostRequestToken($proxy);
+        $response = self::decode($ch, curl_exec($ch));
+        return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
+    }
+    
+    /**
+     * Execute POST request for "oauth/access_token".
+     *
+     * @param string $oauth_verifier
+     * @param string [$proxy]        full proxy URL.
+     *                               e.g. https://111.222.333.444:8080
+     * @return TwistOAuth
+     * @throws TwistException
+     */
+    public function renewWithAccessToken($oauth_verifier, $proxy = '') {
+        $ch = $this->curlPostAccessToken($oauth_verifier, $proxy);
+        $response = self::decode($ch, curl_exec($ch));
+        return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
+    }
+    
+    /**
+     * Execute POST request for "oauth/access_token" using xAuth.
+     *
+     * @param string $username screen_name or email.
+     * @param string $password 
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return TwistOAuth
+     * @throws TwistException
+     */
+    public function renewWithAccessTokenX($username, $password, $proxy = '') {
+        $ch = $this->curlPostAccessTokenX($username, $password, $proxy);
+        $response = self::decode($ch, curl_exec($ch));
+        return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
+    }
+        
+    /**
+     * Execute multipart POST request.
+     *
+     * @param string $url     full or partial endpoint URL.
+     *                        e.g. "statuses/update_with_media", "https://api.twitter.com/1.1/statuses/update_with_media.json"
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function postMultipart($url, $params = array(), $proxy = '') {
+        $ch = $this->curlPostMultipart($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Execute multipart POST OAuth Echo request.
+     *
+     * @param string $url     full URL.
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return mixed
+     * @throws TwistException
+     */
+    public function postMultipartOut($url, $params = array(), $proxy = '') {
+        $ch = $this->curlPostMultipartOut($url, $params, $proxy);
+        $response = curl_exec($ch);
+        return self::decode($ch, $response);
+    }
+    
+    /**
+     * Prepare cURL resource for GET request.
+     *
+     * @param string $url      full or partial endpoint URL.
+     *                         e.g. "statuses/show", "https://api.twitter.com/1.1/statuses/show.json"
+     * @param mixed  [$params] 1-demensional array or query string.
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlGet($url, $params = array(), $proxy = '') {
+        return self::curlGetAction($url, $params, false, $proxy);
+    }
+    
+    /**
+     * Prepare cURL resource for GET OAuth Echo request.
+     *
+     * @param string $url      full URL.
+     * @param mixed  [$params] 1-demensional array or query string.
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlGetOut($url, $params = array(), $proxy = '') {
+        return self::curlGetAction($url, $params, true, $proxy);
+    }
+    
+    /**
+     * Prepare cURL resource for streaming GET request.
+     *
+     * @param string   $url      full or partial endpoint URL.
+     *                           e.g. "statuses/sample", "https://stream.twitter.com/1.1/statuses/sample.json"
+     * @param callable $callback function for processing each message.
+     *                           if it returns true, your connection will be aborted.
+     * @param mixed    [$params] 1-demensional array or query string.
+     * @param string   [$proxy]  full proxy URL.
+     *                           e.g. https://111.222.333.444:8080
+     * @throws TwistException
+     */
+    public function curlStreaming($url, $callback, $params = array(), $proxy = '') {
+        $url      = self::url(self::validateString('$url', $url));
+        $callback = self::validateCallback('$callback', $callback);
+        $obj      = self::getParamObject(self::validateParams('$params', $params));
+        $proxy    = self::validateString('$proxy', $proxy);
+        $params   = array();
+        foreach ($obj->paramData as $key => $value) {
+            $params[$key] =
+                $obj->paramIsFile[$key] ?
+                base64_encode($value) :
+                $value
+            ;
+        }
+        $ch = self::curlInit($proxy);
+        curl_setopt_array($ch, array(
+            CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'GET', $params, 0),
+            CURLOPT_URL            => $url . '?' . http_build_query($params, '', '&'),
+            CURLOPT_TIMEOUT        => 0,
+            CURLOPT_WRITEFUNCTION  => function ($ch, $str) use ($callback) {
+                static $first = true;
+                static $buffer = '';
+                $buffer .= $str;
+                // skip empty line
+                if (trim($buffer) === '') {
+                    return strlen($str);
+                }
+                switch (true) {
+                    // decodable first response
+                    case $first and strpos($buffer, '{') !== 0 || json_decode($buffer):
+                        $first = false;
+                    // decodable line
+                    case $buffer[strlen($buffer) - 1] === "\n":
+                        if ($callback(self::decode($ch, $buffer))) {
+                            return 0;
+                        }
+                        $buffer = '';
+                    default:
+                        return strlen($str);
+                }
+            }
+        ));
+        return $ch;
+    }
+    
+    /**
+     * Prepare cURL resource for POST request.
+     *
+     * @param string $url     full or partial endpoint URL.
+     *                        e.g. "statuses/update_with_media", "https://api.twitter.com/1.1/statuses/update_with_media.json"
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlPost($url, $params = array(), $proxy = '') {
+        return self::curlPostAction($url, $params, false, $proxy);
+    }
+    
+    /**
+     * Prepare cURL resource for POST OAuth Echo request.
+     *
+     * @param string $url     full URL.
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlPostOut($url, $params = array(), $proxy = '') {
+        return self::curlPostAction($url, $params, true, $proxy);
+    }
+    
+    /**
+     * Prepare cURL resource for POST request "oauth/request_token".
+     *
+     * @param string $oauth_verifier
+     * @param string [$proxy]        full proxy URL.
+     *                               e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlPostRequestToken($proxy = '') {
+        $proxy  = self::validateString('$proxy', $proxy);
+        $url    = 'https://api.twitter.com/oauth/request_token';
+        $params = array();
+        $ch     = self::curlInit($proxy);
+        curl_setopt_array($ch, array(
+            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REQUEST_TOKEN),
+            CURLOPT_URL        => $url,
+            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
+            CURLOPT_POST       => true,
+        ));
+        return $ch;
+    }
+    
+    /**
+     * Prepare cURL resource for POST request "oauth/access_token".
+     *
+     * @param string $oauth_verifier
+     * @param string [$proxy]        full proxy URL.
+     *                               e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlPostAccessToken($oauth_verifier, $proxy = '') {
+        $oauth_verifier = self::validateString('$oauth_verifier', $oauth_verifier);
+        $proxy          = self::validateString('$proxy', $proxy);
+        $url    = 'https://api.twitter.com/oauth/access_token';
+        $params = compact('oauth_verifier');
+        $ch     = self::curlInit($proxy);
+        curl_setopt_array($ch, array(
+            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_ACCESS_TOKEN),
+            CURLOPT_URL        => $url,
+            CURLOPT_POSTFIELDS => '',
+            CURLOPT_POST       => true,
+        ));
+        return $ch;
+    }
+    
+    /**
+     * Prepare cURL resource for POST request "oauth/access_token" using xAuth.
+     *
+     * @param string $username screen_name or email.
+     * @param string $password 
+     * @param string [$proxy]  full proxy URL.
+     *                         e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     * @throws TwistException
+     */
+    public function curlPostAccessTokenX($username, $password, $proxy = '') {
+        $username = self::validateString('$username', $username);
+        $password = self::validateString('$password', $password);
+        $proxy    = self::validateString('$proxy', $proxy);
+        $url    = 'https://api.twitter.com/oauth/access_token';
+        $params = self::validateParams(array(
+            'x_auth_mode'     => 'client_auth',
+            'x_auth_username' => $username,
+            'x_auth_password' => $password,
+        ));
+        $ch     = self::curlInit($proxy);
+        curl_setopt_array($ch, array(
+            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REUEST_TOKEN),
+            CURLOPT_URL        => $url,
+            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
+            CURLOPT_POST       => true,
+        ));
+        return $ch;
+    }
+    
+    /**
+     * Prepare cURL resource for multipart POST request.
+     *
+     * @param string $url     full or partial endpoint URL.
+     *                        e.g. "statuses/update_with_media", "https://api.twitter.com/1.1/statuses/update_with_media.json"
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     */
+    public function curlPostMultipart($url, $params = array(), $proxy = '') {
+        return self::curlPostMultipartAction($url, $params, false, $proxy);
+    }
+    
+    /**
+     * Prepare cURL resource for multipart POST OAuth Echo request.
+     *
+     * @param string $url     full URL.
+     * @param mixed  $params  1-demensional array or query string.
+     * @param string [$proxy] full proxy URL.
+     *                        e.g. https://111.222.333.444:8080
+     * @return resource cURL
+     */
+    public function curlPostMultipartOut($url, $params = array(), $proxy = '') {
+        return self::curlPostMultipartAction($url, $params, true, $proxy);
+    }
+    
+    /**
+     * Initialize cURL resource.
+     * 
+     * @proxy string $proxy
+     * @return resource cURL
+     */
+    private static function curlInit($proxy) {
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_ENCODING       => 'gzip',
+            CURLOPT_COOKIEJAR      => '',
+        ));
+        if ($proxy !== '') {
+            if (false === $p = parse_url($proxy)) {
+                throw new TwistException('The value of $proxy is invalid: Failed to parse.');
+            }
+            if (!isset($p['scheme'])) {
+                throw new TwistException('The value of $proxy is invalid: Has no scheme.');
+            }
+            if (!isset($p['host'])) {
+                throw new TwistException('The value of $proxy is invalid: Has no host.');
+            }
+            if (isset($p['path'])) {
+                throw new TwistException('The value of $proxy is invalid: Has path.');
+            }
+            if (isset($p['query'])) {
+                throw new TwistException('The value of $proxy is invalid: Has query.');
+            }
+            if (isset($p['fragment'])) {
+                throw new TwistException('The value of $proxy is invalid: Has fragment.');
+            }
+            curl_setopt_array($ch, array(
+                CURLOPT_HTTPPROXYTUNNEL => $p['scheme'] === 'https',
+                CURLOPT_PROXY           => $p['scheme'] . '://' . $p['host'] . (isset($p['port']) ? ':' . $p['port'] : ''),
+                CURLOPT_PROXYUSERPWD    => (isset($p['user']) ? $p['user'] : 'anonymous') . ':' . (isset($p['pass']) ? $p['pass'] : ''),
+            ));
+            if (isset($p['port'])) {
+                curl_setopt($ch, CURLOPT_PROXYPORT, $p['port']);
+            }
+        }
+        return $ch;
+    }
     
     /**
      * Parse endpoint url.
@@ -35,7 +819,7 @@ final class TwistOAuth {
      * @param string $endpoint
      * @return string URL
      */
-    public static function url($endpoint) {
+    private static function url($endpoint) {
         static $regex;
         static $callback;
         static $list;
@@ -328,20 +1112,10 @@ final class TwistOAuth {
                     'https://api.twitter.com/1.1/users/suggestions.json',
                 'users/wipe_addressbook' =>
                     'https://api.twitter.com/1.1/users/wipe_addressbook.json',
-                'account/generate' =>
-                    'https://api.twitter.com/1/account/generate.json',
                 'i/activity/about_me' =>
                     'https://api.twitter.com/i/activity/about_me.json',
                 'i/activity/by_friends' =>
                     'https://api.twitter.com/i/activity/by_friends.json',
-                'oauth/access_token' =>
-                    'https://api.twitter.com/oauth/access_token',
-                'oauth/authenticate' =>
-                    'https://api.twitter.com/oauth/authenticate',
-                'oauth/authorize' =>
-                    'https://api.twitter.com/oauth/authorize',
-                'oauth/request_token' =>
-                    'https://api.twitter.com/oauth/request_token',
                 'site' =>
                     'https://sitestream.twitter.com/1.1/site.json',
                 'statuses/filter' =>
@@ -356,617 +1130,17 @@ final class TwistOAuth {
                     'https://userstream.twitter.com/1.1/user.json',
             );
         }
-        $endpoint = self::validateString('endpoint', $endpoint);
         if (isset($list[$endpoint])) {
             return $list[$endpoint];
         }
-        $endpoint = preg_replace_callback($regex, $callback, $endpoint, 1, $count);
-        if ($count === 0) {
-            throw new InvalidArgumentException('Invalid endpoint.');
-        }
-        return $endpoint;
-    }
-    
-    /**
-     * Execute direct OAuth login.
-     * 
-     * @param string $ck consumer_key
-     * @param string $cs consumer_secret
-     * @param string $username screen_name or email
-     * @param string $password
-     * @return TwistOAuth
-     * @throws TwistException
-     */
-    public static function login($ck, $cs, $username, $password) {
-        $ch       = self::curlInit();
-        $to       = new self($ck, $cs);
-        $username = self::validateString('username', $username);
-        $password = self::validateString('password', $password);
-        $to       = $to->renewWithRequestToken();
-        self::curlSetOptForAuthenticityToken($ch, $to);
-        $token    = self::parseAuthenticityToken($ch, curl_exec($ch));
-        self::curlSetOptForVerifier($ch, $to, $token, $username, $password);
-        $verifier = self::parseVerifier($ch, curl_exec($ch));
-        return $to->renewWithAccessToken($verifier);
-    }
-    
-    /**
-     * Execute multiple direct OAuth login.
-     * 
-     * @param array $credentials
-     *     e.g.
-     *     array(
-     *         'foo' => array('CONSUMER_KEY_foo', 'CONSUMER_SECRET_foo', 'USERNAME_foo', 'PASSWORD_foo'),
-     *         'bar' => array('CONSUMER_KEY_bar', 'CONSUMER_SECRET_bar', 'USERNAME_bar', 'PASSWORD_bar'),
-     *         'baz' => array('CONSUMER_KEY_baz', 'CONSUMER_SECRET_baz', 'USERNAME_baz', 'PASSWORD_baz'),
-     *         ...
-     *     )
-     * @return array
-     *     e.g.
-     *     array(
-     *         'foo' => TwistOAuth object of foo,
-     *         'bar' => TwistOAuth object of bar,
-     *         'baz' => TwistOAuth object of baz,
-     *         ...
-     *     )
-     * @throws TwistException
-     */
-    public static function multiLogin(array $credentials) {
-        static $names = array('consumer_key', 'consumer_secret', 'username', 'password');
-        $mh = curl_multi_init();
-        $tos = $states = $chs = $schs = array();
-        if (!$credentials) {
-            return array();
-        }
-        foreach ($credentials as $i => &$credential) {
-            if (!is_array($credential)) {
-                throw new InvalidArgumentException(sprintf(
-                    '(%s) The parameters must be array.',
-                    $i
-                ));
-            }
-            foreach ($names as $j => $name) {
-                switch (true) {
-                    case !isset($credential[$j]):
-                    case false === $credential[$j] = filter_var($credential[$j]):
-                        throw new InvalidArgumentException(sprintf(
-                            '(%s) The parameter %s (%s) must be string.',
-                            $i,
-                            $j + 1,
-                            $names[$j]
-                        ));
-                }
-            }
-            $tos[$i]    = new self($credential[0], $credential[1]);
-            $states[$i] = 4;
-            $chs[$i]    = $tos[$i]->curlPostRequestToken();
-            $schs[$i]   = null;
-            curl_multi_add_handle($mh, $chs[$i]);
-        }
-        unset($credential);
-        while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
-        if (!$running || $stat !== CURLM_OK) {
-            throw new TwistException('Failed to start multiple requests.');
-        }
-        do switch (curl_multi_select($mh, 10)) {
-            case -1:
-                usleep(10);
-                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-            case 0:
-                continue 2;
-            default:
-                while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-                $add = false;
-                do if ($raised = curl_multi_info_read($mh, $remains)) {
-                    if (false === $i = array_search($raised['handle'], $chs, true)) {
-                        $i = array_search($raised['handle'], $schs, true);
-                    }
-                    try {
-                        switch (--$states[$i]) {
-                            case 3:
-                                $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
-                                $tos[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
-                                $schs[$i] = self::curlInit();
-                                self::curlSetOptForAuthenticityToken($schs[$i], $tos[$i]);
-                                curl_multi_remove_handle($mh, $raised['handle']);
-                                $add = !curl_multi_add_handle($mh, $schs[$i]);
-                                break;
-                            case 2:
-                                $token = self::parseAuthenticityToken($raised['handle'], curl_multi_getcontent($raised['handle']));
-                                self::curlSetOptForVerifier($raised['handle'], $tos[$i], $token, $credentials[$i][2], $credentials[$i][3]);
-                                curl_multi_remove_handle($mh, $raised['handle']);
-                                $add = !curl_multi_add_handle($mh, $schs[$i]);
-                                break;
-                            case 1:
-                                $verifier = self::parseVerifier($raised['handle'], curl_multi_getcontent($raised['handle']));
-                                $chs[$i] = $tos[$i]->curlPostAccessToken($verifier);
-                                curl_multi_remove_handle($mh, $raised['handle']);
-                                $add = !curl_multi_add_handle($mh, $chs[$i]);
-                                break;
-                            case 0:
-                                $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
-                                $tos[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
-                                curl_multi_remove_handle($mh, $raised['handle']);
-                        }
-                    } catch (TwistException $e) {
-                        $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
-                        throw $e;
-                    }
-                } while ($remains);
-        } while ($running || $add);
-        return $tos;
-    }
-    
-    /**
-     * Execute multiple cURL requests.
-     * 
-     * @param array $curls
-     *     e.g.
-     *     array(
-     *         'foo' => cURL resource of foo
-     *         'bar' => cURL resource of bar
-     *         'baz' => cURL resource of baz
-     *         ...
-     *     )
-     * @return array
-     *     e.g.
-     *     array(
-     *         'foo' => stdClass or array,
-     *         'bar' => stdClass or array,
-     *         'baz' => stdClass or array,
-     *         ...
-     *     )
-     * @throws TwistException
-     */
-    public static function curlMultiExec(array $curls) {
-        return self::curlMultiExecAction($curls, false);
-    }
-    
-    /**
-     * Execute multiple cURL streaming requests.
-     * 
-     * @param array $curls
-     *     e.g.
-     *     array(
-     *         'foo' => cURL resource of foo
-     *         'bar' => cURL resource of bar
-     *         'baz' => cURL resource of baz
-     *         ...
-     *     )
-     * @throws TwistException
-     */
-    public static function curlMultiStreaming(array $curls) {
-        self::curlMultiExecAction($curls, true);
-    }
-    
-    /**
-     * Decode response.
-     * 
-     * @param resource $ch cURL resource
-     * @param string $response
-     * @return stdClass|array|TwistImage
-     * @throws TwistException
-     */
-    public static function decode($ch, $response) {
-        $ch = self::validateCurl($ch);
-        $response = self::validateString('response', $response);
-        $info = curl_getinfo($ch);
-        if (curl_errno($ch)) {
-            throw new TwistException(curl_error($ch), $info['http_code']);
-        }
-        if (stripos($info['content_type'], 'image/') === 0) {
-            return new TwistImage($info['content_type'], $response);
-        }
-        if (null !== $obj = json_decode($response)) {
-            if (isset($obj->error)) {       
-                throw new TwistException($obj->error, $info['http_code']);
-            }
-            if (isset($obj->errors)) {
-                if (is_string($obj->errors)) {
-                    throw new TwistException($obj->errors, $info['http_code']);
-                } else {
-                    throw new TwistException($obj->errors[0]->message, $info['http_code']);
-                }
-            }
-            return $obj;
-        }
-        parse_str($response, $obj);
-        $obj = (object)$obj;
-        if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
-            return $obj;
-        }
-        if (preg_match("@Reason:\n<pre>([^<]++)</pre>@", $response, $matches)) {
-            throw new TwistException(trim($matches[1]), $info['http_code']);
-        }
-        if (strip_tags($response) === $response) {
-            throw new TwistException(trim($response), $info['http_code']);
-        }
-        throw new TwistException('Malformed response detected.', $info['http_code']);
-    }
-    
-    /**
-     * Constructor.
-     *
-     * @param string $ck ConsumerKey
-     * @param string $cs ConsumerSecret
-     * @param string [$ot] RequestToken or AccessToken 
-     * @param string [$os] RequestTokenSecret or AccessTokenSecret
-     */
-    public function __construct($ck, $cs, $ot = '', $os = '') {
-        $this->ck = self::validateString('ConsumerKey', $ck);
-        $this->cs = self::validateString('ConsumerSecret', $cs);
-        $this->ot = self::validateString('OAuthToken', $ot);
-        $this->os = self::validateString('OAuthTokenSecret', $os);
-    }
-    
-    /**
-     * Getter for private properties.
-     *
-     * @name string property name
-     * @return mixed
-     */
-    public function __get($name) {
-        $name = filter_var($name);
-        if (!property_exists($this, $name)) {
-            throw new OutOfRangeException('Invalid property: ' . $name);
-        }
-        return $this->$name;
-    }
-    
-    /**
-     * Get URL for authentication.
-     *
-     * @param bool [$force_login]
-     * @return string URL
-     */
-    public function getAuthenticateUrl($force_login = false) {
-        $params = http_build_query(array(
-            'oauth_token' => $this->ot,
-            'force_login' => $force_login ? 1 : null,
-        ), '', '&');
-        return 'https://api.twitter.com/oauth/authenticate?' . $params;
-    }
-    
-    /**
-     * Get URL for authorization.
-     *
-     * @param bool [$force_login]
-     * @return string URL
-     */
-    public function getAuthorizeUrl($force_login = false) {
-        $params = http_build_query(array(
-            'oauth_token' => $this->ot,
-            'force_login' => $force_login ? 1 : null,
-        ), '', '&');
-        return 'https://api.twitter.com/oauth/authorize?' . $params;
-    }
-    
-    /**
-     * Execute GET request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @return stdClass|array|TwistImage
-     * @throws TwistException
-     */
-    public function get($url, $params = array()) {
-        $ch       = $this->curlGet($url, $params);
-        $response = curl_exec($ch);
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Execute GET OAuth Echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @return stdClass|array|TwistImage
-     * @throws TwistException
-     */
-    public function getOut($url, $params = array()) {
-        $ch       = $this->curlGetOut($url, $params);
-        $response = curl_exec($ch);
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Execute streaming GET request.
-     *
-     * @param string $url endpoint URL
-     * @param callable $callback function for processing each message.
-     *                           if it returns True, your connection will be aborted.
-     * @param array|string [$params] 1-demensional array or query string
-     * @throws TwistException
-     */
-    public function streaming($url, $callback, $params = array()) {
-        curl_exec($ch = $this->curlStreaming($url, $callback, $params));
-        if (!self::isWriteFailure($ch)) {
-            $info = curl_getinfo($ch);
-            throw new TwistException('Streaming stopped unexpectedly.', $info['http_code']);
-        }
-    }
-    
-    /**
-     * Execute POST request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return stdClass|null
-     * @throws TwistException
-     */
-    public function post($url, $params = array(), $wait_response = true) {
-        $ch       = $this->curlPost($url, $params);
-        $response = curl_exec($ch);
-        if (!$wait_response) {
-            return;
-        }
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Execute POST OAuth Echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return stdClass|null
-     * @throws TwistException
-     */
-    public function postOut($url, $params = array(), $wait_response = true) {
-        $ch       = $this->curlPostOut($url, $params);
-        $response = curl_exec($ch);
-        if (!$wait_response) {
-            return;
-        }
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Execute POST request for "oauth/request_token".
-     *
-     * @return TwistOAuth
-     * @throws TwistException
-     */
-    public function renewWithRequestToken() {
-        $ch       = $this->curlPostRequestToken();
-        $response = self::decode($ch, curl_exec($ch));
-        return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
-    }
-    
-    /**
-     * Execute POST request for "oauth/access_token".
-     *
-     * @param string $oauth_verifier
-     * @return TwistOAuth
-     * @throws TwistException
-     */
-    public function renewWithAccessToken($oauth_verifier) {
-        $ch       = $this->curlPostAccessToken($oauth_verifier);
-        $response = self::decode($ch, curl_exec($ch));
-        return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
-    }
-        
-    /**
-     * Execute multipart POST request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return stdClass|null
-     * @throws TwistException
-     */
-    public function postMultipart($url, $params = array(), $wait_response = true) {
-        $ch       = $this->curlPostMultipart($url, $params);
-        $response = curl_exec($ch);
-        if (!$wait_response) {
-            return;
-        }
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Execute multipart POST OAuth Echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return stdClass|null
-     * @throws TwistException
-     */
-    public function postMultipartOut($url, $params = array(), $wait_response = true) {
-        $ch       = $this->curlPostMultipartOut($url, $params);
-        $response = curl_exec($ch);
-        if (!$wait_response) {
-            return;
-        }
-        return self::decode($ch, $response);
-    }
-    
-    /**
-     * Prepare cURL resource for GET request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlGet($url, $params = array()) {
-        return self::curlGetAction($url, $params, false);
-    }
-    
-    /**
-     * Prepare cURL resource for GET OAuth echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlGetOut($url, $params = array()) {
-        return self::curlGetAction($url, $params, true);
-    }
-    
-    /**
-     * Prepare cURL resource for streaming GET request.
-     *
-     * @param string $url endpoint URL
-     * @param callable $callback function for processing each message.
-     *                           if it returns True, your connection will be aborted.
-     * @param array|string [$params] 1-demensional array or query string
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlStreaming($url, $callback, $params = array()) {
-        $url      = self::validateUrl($url);
-        $obj      = self::getParamObject(self::validateParams($params));
-        $callback = self::validateCallback($callback);
-        $params   = array();
-        foreach ($obj->paramData as $key => $value) {
-            $params[$key] =
-                $obj->paramIsFile[$key] ?
-                base64_encode($value) :
-                $value
-            ;
-        }
-        $ch = self::curlInit();
-        curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'GET', $params, 0),
-            CURLOPT_URL            => $url . '?' . http_build_query($params, '', '&'),
-            CURLOPT_TIMEOUT        => 0,
-            CURLOPT_WRITEFUNCTION  => function ($ch, $str) use ($callback) {
-                static $first = true;
-                static $buffer = '';
-                $buffer .= $str;
-                if (trim($buffer) === '') {
-                    return strlen($str);
-                }
-                switch (true) {
-                    case $first and strpos($buffer, '{') !== 0 || json_decode($buffer):
-                        $first = false;
-                    case $buffer[strlen($buffer) - 1] === "\n":
-                        if ($callback(self::decode($ch, $buffer))) {
-                            return 0;
-                        }
-                        $buffer = '';
-                    default:
-                        return strlen($str);
-                }
-            }
-        ));
-        return $ch;
-    }
-    
-    /**
-     * Prepare cURL resource for POST request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlPost($url, $params = array(), $wait_response = true) {
-        return self::curlPostAction($url, $params, $wait_response, false);
-    }
-    
-    /**
-     * Prepare cURL resource for POST OAuth Echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlPostOut($url, $params = array(), $wait_response = true) {
-        return self::curlPostAction($url, $params, $wait_response, true);
-    }
-    
-    /**
-     * Prepare cURL resource for POST request "oauth/request_token".
-     *
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlPostRequestToken() {
-        $url    = 'https://api.twitter.com/oauth/request_token';
-        $params = array();
-        $ch     = self::curlInit();
-        curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REQUEST_TOKEN),
-            CURLOPT_URL        => $url,
-            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
-            CURLOPT_POST       => true,
-        ));
-        return $ch;
-    }
-    
-    /**
-     * Prepare cURL resource for POST request "oauth/access_token".
-     *
-     * @param string $oauth_verifier
-     * @return resource cURL
-     * @throws TwistException
-     */
-    public function curlPostAccessToken($oauth_verifier) {
-        $url    = 'https://api.twitter.com/oauth/access_token';
-        $params = self::validateParams(compact('oauth_verifier'));
-        $ch     = self::curlInit();
-        curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_ACCESS_TOKEN),
-            CURLOPT_URL        => $url,
-            CURLOPT_POSTFIELDS => '',
-            CURLOPT_POST       => true,
-        ));
-        return $ch;
-    }
-    
-    /**
-     * Prepare cURL resource for multipart POST request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return resource cURL
-     */
-    public function curlPostMultipart($url, $params = array(), $wait_response = true) {
-        return self::curlPostMultipartAction($url, $params, $wait_response, false);
-    }
-    
-    /**
-     * Prepare cURL resource for multipart POST OAuth Echo request.
-     *
-     * @param string $url endpoint URL
-     * @param array|string [$params] 1-demensional array or query string
-     * @param bool [$wait_response]
-     * @return resource cURL
-     */
-    public function curlPostMultipartOut($url, $params = array(), $wait_response = true) {
-        return self::curlPostMultipartAction($url, $params, $wait_response, true);
-    }
-    
-    /**
-     * Initialize cURL resource.
-     * 
-     * @return resource cURL
-     */
-    private static function curlInit() {
-        $ch = curl_init();
-        curl_setopt_array($ch, array(
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_ENCODING       => 'gzip',
-            CURLOPT_COOKIEJAR      => '',
-        ));
-        return $ch;
+        return preg_replace_callback($regex, $callback, $endpoint, 1, $count);
     }
     
     /**
      * Return whether the cURL connection is aborted by ourselves.
      * Errno will always be 0 on curl_multi SAPI, so we have to judge by Error.
      * 
-     * @param resource $ch cURL
+     * @param resource $ch
      * @return bool
      */
     private static function isWriteFailure($ch) {
@@ -976,7 +1150,7 @@ final class TwistOAuth {
     /**
      * Set cURL options for authenticity_token.
      *
-     * @param resource $ch cURL 
+     * @param resource $ch
      * @param TwistOAuth $to
      */
     private static function curlSetOptForAuthenticityToken($ch, $to) {
@@ -986,11 +1160,11 @@ final class TwistOAuth {
     /**
      * Set cURL options for oauth_verifier.
      *
-     * @param resource $ch cURL
+     * @param resource   $ch
      * @param TwistOAuth $to
-     * @param string $authenticity_token
-     * @param string $username
-     * @param string $password
+     * @param string     $authenticity_token
+     * @param string     $username
+     * @param string     $password
      */
     private static function curlSetOptForVerifier($ch, $to, $authenticity_token, $username, $password) {
         $params = array(
@@ -1009,48 +1183,42 @@ final class TwistOAuth {
      * Execute multiple cURL requests actually.
      * 
      * @param array $curls
-     *     e.g.
-     *     array(
-     *         'foo' => cURL resource of foo
-     *         'bar' => cURL resource of bar
-     *         'baz' => cURL resource of baz
-     *         ...
-     *     )
      * @param bool $is_streaming
      * @return array
-     *     e.g.
-     *     array(
-     *         'foo' => stdClass or array,
-     *         'bar' => stdClass or array,
-     *         'baz' => stdClass or array,
-     *         ...
-     *     )
      * @throws TwistException
      */
     private static function curlMultiExecAction(array $curls, $is_streaming) {
         $mh = curl_multi_init();
-        $chs = $responses = array();
+        $chs       = array(); // cURL resources for API connection
+        $responses = array(); // responses
         if (!$curls) {
             return array();
         }
         foreach ($curls as $i => $ch) {
-            $chs[$i] = self::validateCurl($ch);
+            $chs[$i]       = self::validateCurl("\$curls[$i]", $ch);
             $responses[$i] = null;
             curl_multi_add_handle($mh, $ch);
         }
+        // start requests
         while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
         if (!$running || $stat !== CURLM_OK) {
             throw new TwistException('Failed to start multiple requests.');
         }
+        // wait cURL events
         do switch (curl_multi_select($mh, 10)) {
-            case -1:
+            case -1: // failed to select for various reason
+                // wait a bit, update $running flag, retry and continue
                 usleep(10);
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
             case 0:
+                // timeout! continue
                 continue 2;
             default:
+                // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+                // dequeue array of cURL which finished receiving data
                 do if ($raised = curl_multi_info_read($mh, $remains)) {
+                    // search offset corresponds to the resource
                     $i = array_search($raised['handle'], $chs, true);
                     if ($is_streaming) {
                         if (!self::isWriteFailure($raised['handle'])) {
@@ -1059,14 +1227,15 @@ final class TwistOAuth {
                         }
                     } else {
                         try {
-                            $responses[$i] = self::decode($info['raised'], curl_multi_getcontent($info['raised']));
+                            $info = curl_getinfo($raised['handle']);
+                            $responses[$i] = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
                         } catch (TwistException $e) {
                             $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
                             throw $e;
                         }
                     }
                 } while ($remains);
-        } while ($running);
+        } while ($running); // continue if still running
         if (!$is_streaming) {
             return $responses;
         }
@@ -1075,73 +1244,38 @@ final class TwistOAuth {
     /**
      * Force callable function.
      * 
-     * @param mixed $callback
+     * @param string $name
+     * @param mixed  $callback
      * @return callable filtered callback
      */
-    private static function validateCallback($callback) {
+    private static function validateCallback($name, $callback) {
         if (!is_callable($callback)) {
-            throw new InvalidArgumentException('Invalid callback.');
+            throw new InvalidArgumentException("The value of $name must be a valid callback.");
         }
         return $callback;
     }
     
     /**
-     * Force HTTP URL.
-     * 
-     * @param mixed $url
-     * @return string filtered url
-     */
-    private static function validateUrl($url) {
-        switch (true) {
-            case false === $p = parse_url($url):
-                throw new InvalidArgumentException('Invalid URL: parse failure.');
-            case !isset($p['scheme']) || !preg_match('@^https?+://@i', $url):
-                throw new InvalidArgumentException('Invalid URL: https:// or http:// scheme required.');
-            case !isset($p['host']):
-                throw new InvalidArgumentException('Invalid URL: host required.');
-            case isset($p['query']):
-                throw new InvalidArgumentException('Invalid URL: extra element: query');
-            case isset($p['fragment']):
-                throw new InvalidArgumentException('Invalid URL: extra element: fragment');
-        }
-        return sprintf(
-            '%s://%s%s',
-            $p['scheme'],
-            $p['host'],
-            isset($p['path']) ? $p['path'] : ''
-        );
-        return $url;
-    }
-    
-    /**
-     * Force GET or POST.
-     * 
-     * @param mixed $method
-     * @return string filtered method
-     */
-    private static function validateMethod($method) {
-        if (!strcasecmp('GET', $method) && !strcasecmp('POST', $method)) {
-            throw new InvalidArgumentException('This library supports only GET or POST.');
-        }
-        return strtoupper($method);
-    }
-    
-    /**
      * Force parameters 1-demensional array or query string.
      * 
-     * @param mixed $params
+     * @param string $name
+     * @param mixed  $params
      * @return array filterd parameters
      */
-    private static function validateParams($params) {
+    private static function validateParams($name, $params) {
         if (is_array($params)) {
             $params = array_map('filter_var', array_filter($params, function ($v) { return $v !== null; }));
             if (false !== $key = array_search(false, $params, true)) {
-                throw new InvalidArgumentException('The parameter "' . $key . '" must be scalar.');
+                throw new InvalidArgumentException(sprintf(
+                    'The value of %s[%s] must be stringable.',
+                    $name,
+                    $key
+                ));
             }
             return $params;
         }
         if (false === $params = filter_var($params)) {
-            throw new InvalidArgumentException('The parameters must be 1-demensional array or query string.');
+            throw new InvalidArgumentException("The value of $name must be a 1-demensional array or query string.");
         }
         $tmp = array();
         if ('' !== $params = trim($params)) {
@@ -1156,54 +1290,51 @@ final class TwistOAuth {
     /**
      * Force valid cURL resource.
      * 
-     * @param mixed $ch
+     * @param string $name
+     * @param mixed  $ch
      * @return resource cURL
      */
-    private static function validateCurl($ch) {
+    private static function validateCurl($name, $ch) {
         switch (true) {
             case !is_resource($ch):
             case stripos($type = get_resource_type($ch), 'curl') === false:
             case stripos($type, 'multi') !== false:
-                throw new InvalidArgumentException(sprintf(
-                    '(%s) The parameter must be valid cURL resource',
-                    $i
-                ));
+                throw new InvalidArgumentException("The value of $name must be a valid cURL resource.");
         }
         return $ch;
     }
-
     
     /**
      * Force string.
      * 
-     * @param string $key for exception message
-     * @param mixed $value
+     * @param mixed $name
+     * @param mixed $str
      * @return string filtered string
      */
-    private static function validateString($key, $value) {
-        if (false === $value = filter_var($value)) {
-            throw new InvalidArgumentException('The value for "' . $key . '" must be string.');
+    private static function validateString($name, $str) {
+        if (false === $str = filter_var($str)) {
+            throw new InvalidArgumentException("The value of $name must be stringable.");
         }
-        return $value;
+        return $str;
     }
     
     /**
      * Safe file_get_contents().
      * 
-     * @param string $key for exception message
-     * @param string $value path
+     * @param mixed  $name
+     * @param string $path
      */
-    private static function safeGetContents($key, $value) {
-        if (false === $value = @file_get_contents($value)) {
-            throw new InvalidArgumentException('The file for "' . $key . '" not found.');
+    private static function safeGetContents($name, $path) {
+        if (false === $data = @file_get_contents($path)) {
+            throw new InvalidArgumentException("The file path of $name must be valid.");
         }
-        return $value;
+        return $data;
     }
     
     /**
      * Solve parameters with prefix "@".
      * 
-     * @param array $params valid parameters
+     * @param array $params
      * @return stdClass an object contains "paramData", "paramIsFile"
      */
     private static function getParamObject(array $params) {
@@ -1225,7 +1356,7 @@ final class TwistOAuth {
     /**
      * Parse authenticity_token.
      * 
-     * @param resource $ch cURL resource
+     * @param resource $ch
      * @param string $response
      * @return string authenticity_token
      * @throws TwistException
@@ -1275,15 +1406,13 @@ final class TwistOAuth {
             'oauth_token'            => $this->ot,
         );
         $key = array($this->cs, $this->os);
-        if ($flags & self::MODE_REQUEST_TOKEN) {
+        if ($flags & (self::MODE_REQUEST_TOKEN)) {
             unset($oauth['oauth_token']);
             $key[1] = '';
         }
         if ($flags & self::MODE_ACCESS_TOKEN) {
-            if (isset($params['oauth_verifier'])) {
-                $oauth['oauth_verifier'] = $params['oauth_verifier'];
-                unset($params['oauth_verifier']);
-            }
+            $oauth['oauth_verifier'] = $params['oauth_verifier'];
+            unset($params['oauth_verifier']);
         }
         $base = $oauth + $params;
         uksort($base, 'strnatcmp');
@@ -1301,8 +1430,12 @@ final class TwistOAuth {
             implode('&', array_map('rawurlencode', $key)),
             true
         ));
+        $tmp = array();
+        foreach ($oauth as $key => $value) {
+            $tmp[] = urlencode($key) . '="' . urlencode($value) . '"'; 
+        }
         return array(
-            'Authorization: OAuth ' . http_build_query($oauth, '', ', ')
+            'Authorization: OAuth ' . implode(', ', $tmp)
         );
     }
     
@@ -1314,7 +1447,7 @@ final class TwistOAuth {
     private function getOAuthEcho() {
         $url     = 'https://api.twitter.com/1.1/account/verify_credentials.json';
         $params  = array();
-        $headers = $this->getAuthorization($url, 'GET', $params, self::MODE_DEFAULT);
+        $headers = $this->getAuthorization($url, 'GET', $params, 0);
         return array(
             'X-Auth-Service-Provider: ' . $url,
             'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/", ' . substr($headers[0], 21),
@@ -1324,15 +1457,17 @@ final class TwistOAuth {
     /**
      * Prepare cURL resource for GET request actually.
      *
-     * @param string $url endpoint URL
-     * @param array|string $params 1-demensional array or query string
-     * @param bool $out for OAuth Echo or not 
+     * @param string $url
+     * @param mixed  $params
+     * @param bool   $out
+     * @param string $proxy
      * @return resource cURL
      * @throws TwistException
      */
-    private function curlGetAction($url, $params, $out) {
-        $url    = self::validateUrl($url);
-        $obj    = self::getParamObject(self::validateParams($params));
+    private function curlGetAction($url, $params, $out, $proxy) {
+        $url    = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
         foreach ($obj->paramData as $key => $value) {
             $params[$key] =
@@ -1341,7 +1476,7 @@ final class TwistOAuth {
                 $value
             ;
         }
-        $ch = self::curlInit();
+        $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'GET', $params, 0),
             CURLOPT_URL        => $url . '?' . http_build_query($params, '', '&'),
@@ -1352,16 +1487,17 @@ final class TwistOAuth {
     /**
      * Prepare cURL resource for POST request actually.
      *
-     * @param string $url endpoint URL
-     * @param array|string $params 1-demensional array or query string
-     * @param bool $wait_response
-     * @param bool $out for OAuth Echo or not 
+     * @param string $url
+     * @param mixed  $params
+     * @param bool   $out
+     * @param string $proxy
      * @return resource cURL
      * @throws TwistException
      */
-    private function curlPostAction($url, $params, $wait_response, $out) {
-        $url    = self::validateUrl($url);
-        $obj    = self::getParamObject(self::validateParams($params));
+    private function curlPostAction($url, $params, $out, $proxy) {
+        $url    = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
         foreach ($obj->paramData as $key => $value) {
             $params[$key] =
@@ -1370,13 +1506,12 @@ final class TwistOAuth {
                 $value
             ;
         }
-        $ch = self::curlInit();
+        $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER     => $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'POST', $params, 0),
-            CURLOPT_URL            => $url,
-            CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
-            CURLOPT_POST           => true,
-            CURLOPT_NOSIGNAL       => !$wait_response,
+            CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'POST', $params, 0),
+            CURLOPT_URL        => $url,
+            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
+            CURLOPT_POST       => true,
         ));
         return $ch;
     }
@@ -1384,16 +1519,17 @@ final class TwistOAuth {
     /**
      * Prepare cURL resource for GET request actually.
      *
-     * @param string $url endpoint URL
-     * @param array|string $params 1-demensional array or query string
-     * @param bool $wait_response
-     * @param bool $out for OAuth Echo or not 
+     * @param string $url
+     * @param mixed  $params
+     * @param bool   $out
+     * @param string $proxy
      * @return resource cURL
      */
-    private function curlPostMultipartAction($url, $params, $wait_response, $out) {
+    private function curlPostMultipartAction($url, $params, $out, $proxy) {
         static $disallow = array("\0", "\"", "\r", "\n");
-        $url  = self::validateUrl($url);
-        $obj  = self::getParamObject(self::validateParams($params));
+        $url    = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $proxy  = self::validateString('$proxy', $proxy);
         $body = array();
         foreach ($obj->paramData as $key => $value) {
             if ($obj->paramIsFile[$key]) {
@@ -1427,16 +1563,15 @@ final class TwistOAuth {
         $body[] = '--' . $boundary . '--';
         $body[] = '';
         $params = array();
-        $ch = self::curlInit();
+        $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER     => array_merge(
+            CURLOPT_HTTPHEADER => array_merge(
                 $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'POST', $params, 0),
                 array('Content-Type: multipart/form-data; boundary=' . $boundary)
             ),
             CURLOPT_URL        => $url,
             CURLOPT_POSTFIELDS => implode("\r\n", $body),
             CURLOPT_POST       => true,
-            CURLOPT_NOSIGNAL   => !$wait_response,
         ));
         return $ch;
     }
@@ -1471,7 +1606,7 @@ final class TwistImage {
      * Getter for private properties.
      *
      * @name string property name
-     * @return mixed
+     * @return string
      */
     public function __get($name) {
         $name = filter_var($name);
@@ -1484,7 +1619,6 @@ final class TwistImage {
     /**
      * Make format of Data URI.
      *
-     * @name string property name
      * @return string
      */
     public function getDataUri() {
