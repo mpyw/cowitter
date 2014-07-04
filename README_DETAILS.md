@@ -88,7 +88,7 @@ new TwistOAuth($ck, $cs, $ot = '', $os = '')
 
 ### TwistOAuth::getAuthenticateUrl()<br />TwistOAuth::getAuthorizeUrl()
 
-Easily generate URL for user to login.
+Easily generate URL for users to login.
 
 ```php
 (String) $to->getAuthenticateUrl($force_login = false)
@@ -152,7 +152,7 @@ $params = 'status=test&in_reply_to_status_id=123456';
 
 ```php
 $params = array(
-    'status => 'test',
+    'status' => 'test',
     'in_reply_to_status_id' => '123456',
 );
 ```
@@ -216,7 +216,6 @@ Example value of __*$callback*__:
 ```php
 // A callback closure, which displays tweets unlimitedly.
 $callback = function ($status) {
-    static $i = 0;
     // Treat only tweets
     if (isset($status->text)) {
         printf(
@@ -334,8 +333,7 @@ $return_value = array(
 
 Throws `TwistException`.
 
-### TwistOAuth::curlPostRequestToken()<br />TwistOAuth::curlPostAccessToken()<br />TwistOAuth::curlGet()<br />
-TwistOAuth::curlGetOut()<br />TwistOAuth::curlPost()<br />TwistOAuth::curlPostOut()<br />TwistOAuth::curlPostMultipart()<br />TwistOAuth::curlPostMultipartOut()<br />TwistOAuth::curlStreaming()
+### TwistOAuth::curlPostRequestToken()<br />TwistOAuth::curlPostAccessToken()<br />TwistOAuth::curlGet()<br />TwistOAuth::curlGetOut()<br />TwistOAuth::curlPost()<br />TwistOAuth::curlPostOut()<br />TwistOAuth::curlPostMultipart()<br />TwistOAuth::curlPostMultipartOut()<br />TwistOAuth::curlStreaming()
 
 ```php
 (resource) $to->curlPostRequestToken($proxy = '')

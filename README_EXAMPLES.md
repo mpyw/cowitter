@@ -287,8 +287,7 @@ header('Content-Type: text/html; charset=utf-8');
 </html>
 ```
 
-xAuth
------
+### xAuth
 
 This requires an official API key, such as `Twitter for Android` or `Twitter for iPhone`. **Abusing.**
 
@@ -297,8 +296,7 @@ $to = new TwistOAuth('CK', 'CS');
 $to = $to->renewWithAccessTokenX('screen_name', 'password');
 ```
 
-Direct OAuth
-------------
+### Direct OAuth
 
 This requires heavy traffic. **Abusing**.
 
@@ -347,7 +345,7 @@ $to->post('statuses/update', array(
 ));
 ```
 
-### Upload images into Twitpic
+### Upload an image into Twitpic
 
 ```php
 $to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
@@ -365,7 +363,7 @@ while (ob_get_level()) {
     ob_end_clean();
 }
 // Start streaming.
-$to->curlStreaming('statuses/sample', function($status) {
+$to->curlStreaming('user', function($status) {
     // Treat only tweets.
     if (isset($status->text)) {
         printf(

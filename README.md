@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.1.1
+Version 2.2.1
 
 Requirements
 ============
@@ -13,6 +13,8 @@ Requirements
 Features
 ========
 
+Basic:
+
 - Using **GZIP compressed** connections
 - Automatically decode responses
 - Automatically fix weird responses
@@ -21,9 +23,13 @@ Features
 - Requests for **Streaming** API
 - Requests using **OAuth Echo**
 - Multipart requests
+
+Abusing:
+
 - **Asynchronous Multiple requests**
 - **Asynchronous Multiple streaming**
 - **Direct OAuth** authentication
+- **Account generation**
 
 Preparation
 ===========
@@ -81,7 +87,7 @@ Contents
 FAQ
 ====
 
-### Are all classes are immutable?
+### Are all classes immutable?
 
 Yes.
 
@@ -91,21 +97,20 @@ $b = $a->renewWithRequestToken();
 var_dump($a === $b); // false
 ```
 
-however, you can change propety values by directly calling `__construct()`.
+However, you can change propety values by directly calling `__construct()`.
 
 ```php
 $obj = new TwistOAuth('a', 'b');
 $obj->__construct('c', 'd'); // Break immutable rules
 ```
 
+### How to use OAuth 2.0 authentication flow?
 
-### Is OAuth 2.0 is **<ins>not</ins>** available.
+Sorry, it is <ins>not</ins> available with this library. Use OAuth 1.0a instead.
 
-Sorry. Use OAuth 1.0a instead.
+### Tweets are already escaped... wtf!?
 
-### HTML special chars in texts of statuses are already escaped.
-
-They are already filtered like this.
+HTML special chars in texts of statuses are already escaped <ins>by Twitter</ins> like this.
 
 ```php
 $status->text = htmlspecialchars($status->text, ENT_NOQUOTES, 'UTF-8');
@@ -125,9 +130,9 @@ You should do like this.
 <input type="text" name="text" value="<?=str_replace('"', '&#039;', $status->text)?>">
 ```
 
-### HTML special chars in others are already sanitized.
+### How about other texts?
 
-They are already filtered like this.
+HTML special chars in others are already sanitized <ins>by Twitter</ins> like this.
 
 ```php
 $user->name        = str_replace(array('<', '>'), '', $user->name);
