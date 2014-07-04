@@ -65,3 +65,5 @@ TwistOAuth - changelog
 - Removed TwistOAuth::validateUrl(), use TwistOAuth::validateString() instead
 - Removed $wait_response flag
 
+2.2.1 (2014-07-04)
++ Ignore NULL in $params
