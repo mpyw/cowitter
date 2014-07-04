@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.2.0
+ * TwistOAuth Version 2.2.1
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -1264,13 +1264,12 @@ final class TwistOAuth {
      */
     private static function validateParams($name, $params) {
         if (is_array($params)) {
-            $params = array_map('filter_var', array_filter($params, function ($v) { return $v !== null; }));
-            if (false !== $key = array_search(false, $params, true)) {
-                throw new InvalidArgumentException(sprintf(
-                    'The value of %s[%s] must be stringable.',
-                    $name,
-                    $key
-                ));
+            foreach ($params as $key => $value) {
+                if ($value === null) {
+                    unset($params[$key]);
+                    continue;
+                }
+                $params[$key] = self::validateString("\$name[$key]", $value);
             }
             return $params;
         }
