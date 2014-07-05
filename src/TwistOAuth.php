@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.0
+ * TwistOAuth Version 2.3.1
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -23,6 +23,15 @@ final class TwistOAuth {
     const MODE_DEFAULT        = 0;
     const MODE_REQUEST_TOKEN  = 1;
     const MODE_ACCESS_TOKEN   = 2;
+    
+    /**
+     * Execution limit.
+     * 
+     * @const CURLOPT_CONNECTTIMEOUT
+     * @const CURLOPT_TIMEOUT
+     */
+    const CURLOPT_CONNECTTIMEOUT = 10;
+    const CURLOPT_TIMEOUT        = 20;
     
     /**
      * OAuth parameters.
@@ -169,6 +178,7 @@ final class TwistOAuth {
                         ));
                 }
             }
+            $res[$i]    = new TwistException('Failed to reach the final step.');
             $tos[$i]    = new self($credential[0], $credential[1]);
             $states[$i] = 4;
             $chs[$i]    = $tos[$i]->curlPostRequestToken($proxy);
@@ -182,14 +192,18 @@ final class TwistOAuth {
             throw new TwistException('Failed to start multiple requests.');
         }
         // wait cURL events
-        do switch (curl_multi_select($mh, 10)) {
+        do switch (curl_multi_select($mh, self::CURLOPT_TIMEOUT)) {
             case -1: // failed to select for various reason
                 // wait a bit, update $running flag, retry and continue
                 usleep(10);
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-            case 0:
-                // timeout! continue
                 continue 2;
+            case 0:
+                // timeout!
+                if ($throw_in_process) {
+                    throw new TwistException('Timeout.');
+                }
+                break 2;
             default:
                 // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
@@ -228,7 +242,7 @@ final class TwistOAuth {
                                 break;
                             case 0:
                                 $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
-                                $tos[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
+                                $res[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
                                 curl_multi_remove_handle($mh, $raised['handle']);
                         }
                     } catch (TwistException $e) {
@@ -236,12 +250,12 @@ final class TwistOAuth {
                             $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
                             throw $e;
                         }
-                        $tos[$i] = $e;
+                        $res[$i] = $e;
                         curl_multi_remove_handle($mh, $raised['handle']);
                     }
                 } while ($remains);
         } while ($running || $add); // continue if still running or added new cURL resources
-        return $tos;
+        return $res;
     }
     
     /**
@@ -291,58 +305,6 @@ final class TwistOAuth {
      */
     public static function curlMultiStreaming(array $curls) {
         self::curlMultiExecAction($curls, true, true);
-    }
-    
-    /**
-     * Decode response.
-     * 
-     * @param resource $ch
-     * @param string   $response
-     * @return mixed
-     * @throws TwistException
-     */
-    public static function decode($ch, $response) {
-        $ch       = self::validateCurl('$ch', $ch);
-        $response = self::validateString('$response', $response);
-        $info = curl_getinfo($ch);
-        if (curl_errno($ch)) {
-            throw new TwistException(curl_error($ch), $info['http_code']);
-        }
-        if (stripos($info['content_type'], 'image/') === 0) {
-            return new TwistImage($info['content_type'], $response);
-        }
-        if (
-            null  !== $obj = json_decode($response) or
-            false !== $obj = json_decode(json_encode(@simplexml_load_string($response)))
-        ) {
-            if (isset($obj->error)) {       
-                throw new TwistException($obj->error, $info['http_code']);
-            }
-            if (isset($obj->errors)) {
-                if (is_string($obj->errors)) {
-                    throw new TwistException($obj->errors, $info['http_code']);
-                } else {
-                    $messages = array();
-                    foreach ($obj->errors as $error) {
-                        $messages[] = $error->message;
-                    }
-                    throw new TwistException(implode("\n", $messages), $info['http_code']);
-                }
-            }
-            return $obj;
-        }
-        parse_str($response, $obj);
-        $obj = (object)$obj;
-        if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
-            return $obj;
-        }
-        if (preg_match("@Reason:\n<pre>([^<]++)</pre>@", $response, $matches)) {
-            throw new TwistException(trim($matches[1]), $info['http_code']);
-        }
-        if (strip_tags($response) === $response) {
-            throw new TwistException(trim($response), $info['http_code']);
-        }
-        throw new TwistException('Malformed response detected: ' . $response, $info['http_code']);
     }
     
     /**
@@ -798,6 +760,8 @@ final class TwistOAuth {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_ENCODING       => 'gzip',
             CURLOPT_COOKIEJAR      => '',
+            CURLOPT_CONNECTTIMEOUT => self::CURLOPT_CONNECTTIMEOUT,
+            CURLOPT_TIMEOUT        => self::CURLOPT_TIMEOUT,
         ));
         if ($proxy !== '') {
             if (false === $p = parse_url($proxy)) {
@@ -828,6 +792,64 @@ final class TwistOAuth {
             }
         }
         return $ch;
+    }
+    
+    /**
+     * Decode response.
+     * 
+     * @param resource $ch
+     * @param string   $response
+     * @return mixed
+     * @throws TwistException
+     */
+    private static function decode($ch, $response) {
+        $ch       = self::validateCurl('$ch', $ch);
+        $response = self::validateString('$response', $response);
+        $info = curl_getinfo($ch);
+        if (curl_errno($ch)) {
+            throw new TwistException(curl_error($ch), $info['http_code']);
+        }
+        if ($response === '') {
+            throw new TwistException('Empty response.', $info['http_code']);
+        }
+        if ($response === null) {
+            throw new TwistException('Failed to receive response.', $info['http_code']);
+        }
+        if (stripos($info['content_type'], 'image/') === 0) {
+            return new TwistImage($info['content_type'], $response);
+        }
+        if (
+            null  !== $obj = json_decode($response) or
+            false !== $obj = json_decode(json_encode(@simplexml_load_string($response)))
+        ) {
+            if (isset($obj->error)) {       
+                throw new TwistException($obj->error, $info['http_code']);
+            }
+            if (isset($obj->errors)) {
+                if (is_string($obj->errors)) {
+                    throw new TwistException($obj->errors, $info['http_code']);
+                } else {
+                    $messages = array();
+                    foreach ($obj->errors as $error) {
+                        $messages[] = $error->message;
+                    }
+                    throw new TwistException(implode("\n", $messages), $info['http_code']);
+                }
+            }
+            return $obj;
+        }
+        parse_str($response, $obj);
+        $obj = (object)$obj;
+        if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
+            return $obj;
+        }
+        if (preg_match("@Reason:\n<pre>([^<]++)</pre>@", $response, $matches)) {
+            throw new TwistException(trim($matches[1]), $info['http_code']);
+        }
+        if (strip_tags($response) === $response) {
+            throw new TwistException(trim($response), $info['http_code']);
+        }
+        throw new TwistException('Malformed response detected: ' . $response, $info['http_code']);
     }
     
     /**
@@ -1214,7 +1236,7 @@ final class TwistOAuth {
         }
         foreach ($curls as $i => $ch) {
             $chs[$i]       = self::validateCurl("\$curls[$i]", $ch);
-            $responses[$i] = null;
+            $responses[$i] = new TwistException('Failed to receive event.');
             curl_multi_add_handle($mh, $ch);
         }
         // start requests
@@ -1223,14 +1245,18 @@ final class TwistOAuth {
             throw new TwistException('Failed to start multiple requests.');
         }
         // wait cURL events
-        do switch (curl_multi_select($mh, 10)) {
+        do switch (curl_multi_select($mh, self::CURLOPT_TIMEOUT)) {
             case -1: // failed to select for various reason
                 // wait a bit, update $running flag, retry and continue
                 usleep(10);
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-            case 0:
-                // timeout! continue
                 continue 2;
+            case 0:
+                // timeout!
+                if ($throw_in_process) {
+                    throw new TwistException('Timeout.');
+                }
+                break 2;
             default:
                 // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
@@ -1255,6 +1281,7 @@ final class TwistOAuth {
                             }
                         }
                     }
+                    curl_multi_remove_handle($mh, $raised['handle']);
                 } while ($remains);
         } while ($running); // continue if still running
         return $responses;

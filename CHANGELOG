@@ -68,5 +68,8 @@ TwistOAuth - changelog
 2.2.1 (2014-07-04)
 + Ignore NULL in $params
 
-2.3.0 (2014-07-04)
+2.3.0 (2014-07-05)
 + Supported $throw_in_process flag
+
+2.3.1 (2014-07-05)
++ Improved timeout management
