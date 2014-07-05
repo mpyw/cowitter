@@ -405,11 +405,14 @@ Example:
 try {
     
     $throw_in_process = /* true or false*/ ;
-    $curls = array(
-        'a' => $to->curlGet('users/show', array('screen_name' => 'foofoofoobarbarbarbazbazbaz')), // invalid screen_name,
-        'b' => $to->curlGet('users/show', array('screen_name' => 'twitter')), // valid screen_name,
-    );
-    $result = $to->curlMultiExec($curls);
+    $result = $to->curlMultiExec(array(
+        'a' => $to->curlGet('users/show', array(
+            'screen_name' => 'foofoofoobarbarbarbazbazbaz', // invalid screen_name
+        )),
+        'b' => $to->curlGet('users/show', array(
+            'screen_name' => 'twitter', // valid screen_name
+        )),
+    ), true);
     
     echo "Flow A\n";
     foreach ($result as $k => $v) {
