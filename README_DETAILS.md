@@ -412,7 +412,7 @@ try {
         'b' => $to->curlGet('users/show', array(
             'screen_name' => 'twitter', // valid screen_name
         )),
-    ), true);
+    ), $throw_in_process);
     
     echo "Flow A\n";
     foreach ($result as $k => $v) {
