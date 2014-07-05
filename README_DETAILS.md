@@ -409,7 +409,7 @@ try {
         'a' => $to->curlGet('users/show', array('screen_name' => 'foofoofoobarbarbarbazbazbaz')), // invalid screen_name,
         'b' => $to->curlGet('users/show', array('screen_name' => 'twitter')), // valid screen_name,
     );
-    $result = $to->curlMultiExec($curls)
+    $result = $to->curlMultiExec($curls);
     
     echo "Flow A\n";
     foreach ($result as $k => $v) {
@@ -428,13 +428,13 @@ If __*$throw\_in\_process*__ is false...
 
 ```
 Flow A
-[a] twitter
-[b] Sorry, that page does not exist
+[a] Sorry, that page does not exist
+[b] twitter
 ```
 
 If __*$throw\_in\_process*__ is true...
 
 ```
 Flow B
-(b) Sorry, that page does not exist
+(a) Sorry, that page does not exist
 ```
