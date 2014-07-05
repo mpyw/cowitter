@@ -416,7 +416,7 @@ try {
         printf("[%s] %s\n", $k, $v instanceof stdClass ? $v->screen_name : $v->getMessage());
     }
     
-} (catch TwistException $e) {
+} catch (TwistException $e) {
     
     echo "Flow B\n";
     printf("%s\n", $e->getMessage());
