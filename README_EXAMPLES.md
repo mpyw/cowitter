@@ -118,7 +118,7 @@ header('Content-Type: text/html; charset=utf-8');
 <body>
   <h1>Update your status</h1>
   <form action="" method="post">
-    <input type="text" value="<?=h($text)?>">
+    <input type="text" name="text" value="<?=h($text)?>">
     <input type="submit" value="Tweet">
   </form>
 <?php if (isset($message)): ?>
@@ -277,7 +277,7 @@ header('Content-Type: text/html; charset=utf-8');
 <body>
   <h1>Update your status</h1>
   <form action="" method="post">
-    <input type="text" value="<?=h($text)?>">
+    <input type="text" name="text" value="<?=h($text)?>">
     <input type="submit" value="Tweet">
   </form>
 <?php if (isset($message)): ?>
