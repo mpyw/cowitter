@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.1
+ * TwistOAuth Version 2.3.2
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -704,15 +704,15 @@ final class TwistOAuth {
         $username = self::validateString('$username', $username);
         $password = self::validateString('$password', $password);
         $proxy    = self::validateString('$proxy', $proxy);
-        $url    = 'https://api.twitter.com/oauth/access_token';
-        $params = self::validateParams(array(
+        $url = 'https://api.twitter.com/oauth/access_token';
+        $params = array(
             'x_auth_mode'     => 'client_auth',
             'x_auth_username' => $username,
             'x_auth_password' => $password,
-        ));
-        $ch     = self::curlInit($proxy);
+        );
+        $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REUEST_TOKEN),
+            CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REQUEST_TOKEN),
             CURLOPT_URL        => $url,
             CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
             CURLOPT_POST       => true,
@@ -1451,7 +1451,7 @@ final class TwistOAuth {
             'oauth_token'            => $this->ot,
         );
         $key = array($this->cs, $this->os);
-        if ($flags & (self::MODE_REQUEST_TOKEN)) {
+        if ($flags & self::MODE_REQUEST_TOKEN) {
             unset($oauth['oauth_token']);
             $key[1] = '';
         }

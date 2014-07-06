@@ -73,3 +73,6 @@ TwistOAuth - changelog
 
 2.3.1 (2014-07-05)
 + Improved timeout management
+
+2.3.2 (2014-07-06)
++ Fixed typo and invalid function call in TwistOAuth::renewWithAccessTokenX()
