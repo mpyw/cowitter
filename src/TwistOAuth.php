@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.2
+ * TwistOAuth Version 2.3.3
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -571,6 +571,21 @@ final class TwistOAuth {
      * @throws TwistException
      */
     public function curlStreaming($url, $callback, $params = array(), $proxy = '') {
+        static $decode;
+        if (!$decode) {
+            if (version_compare(PHP_VERSION, '5.4.0') < 0) {
+                $decode = function ($ch, $response) {
+                    static $rm;
+                    if (!$rm) {
+                        $rm = new ReflectionMethod(__CLASS__ . '::decode');
+                        $rm->setAccessible(true);
+                    }
+                    return $rm->invoke(null, $ch, $response);
+                };
+            } else {
+                $decode = 'self::decode';
+            }
+        }
         $url      = self::url(self::validateString('$url', $url));
         $callback = self::validateCallback('$callback', $callback);
         $obj      = self::getParamObject(self::validateParams('$params', $params));
@@ -588,7 +603,7 @@ final class TwistOAuth {
             CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'GET', $params, 0),
             CURLOPT_URL            => $url . '?' . http_build_query($params, '', '&'),
             CURLOPT_TIMEOUT        => 0,
-            CURLOPT_WRITEFUNCTION  => function ($ch, $str) use ($callback) {
+            CURLOPT_WRITEFUNCTION  => function ($ch, $str) use ($callback, $decode) {
                 static $first = true;
                 static $buffer = '';
                 $buffer .= $str;
@@ -602,7 +617,7 @@ final class TwistOAuth {
                         $first = false;
                     // decodable line
                     case $buffer[strlen($buffer) - 1] === "\n":
-                        if ($callback(self::decode($ch, $buffer))) {
+                        if ($callback($decode($ch, $buffer))) {
                             return 0;
                         }
                         $buffer = '';

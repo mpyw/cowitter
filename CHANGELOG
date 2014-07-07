@@ -76,3 +76,6 @@ TwistOAuth - changelog
 
 2.3.2 (2014-07-06)
 + Fixed typo and invalid function call in TwistOAuth::renewWithAccessTokenX()
+
+2.3.3 (2014-07-06)
++ Truly supported PHP 5.3.2
