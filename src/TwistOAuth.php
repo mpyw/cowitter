@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.3
+ * TwistOAuth Version 2.3.4
  * 
  * @author  CertaiN
  * @github  https://github.com/Certainist/TwistOAuth
@@ -577,13 +577,13 @@ final class TwistOAuth {
                 $decode = function ($ch, $response) {
                     static $rm;
                     if (!$rm) {
-                        $rm = new ReflectionMethod(__CLASS__ . '::decode');
+                        $rm = new ReflectionMethod(__CLASS__, 'decode');
                         $rm->setAccessible(true);
                     }
                     return $rm->invoke(null, $ch, $response);
                 };
             } else {
-                $decode = 'self::decode';
+                $decode = array(__CLASS__, 'decode');
             }
         }
         $url      = self::url(self::validateString('$url', $url));

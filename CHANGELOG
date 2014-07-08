@@ -79,3 +79,7 @@ TwistOAuth - changelog
 
 2.3.3 (2014-07-06)
 + Truly supported PHP 5.3.2
+
+2.3.4 (2014-07-08)
++ Truly supported PHP 5.3.2 or later
+  (2.3.3 does not support PHP 5.4.0 or later)
