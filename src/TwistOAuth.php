@@ -4,7 +4,7 @@
  * TwistOAuth Version 2.3.4
  * 
  * @author  CertaiN
- * @github  https://github.com/Certainist/TwistOAuth
+ * @github  https://github.com/mpyw/TwistOAuth
  * @license BSD 2-Clause
  */
 
