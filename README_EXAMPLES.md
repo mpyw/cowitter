@@ -301,7 +301,7 @@ $to = $to->renewWithAccessTokenX('screen_name', 'password');
 This requires heavy traffic. **Abusing**.
 
 ```php
-$to = self::login('CK', 'CS', 'screen_name', 'password');
+$to = TwistOAuth::login('CK', 'CS', 'screen_name', 'password');
 ```
 
 ## Level-3: Advanced usage
