@@ -33,15 +33,22 @@ try {
     // This method may throw TwistException.
     $statuses = $to->get('statuses/home_timeline', array('count' => 5));
     
+    // Set HTTP status code.
+    $code = 200;
+    
 } catch (TwistException $e) {
     
-    // Catch exception and set error message.
+    // Set error message.
     $error = $e->getMessage();
+    
+    // Set HTTP status code.
+    // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
+    $code = $e->getCode() > 0 ? $e->getCode() : 500;
     
 }
 
-// Send charset to your browser.
-header('Content-Type: text/html; charset=utf-8');
+// Send charset and HTTP status code to your browser.
+header('Content-Type: text/html; charset=utf-8', true, $code);
 
 ?>
 <!DOCTYPE html>
@@ -80,7 +87,7 @@ function h($str) {
 }
 
 // Get user input.
-// (I recommend you not to use $_POST.)
+// (I recommend you not to use $_POST. Use filter_input instead.)
 $text = filter_input(INPUT_POST, 'text');
 
 if ($text !== null) {
@@ -97,20 +104,27 @@ if ($text !== null) {
         // Set message.
         $message = array('green', 'Successfully tweeted.');
         
+        // Set HTTP status code.
+        $code = 200;
+        
         // Clear text.
         $text = '';
         
     } catch (TwistException $e) {
         
-        // Catch exception and set error message.
+        // Set error message.
         $message = array('red', $e->getMessage());
+        
+        // Set HTTP status code.
+        // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
+        $code = $e->getCode() > 0 ? $e->getCode() : 500;
         
     }
     
 }
 
-// Send charset to your browser.
-header('Content-Type: text/html; charset=utf-8');
+// Send charset and HTTP status code to your browser.
+header('Content-Type: text/html; charset=utf-8', true, $code);
 
 ?>
 <!DOCTYPE html>
@@ -134,7 +148,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 Basic authentication flow.
 
-#### prepare.php
+#### login.php
 
 ```html+php
 <?php
@@ -145,77 +159,54 @@ require 'TwistOAuth.php';
 // Start session.
 @session_start();
 
-// If user is already authenticated, redirect to the main page.
-if (isset($_SESSION['authed'])) {
-    header('Location: http://127.0.0.1/my_twitter_app/main.php');
-    exit;
-}
-
-try {
-    
-    // Generate a TwistOAuth object and apply it request_token.
-    $to = new TwistOAuth('CK', 'CS');
-    $to = $to->renewWithRequestToken();
-    
-    // Set it into session.
-    $_SESSION['to'] = $to;
-    
-    // Redirect to Twitter.
-    header('Location: ' . $to->getAuthenticateUrl());
-    
-} catch (TwistException $e) {
-    
-    // Output an error message as plain text.
+function redirect_to_main_page() {
+    $url = 'http://127.0.0.1/my_twitter_app/main.php';
+    header("Location: $url");
     header('Content-Type: text/plain; charset=utf-8');
-    echo $e->getMessage();
-    
+    exit("Redirecting to $url ...");
 }
-```
 
-#### callback.php
-
-```html+php
-<?php
-
-// Load this library.
-require 'TwistOAuth.php';
-
-// Start session.
-@session_start();
-
-// If user is already authenticated, redirect to the main page.
-if (isset($_SESSION['authed'])) {
-    header('Location: http://127.0.0.1/my_twitter_app/main.php');
-    exit;
+// If user is already logined, redirect to the main page.
+if (isset($_SESSION['logined'])) {
+    redirect_to_main_page();
 }
 
 try {
+
+    if (!isset($_SESSION['to'])) { /* First Access */
         
-    // If a TwistOAuth object is not already prepared, throw exception.
-    if (!isset($_SESSION['to'])) {
-        throw new RuntimeException('Access to prepare.php at first.');
+        // Initialize a TwistOAuth object, then reinitialize with request_token.
+        $_SESSION['to'] = new TwistOAuth('CK', 'CS');
+        $_SESSION['to'] = $_SESSION['to']->renewWithRequestToken();
+        
+        // Redirect to Twitter.
+        header("Location: {$_SESSION['to']->getAuthenticateUrl()}");
+        header('Content-Type: text/plain; charset=utf-8');
+        exit("Redirecting to {$_SESSION['to']->getAuthenticateUrl()} ...");
+        
+    } else { /* Redirected From Twitter */
+        
+        // Reinitialize with access_token using oauth_verifier, then set login flag.
+        $_SESSION['to'] = $_SESSION['to']->renewWithAccessToken(filter_input(INPUT_GET, 'oauth_verifier'));
+        $_SESSION['logined'] = true;
+        
+        // Regenerate session id for security reasons.
+        session_regenerate_id(true); /* IMPORTANT */
+        
+        // Redirect to the main page.
+        redirect_to_main_page();
+        
     }
+
+} catch (TwistException $e) { /* Error */
     
-    // Apply access_token with oauth_verifier.
-    $_SESSION['to'] = $_SESSION['to']->renewWithAccessToken(filter_input(INPUT_GET, 'oauth_verifier'));
+    // Remove the TwistOAuth object.
+    unset($_SESSION['to']);
     
-    // Set authenticated flag.
-    $_SESSION['authed'] = true;
-    
-    // Regenerate session id for security reasons.
-    session_regenerate_id(true); /* IMPORTANT */
-    
-    // Redirect to the main page.
-    header('Location: http://127.0.0.1/my_twitter_app/main.php');
-    
-} catch (RuntimeException $e) { /* TwistException is extended from RuntimeException */
-    
-    // Refresh session.
-    $_SESSION = array();
-    
-    // Output an error message as plain text.
-    header('Content-Type: text/plain; charset=utf-8');
-    echo $e->getMessage();
+    // Set HTTP status code and display error message as text. (not HTML)
+    // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
+    header('Content-Type: text/plain; charset=utf-8', true, $e->getCode() > 0 ? $e->getCode() : 500);
+    exit($e->getMessage());
     
 }
 ```
@@ -236,40 +227,49 @@ function h($str) {
 // Start session.
 @session_start();
 
-// If user is not already authenticated, redirect to the preparation page.
-if (isset($_SESSION['authed'])) {
-    header('Location: http://127.0.0.1/my_twitter_app/prepare.php');
-    exit;
+// If user is not logined, redirect to the login page.
+if (isset($_SESSION['logined'])) {
+    $url = 'http://127.0.0.1/my_twitter_app/login.php';
+    header("Location: $url");
+    header('Content-Type: text/plain; charset=utf-8');
+    exit("Redirecting to $url ...");
 }
 
 // Get user input.
-// (I recommend you not to use $_POST.)
+// (I recommend you not to use $_POST. Use filter_input instead.)
 $text = filter_input(INPUT_POST, 'text');
 
 if ($text !== null) {
     
     try {
-               
+        
         // Update status.
         $_SESSION['to']->post('statuses/update', array('status' => $text));
         
         // Set message.
         $message = array('green', 'Successfully tweeted.');
         
+        // Set HTTP status code.
+        $code = 200;
+        
         // Clear text.
         $text = '';
         
     } catch (TwistException $e) {
         
-        // Catch exception and set error message.
+        // Set error message.
         $message = array('red', $e->getMessage());
+        
+        // Set HTTP status code.
+        // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
+        $code = $e->getCode() > 0 ? $e->getCode() : 500;
         
     }
     
 }
 
-// Send charset to your browser.
-header('Content-Type: text/html; charset=utf-8');
+// Send charset and HTTP status code to your browser.
+header('Content-Type: text/html; charset=utf-8', true, $code);
 
 ?>
 <!DOCTYPE html>
@@ -307,7 +307,6 @@ $to = TwistOAuth::login('CK', 'CS', 'screen_name', 'password');
 ## Level-3: Advanced usage
 
 ### Access images in direct messages
-
 
 #### Raw output
 
