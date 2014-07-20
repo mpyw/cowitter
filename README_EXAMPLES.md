@@ -357,10 +357,14 @@ $to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
 ### Simple CUI application for your own streaming
 
 ```php
+// Disable timeout.
+set_time_limit(0);
+
 // Finish all buffering.
 while (ob_get_level()) {
     ob_end_clean();
 }
+
 // Start streaming.
 $to->streaming('user', function($status) {
     // Treat only tweets.
