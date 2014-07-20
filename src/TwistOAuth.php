@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.4
+ * TwistOAuth Version 2.3.5
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -771,6 +771,7 @@ final class TwistOAuth {
     private static function curlInit($proxy) {
         $ch = curl_init();
         curl_setopt_array($ch, array(
+            CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_ENCODING       => 'gzip',

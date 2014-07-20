@@ -21,6 +21,9 @@ function h($str) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 
+// Set default HTTP status code.
+$code = 200;
+
 // Set your timezone.
 date_default_timezone_set('Asia/Tokyo');
 
@@ -33,15 +36,12 @@ try {
     // This method may throw TwistException.
     $statuses = $to->get('statuses/home_timeline', array('count' => 5));
     
-    // Set HTTP status code.
-    $code = 200;
-    
 } catch (TwistException $e) {
     
     // Set error message.
     $error = $e->getMessage();
     
-    // Set HTTP status code.
+    // Overwrite HTTP status code.
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
     $code = $e->getCode() > 0 ? $e->getCode() : 500;
     
@@ -86,6 +86,9 @@ function h($str) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 
+// Set default HTTP status code.
+$code = 200;
+
 // Get user input.
 // (I recommend you not to use $_POST. Use filter_input instead.)
 $text = filter_input(INPUT_POST, 'text');
@@ -104,9 +107,6 @@ if ($text !== null) {
         // Set message.
         $message = array('green', 'Successfully tweeted.');
         
-        // Set HTTP status code.
-        $code = 200;
-        
         // Clear text.
         $text = '';
         
@@ -115,7 +115,7 @@ if ($text !== null) {
         // Set error message.
         $message = array('red', $e->getMessage());
         
-        // Set HTTP status code.
+        // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
         $code = $e->getCode() > 0 ? $e->getCode() : 500;
         
@@ -200,10 +200,10 @@ try {
 
 } catch (TwistException $e) { /* Error */
     
-    // Remove the TwistOAuth object.
-    unset($_SESSION['to']);
+    // Clear session.
+    $_SESSION = array();
     
-    // Set HTTP status code and display error message as text. (not HTML)
+    // Send HTTP status code and display error message as text. (not HTML)
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
     header('Content-Type: text/plain; charset=utf-8', true, $e->getCode() > 0 ? $e->getCode() : 500);
     exit($e->getMessage());
@@ -228,12 +228,15 @@ function h($str) {
 @session_start();
 
 // If user is not logined, redirect to the login page.
-if (isset($_SESSION['logined'])) {
+if (!isset($_SESSION['logined'])) {
     $url = 'http://127.0.0.1/my_twitter_app/login.php';
     header("Location: $url");
     header('Content-Type: text/plain; charset=utf-8');
     exit("Redirecting to $url ...");
 }
+
+// Set default HTTP status code.
+$code = 200;
 
 // Get user input.
 // (I recommend you not to use $_POST. Use filter_input instead.)
@@ -249,9 +252,6 @@ if ($text !== null) {
         // Set message.
         $message = array('green', 'Successfully tweeted.');
         
-        // Set HTTP status code.
-        $code = 200;
-        
         // Clear text.
         $text = '';
         
@@ -260,7 +260,7 @@ if ($text !== null) {
         // Set error message.
         $message = array('red', $e->getMessage());
         
-        // Set HTTP status code.
+        // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
         $code = $e->getCode() > 0 ? $e->getCode() : 500;
         
