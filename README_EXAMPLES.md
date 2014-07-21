@@ -59,7 +59,7 @@ header('Content-Type: text/html; charset=utf-8', true, $code);
   <p style="color:red;"><?=h($error)?></p>
 <?php endif; ?>
 <?php if (!empty($statuses)): ?>
-<?php foreach ($statues as $status): ?>
+<?php foreach ($statuses as $status): ?>
   <p>
     user_id: <?=$status->user->id_str?><br>
     screen_name: @<?=$status->user->screen_name?><br>
