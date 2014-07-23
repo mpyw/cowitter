@@ -306,6 +306,55 @@ $to = TwistOAuth::login('CK', 'CS', 'screen_name', 'password');
 
 ## Level-3: Advanced usage
 
+### Walking search results and cursor
+
+#### Get all search results
+
+```php
+$statuses = array();
+$params = array('q' => 'foobarbaz');
+while ($params) {
+    $result = $to->get('search/tweets', $params);
+    $statuses = array_merge($statuses, $result->statuses);
+    $params = 
+        isset($result->search_metadata->next_results) ?
+        substr($result->search_metadata->next_results, 1) :
+        null
+    ;
+}
+```
+
+Attention: You may be going to be over API limit.  
+**Warning: Do not directly pass `$_GET`. The following snippet has a serious vulnerability.**  
+
+```php
+$result = $to->get('search/tweets', $_GET);
+```
+
+```html+php
+<a href="<?=h($result->search_metadata->next_results)?>">Next</a>
+```
+
+Query string in attacks will be like...
+
+```text
+?@q=%2Fetc%2Fpasswd
+```
+
+#### Get all friend ids
+
+```php
+$ids = array();
+$cursor = '-1';
+do {
+    $result = $to->get('friends/ids', array(
+        'cursor' => $cursor,
+        'stringify_ids' => '1',
+    ));
+    $ids = array_merge($ids, $result->ids);
+} while ($cursor = $result->next_cusror_str);
+```
+
 ### Access images in direct messages
 
 #### Raw output
