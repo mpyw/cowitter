@@ -327,18 +327,18 @@ while ($params) {
 Attention: You may be going to be over API limit.  
 **Warning: Do not directly pass `$_GET`. The following snippet has a serious vulnerability.**  
 
-```php
-$result = $to->get('search/tweets', $_GET);
-```
-
 ```html+php
+<?php
+$result = $to->get('search/tweets', $_GET);
+?>
+...
 <a href="<?=h($result->search_metadata->next_results)?>">Next</a>
 ```
 
-Query string in attacks will be like...
+Query string on attacks will be like...
 
 ```text
-?@q=%2Fetc%2Fpasswd
+?@q=/etc/passwd
 ```
 
 #### Get all friend ids
