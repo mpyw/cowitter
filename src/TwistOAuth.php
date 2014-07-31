@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.3.5
+ * TwistOAuth Version 2.4.0
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -112,7 +112,7 @@ final class TwistOAuth {
         $password = self::validateString('$password', $password);
         $proxy    = self::validateString('$proxy', $proxy);
         $ch = self::curlInit($proxy);
-        $to = $to->renewWithRequestToken();
+        $to = $to->renewWithRequestToken('oob');
         self::curlSetOptForAuthenticityToken($ch, $to);
         $token = self::parseAuthenticityToken($ch, curl_exec($ch));
         self::curlSetOptForVerifier($ch, $to, $token, $username, $password);
@@ -181,7 +181,7 @@ final class TwistOAuth {
             $res[$i]    = new TwistException('Failed to reach the final step.');
             $tos[$i]    = new self($credential[0], $credential[1]);
             $states[$i] = 4;
-            $chs[$i]    = $tos[$i]->curlPostRequestToken($proxy);
+            $chs[$i]    = $tos[$i]->curlPostRequestToken('oob', $proxy);
             $schs[$i]   = null;
             curl_multi_add_handle($mh, $chs[$i]);
         }
@@ -454,13 +454,14 @@ final class TwistOAuth {
     /**
      * Execute POST request for "oauth/request_token".
      *
-     * @param string [$proxy] full proxy URL.
-     *                        e.g. https://111.222.333.444:8080
+     * @param string [$oauth_callback] 
+     * @param string [$proxy]          full proxy URL.
+     *                                 e.g. https://111.222.333.444:8080
      * @return TwistOAuth
      * @throws TwistException
      */
-    public function renewWithRequestToken($proxy = '') {
-        $ch = $this->curlPostRequestToken($proxy);
+    public function renewWithRequestToken($oauth_callback = '', $proxy = '') {
+        $ch = $this->curlPostRequestToken($oauth_callback, $proxy);
         $response = self::decode($ch, curl_exec($ch));
         return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
     }
@@ -661,16 +662,17 @@ final class TwistOAuth {
     /**
      * Prepare cURL resource for POST request "oauth/request_token".
      *
-     * @param string $oauth_verifier
-     * @param string [$proxy]        full proxy URL.
-     *                               e.g. https://111.222.333.444:8080
+     * @param string [$oauth_callback] 
+     * @param string [$proxy]          full proxy URL.
+     *                                 e.g. https://111.222.333.444:8080
      * @return resource cURL
      * @throws TwistException
      */
-    public function curlPostRequestToken($proxy = '') {
-        $proxy  = self::validateString('$proxy', $proxy);
+    public function curlPostRequestToken($oauth_callback = '', $proxy = '') {
+        $oauth_callback = self::validateString('$oauth_callback', $oauth_callback);
+        $proxy          = self::validateString('$proxy', $proxy);        
         $url    = 'https://api.twitter.com/oauth/request_token';
-        $params = array();
+        $params = compact('oauth_callback');
         $ch     = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_REQUEST_TOKEN),
@@ -699,7 +701,7 @@ final class TwistOAuth {
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => $this->getAuthorization($url, 'POST', $params, self::MODE_ACCESS_TOKEN),
             CURLOPT_URL        => $url,
-            CURLOPT_POSTFIELDS => '',
+            CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
             CURLOPT_POST       => true,
         ));
         return $ch;
@@ -1440,12 +1442,12 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private static function parseVerifier($ch, $response) {
-        static $pattern = '@oauth_verifier=([^"]++)"|<code>([^<]++)</code>@';
+        static $pattern = '@<code>([^<]++)</code>@';
         if (!preg_match($pattern, $response, $matches)) {
             $info = curl_getinfo($ch);
             throw new TwistException('Wrong username or password.', $info['http_code']);
         }
-        return implode('', array_slice($matches, 1));
+        return $matches[1];
     }
     
     /**
@@ -1462,14 +1464,15 @@ final class TwistOAuth {
             'oauth_consumer_key'     => $this->ck,
             'oauth_signature_method' => 'HMAC-SHA1',
             'oauth_timestamp'        => time(),
-            'oauth_version'          => '1.0',
+            'oauth_version'          => '1.0a',
             'oauth_nonce'            => md5(mt_rand()),
             'oauth_token'            => $this->ot,
         );
         $key = array($this->cs, $this->os);
         if ($flags & self::MODE_REQUEST_TOKEN) {
-            unset($oauth['oauth_token']);
             $key[1] = '';
+            $oauth['oauth_callback'] = $params['oauth_callback'];
+            unset($oauth['oauth_token'], $oauth['oauth_callback']);
         }
         if ($flags & self::MODE_ACCESS_TOKEN) {
             $oauth['oauth_verifier'] = $params['oauth_verifier'];

@@ -108,13 +108,14 @@ A URL for authentication or authorization.
 Fetch tokens and regenerate instance with them.
 
 ```php
-(TwistOAuth) $to->renewWithRequestToken($proxy = '')
+(TwistOAuth) $to->renewWithRequestToken($oauth_callback = '', $proxy = '')
 (TwistOAuth) $to->renewWithAccessToken($oauth_verifier, $proxy = '')
 (TwistOAuth) $to->renewWithAccessTokenX($username, $password, $proxy = '')
 ```
 
 #### Arguments
 
+- (string) __*$oauth\_callback*__
 - (string) __*$oauth\_verifier*__
 - (string) __*$username*__<br />screen_name or email.
 - (string) __*$password*__
@@ -366,7 +367,7 @@ Throws `TwistException`.
 ### TwistOAuth::curlPostRequestToken()<br />TwistOAuth::curlPostAccessToken()<br />TwistOAuth::curlGet()<br />TwistOAuth::curlGetOut()<br />TwistOAuth::curlPost()<br />TwistOAuth::curlPostOut()<br />TwistOAuth::curlPostMultipart()<br />TwistOAuth::curlPostMultipartOut()<br />TwistOAuth::curlStreaming()
 
 ```php
-(resource) $to->curlPostRequestToken($proxy = '')
+(resource) $to->curlPostRequestToken($oauth_callback = '', $proxy = '')
 (resource) $to->curlPostAccessToken($oauth_verifier, $proxy = '')
 (resource) $to->curlGet($url, $params = array(), $proxy = '')
 (resource) $to->curlGetOut($url, $params = array(), $proxy = '')

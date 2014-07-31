@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.3.5
+Version 2.4.0
 
 Requirements
 ============
@@ -45,7 +45,7 @@ Now, let's register your own application.
 
 1. Click `Create New App`
 2. Fill `Name` `Description` `WebSite`.
-3. Fill `Callback URL`. <ins>Users are redirected here after successfully authenticating.</ins>
+3. Fill `Callback URL`. <ins>By default, users are redirected here after successfully authenticating.</ins>
 4. Read rules and check `Yes, I agree`.
 5. Click `Create your Twitter application`.
 
@@ -107,6 +107,37 @@ $obj->__construct('c', 'd'); // Break immutable rules
 ### How to use OAuth 2.0 authentication flow?
 
 Sorry, it is <ins>not</ins> available with this library. Use OAuth 1.0a instead.
+
+### What is `oauth_verifier` ?
+
+It is **required** for calling the following methods.
+
+- `TwistOAuth::renewWithAccessToken()`
+- `TwistOAuth::curlPostAccessToken()`
+
+You can get it after user redirecting.
+
+```php
+$oauth_verifier = filter_input(INPUT_GET, 'oauth_verifier');
+```
+
+### What is `oauth_callback` ?
+
+It is **not required**, but you can apply it for calling the following methods.
+
+- `TwistOAuth::renewWithRequestToken()`
+- `TwistOAuth::curlPostRequestToken()`
+
+There are three value types.
+
+| Name          | Example Value                       | Authentication Type              |
+| :-----------: | :---------------------------------: | :------------------------------: |
+| Empty String  | `""`                                | PIN or URL (Use default setting) |
+| URL           | `"http://example.com/callback.php"` | URL                              |
+| Out-Of-Band   | `"oob"`                             | PIN                              |
+
+**WARNING: **  
+You can only use URL if your application is configured as **Browser Application**. This means <ins>`Callback URL` is not empty</ins>.
 
 ### Tweets are already escaped... wtf!?
 

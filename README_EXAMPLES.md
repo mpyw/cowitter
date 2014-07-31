@@ -177,7 +177,7 @@ try {
         
         // Initialize a TwistOAuth object, then reinitialize with request_token.
         $_SESSION['to'] = new TwistOAuth('CK', 'CS');
-        $_SESSION['to'] = $_SESSION['to']->renewWithRequestToken();
+        $_SESSION['to'] = $_SESSION['to']->renewWithRequestToken('http://example.com/login.php');
         
         // Redirect to Twitter.
         header("Location: {$_SESSION['to']->getAuthenticateUrl()}");
