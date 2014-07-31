@@ -136,8 +136,9 @@ There are three value types.
 | URL           | `"http://example.com/callback.php"` | URL                              |
 | Out-Of-Band   | `"oob"`                             | PIN                              |
 
-**WARNING: **  
-You can only use URL if your application is configured as **Browser Application**. This means <ins>`Callback URL` is not empty</ins>.
+**WARNING:**  
+You can only use URL if your application is configured as **Browser Application**.  
+This means <ins>`Callback URL` is not empty</ins>.
 
 ### Tweets are already escaped... wtf!?
 
