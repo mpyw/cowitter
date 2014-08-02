@@ -89,3 +89,6 @@ TwistOAuth - changelog
 
 2.4.0 (2014-07-31)
 + Supported oauth_callback
+
+2.4.0 (2014-08-02)
++ Supported CURLOPT_MAXCONNECTS

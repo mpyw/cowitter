@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.4.0
+ * TwistOAuth Version 2.5.0
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -14,6 +14,17 @@
 final class TwistOAuth {
     
     /**
+     * cURL execution limit.
+     * 
+     * @const CURLOPT_CONNECTTIMEOUT
+     * @const CURLOPT_TIMEOUT
+     * @const CURLOPT_MAXCONNECTS
+     */
+    const CURLOPT_CONNECTTIMEOUT = 10;
+    const CURLOPT_TIMEOUT        = 20;
+    const CURLOPT_MAXCONNECTS    = 10;
+    
+    /**
      * Request options.
      * 
      * @const MODE_DEFAULT       for various endpoints.
@@ -23,15 +34,6 @@ final class TwistOAuth {
     const MODE_DEFAULT        = 0;
     const MODE_REQUEST_TOKEN  = 1;
     const MODE_ACCESS_TOKEN   = 2;
-    
-    /**
-     * Execution limit.
-     * 
-     * @const CURLOPT_CONNECTTIMEOUT
-     * @const CURLOPT_TIMEOUT
-     */
-    const CURLOPT_CONNECTTIMEOUT = 10;
-    const CURLOPT_TIMEOUT        = 20;
     
     /**
      * OAuth parameters.
@@ -156,9 +158,11 @@ final class TwistOAuth {
         $states = array(); // states
         $chs    = array(); // cURL resources for API connection
         $schs   = array(); // cURL resources for scraping connection
+        $wchs   = array(); // cURL resources waiting other connection closed
         if (!$credentials) {
             return array();
         }
+        $c = 0;
         foreach ($credentials as $i => &$credential) {
             if (!is_array($credential)) {
                 throw new InvalidArgumentException(sprintf(
@@ -183,7 +187,11 @@ final class TwistOAuth {
             $states[$i] = 4;
             $chs[$i]    = $tos[$i]->curlPostRequestToken('oob', $proxy);
             $schs[$i]   = null;
-            curl_multi_add_handle($mh, $chs[$i]);
+            if (++$c <= self::CURLOPT_MAXCONNECTS) {
+                curl_multi_add_handle($mh, $chs[$i]);
+            } else {
+                $wchs[] = $chs[$i];
+            }
         }
         unset($credential);
         // start requests 
@@ -244,6 +252,10 @@ final class TwistOAuth {
                                 $obj = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
                                 $res[$i] = new self($tos[$i]->ck, $tos[$i]->cs, $obj->oauth_token, $obj->oauth_token_secret);
                                 curl_multi_remove_handle($mh, $raised['handle']);
+                                if ($wch = array_shift($wchs)) {
+                                    curl_multi_add_handle($mh, $wch);
+                                    $add = true;
+                                }
                         }
                     } catch (TwistException $e) {
                         if ($throw_in_process) {
@@ -252,6 +264,10 @@ final class TwistOAuth {
                         }
                         $res[$i] = $e;
                         curl_multi_remove_handle($mh, $raised['handle']);
+                        if ($wch = array_shift($wchs)) {
+                            curl_multi_add_handle($mh, $wch);
+                            $add = true;
+                        }
                     }
                 } while ($remains);
         } while ($running || $add); // continue if still running or added new cURL resources
@@ -1248,14 +1264,20 @@ final class TwistOAuth {
     private static function curlMultiExecAction(array $curls, $is_streaming, $throw_in_process) {
         $mh = curl_multi_init();
         $chs       = array(); // cURL resources for API connection
+        $wchs      = array(); // cURL resources waiting other connection closed
         $responses = array(); // responses
         if (!$curls) {
             return array();
         }
+        $c = 0;
         foreach ($curls as $i => $ch) {
             $chs[$i]       = self::validateCurl("\$curls[$i]", $ch);
             $responses[$i] = new TwistException('Failed to receive event.');
-            curl_multi_add_handle($mh, $ch);
+            if (++$c <= self::CURLOPT_MAXCONNECTS) {
+                curl_multi_add_handle($mh, $chs[$i]);
+            } else {
+                $wchs[] = $chs[$i];
+            }
         }
         // start requests
         while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
@@ -1278,6 +1300,7 @@ final class TwistOAuth {
             default:
                 // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
+                $add = false;
                 // dequeue array of cURL which finished receiving data
                 do if ($raised = curl_multi_info_read($mh, $remains)) {
                     // search offset corresponds to the resource
@@ -1300,8 +1323,12 @@ final class TwistOAuth {
                         }
                     }
                     curl_multi_remove_handle($mh, $raised['handle']);
+                    if ($wch = array_shift($wchs)) {
+                        curl_multi_add_handle($mh, $wch);
+                        $add = true;
+                    }
                 } while ($remains);
-        } while ($running); // continue if still running
+        } while ($running || $add); // continue if still running
         return $responses;
     }
     
