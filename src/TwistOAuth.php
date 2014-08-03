@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.0
+ * TwistOAuth Version 2.5.1
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -202,6 +202,7 @@ final class TwistOAuth {
         // wait cURL events
         do switch (curl_multi_select($mh, self::CURLOPT_TIMEOUT)) {
             case -1: // failed to select for various reason
+                $add = false;
                 // wait a bit, update $running flag, retry and continue
                 usleep(10);
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
@@ -213,9 +214,9 @@ final class TwistOAuth {
                 }
                 break 2;
             default:
+                $add = false;
                 // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-                $add = false;
                 // dequeue array of cURL which finished receiving data
                 do if ($raised = curl_multi_info_read($mh, $remains)) {
                     // search offset corresponds to the resource, in $chs or $schs
@@ -1287,6 +1288,7 @@ final class TwistOAuth {
         // wait cURL events
         do switch (curl_multi_select($mh, self::CURLOPT_TIMEOUT)) {
             case -1: // failed to select for various reason
+                $add = false;
                 // wait a bit, update $running flag, retry and continue
                 usleep(10);
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
@@ -1298,9 +1300,9 @@ final class TwistOAuth {
                 }
                 break 2;
             default:
+                $add = false;
                 // update $running flag
                 while (curl_multi_exec($mh, $running) === CURLM_CALL_MULTI_PERFORM);
-                $add = false;
                 // dequeue array of cURL which finished receiving data
                 do if ($raised = curl_multi_info_read($mh, $remains)) {
                     // search offset corresponds to the resource
