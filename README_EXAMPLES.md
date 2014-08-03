@@ -408,7 +408,7 @@ $to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
 ));
 ```
 
-### Simple CUI application for your own streaming
+### Simple CLI application for your own streaming
 
 #### Display tweets on user streaming
 
