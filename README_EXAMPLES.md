@@ -452,7 +452,7 @@ $to->streaming(
     function ($status) use ($to) { // Import $to.
         // Treat only tweets by other users.
         if (isset($status->text) && $status->user->screen_name !== 'YOUR SCREEN_NAME') {
-            foreach (TwistOAuth::curlMultiExec(array(
+            foreach ($to->curlMultiExec(array(
                 'Favorite' => $to->curlPost('favorites/create', array('id' => $status->id_str)),
                 'Retweet'  => $to->curlPost("statuses/retweet/{$status->id_str}"),
             )) as $action => $e) {
