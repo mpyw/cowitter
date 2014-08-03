@@ -123,6 +123,30 @@ There are three value types.
 You can only use URL if your application is configured as **Browser Application**.  
 This means <ins>`Callback URL` is not empty</ins>.
 
+### How to use `$to` in callback closure?
+
+Use `use()`.
+
+```php
+$to->streaming('user', function ($status) use ($to) { ... });
+```
+
+### How to ignore `TwistException` thrown?
+
+Now your code is:
+
+```php
+try {
+    $to->post('statuses/update', array('status' => 'test'));
+} catch (TwistException $e) { } // This is very lengthy!!!
+```
+
+To ignore all responses...
+
+```php
+curl_exec($to->curlPost('statuses/update', array('status' => 'test'))); // Wow, cool
+```
+
 ### Are all classes immutable?
 
 Yes.
@@ -138,28 +162,6 @@ However, you can change propety values by directly calling `__construct()`.
 ```php
 $obj = new TwistOAuth('a', 'b');
 $obj->__construct('c', 'd'); // Break immutable rules
-```
-
-### How to use `$to` in callback closure?
-
-Use `use()`.
-
-$to->streaming('user', function ($status) use ($to) { ... });
-
-### How to ignore `TwistException` thrown?
-
-Your code:
-
-```php
-try {
-    $to->post('statuses/update', array('status' => 'test'));
-} catch (TwistException $e) { } // This is very lengthy!!!
-```
-
-To ignore all responses...
-
-```php
-curl_exec($to->curlPost('statuses/update', array('status' => 'test')));
 ```
 
 ### Tweets are already escaped... wtf!?
