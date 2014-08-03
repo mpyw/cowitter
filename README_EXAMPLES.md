@@ -435,9 +435,7 @@ $to->streaming('user', function ($status) {
 });
 ```
 
-#### Favorite and retweet tweets containing specified keywords 
-
-Type A: Display results
+#### At once favorite and retweet tweets containing specified keywords 
 
 ```php
 // Disable timeout.
@@ -451,50 +449,20 @@ while (ob_get_level()) {
 // Start streaming.
 $to->streaming(
     'statuses/filter',
-    function ($status) use ($to) { // Import $to using use().
-        // Treat only tweets. Retweets are ignored.
-        if (isset($status->text) && !isset($status->retweeted_status)) {
-            $url = "https://twitter.com/{$status->user->screen_name}/{$status->id_str}";
-            try {
-                $to->post('favorites/create', array('id' => $status->id_str));
-                echo "Favorited $url\n";
-            } catch (TwistException $e) {
-                echo $e->getMessage() . "\n";
+    function ($status) use ($to) { // Import $to.
+        // Treat only tweets by other users.
+        if (isset($status->text) && $status->user->screen_name !== 'YOUR SCREEN_NAME') {
+            foreach (TwistOAuth::curlMultiExec(array(
+                'Favorite' => $to->curlPost('favorites/create', array('id' => $status->id_str)),
+                'Retweet'  => $to->curlPost("statuses/retweet/{$status->id_str}"),
+            )) as $action => $e) {
+                printf("%s(@%s - %s): %s\n",
+                    $action,
+                    $status->user->screen_name,
+                    $status->id_str,
+                    $e instanceof TwistException ? $e->getMessage() : 'Success'
+                );
             }
-            try {
-                $to->post("statuses/retweet/{$status->id_str}");
-                echo "Retweeted $url\n";
-            } catch (TwistException $e) {
-                echo $e->getMessage() . "\n";
-            }
-            flush();
-        }
-    },
-    array('track' => 'foo,bar,baz')
-);
-```
-
-Type B: Ignore results
-
-```php
-// Disable timeout.
-set_time_limit(0);
-
-// Finish all buffering.
-while (ob_get_level()) {
-    ob_end_clean();
-}
-
-// Start streaming.
-$to->streaming(
-    'statuses/filter',
-    function ($status) use ($to) { // Import $to using use().
-        // Treat only tweets. Retweets are ignored.
-        if (isset($status->text) && !isset($status->retweeted_status)) {
-            $url = "https://twitter.com/{$status->user->screen_name}/{$status->id_str}";
-            curl_exec($to->curlPost('favorites/create', array('id' => $status->id_str)));
-            curl_exec($to->curlPost("statuses/retweet/{$status->id_str}"));
-            echo "Favorite and retweet requests are sent for $url\n";
             flush();
         }
     },
