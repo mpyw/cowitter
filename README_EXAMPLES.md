@@ -324,8 +324,11 @@ while ($params) {
 }
 ```
 
-Attention: You may be going to be over API limit.  
-**Warning: Do not directly pass `$_GET`. The following snippet has a serious vulnerability.**  
+**ATTENTION:**  
+You may be going to be over API limit.
+
+**WARNING:**  
+Do not directly pass `$_GET`. The following snippet has a serious **vulnerability**.
 
 ```html+php
 <?php
@@ -335,11 +338,13 @@ $result = $to->get('search/tweets', $_GET);
 <a href="<?=h($result->search_metadata->next_results)?>">Next</a>
 ```
 
-Query string on attacks will be like...
+Query string on attacks will be like:
 
 ```text
 ?@q=/etc/passwd
 ```
+
+Then, your `/etc/passwd` will be stolen...
 
 #### Get all friend ids
 
@@ -430,7 +435,7 @@ $to->streaming('user', function ($status) {
 });
 ```
 
-#### Favorite and Retweet tweets containing specified keywords 
+#### Favorite and retweet tweets containing specified keywords 
 
 Type A: Display results
 

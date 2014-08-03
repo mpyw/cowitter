@@ -87,23 +87,6 @@ Contents
 FAQ
 ====
 
-### Are all classes immutable?
-
-Yes.
-
-```php
-$a = new TwistOAuth('CK', 'CS');
-$b = $a->renewWithRequestToken();
-var_dump($a === $b); // false
-```
-
-However, you can change propety values by directly calling `__construct()`.
-
-```php
-$obj = new TwistOAuth('a', 'b');
-$obj->__construct('c', 'd'); // Break immutable rules
-```
-
 ### How to use OAuth 2.0 authentication flow?
 
 Sorry, it is <ins>not</ins> available with this library. Use OAuth 1.0a instead.
@@ -139,6 +122,45 @@ There are three value types.
 **WARNING:**  
 You can only use URL if your application is configured as **Browser Application**.  
 This means <ins>`Callback URL` is not empty</ins>.
+
+### Are all classes immutable?
+
+Yes.
+
+```php
+$a = new TwistOAuth('CK', 'CS');
+$b = $a->renewWithRequestToken();
+var_dump($a === $b); // false
+```
+
+However, you can change propety values by directly calling `__construct()`.
+
+```php
+$obj = new TwistOAuth('a', 'b');
+$obj->__construct('c', 'd'); // Break immutable rules
+```
+
+### How to use `$to` in callback closure?
+
+Use `use()`.
+
+$to->streaming('user', function ($status) use ($to) { ... });
+
+### How to ignore `TwistException` thrown?
+
+Your code:
+
+```php
+try {
+    $to->post('statuses/update', array('status' => 'test'));
+} catch (TwistException $e) { } // This is very lengthy!!!
+```
+
+To ignore all responses...
+
+```php
+curl_exec($to->curlPost('statuses/update', array('status' => 'test')));
+```
 
 ### Tweets are already escaped... wtf!?
 
