@@ -405,6 +405,8 @@ $to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
 
 ### Simple CUI application for your own streaming
 
+#### Display tweets on user streaming
+
 ```php
 // Disable timeout.
 set_time_limit(0);
@@ -415,7 +417,7 @@ while (ob_get_level()) {
 }
 
 // Start streaming.
-$to->streaming('user', function($status) {
+$to->streaming('user', function ($status) {
     // Treat only tweets.
     if (isset($status->text)) {
         printf(
@@ -426,4 +428,71 @@ $to->streaming('user', function($status) {
         flush();
     }
 });
+```
+
+#### Favorite and Retweet tweets containing specified keywords 
+
+Type A: Display results
+
+```php
+// Disable timeout.
+set_time_limit(0);
+
+// Finish all buffering.
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Start streaming.
+$to->streaming(
+    'statuses/filter',
+    function ($status) use ($to) { // Import $to using use().
+        // Treat only tweets. Retweets are ignored.
+        if (isset($status->text) && !isset($status->retweeted_status)) {
+            $url = "https://twitter.com/{$status->user->screen_name}/{$status->id_str}";
+            try {
+                $to->post('favorites/create', array('id' => $status->id_str));
+                echo "Favorited $url\n";
+            } catch (TwistException $e) {
+                echo $e->getMessage() . "\n";
+            }
+            try {
+                $to->post("statuses/retweet/{$status->id_str}");
+                echo "Retweeted $url\n";
+            } catch (TwistException $e) {
+                echo $e->getMessage() . "\n";
+            }
+            flush();
+        }
+    },
+    array('track' => 'foo,bar,baz')
+);
+```
+
+Type B: Ignore results
+
+```php
+// Disable timeout.
+set_time_limit(0);
+
+// Finish all buffering.
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Start streaming.
+$to->streaming(
+    'statuses/filter',
+    function ($status) use ($to) { // Import $to using use().
+        // Treat only tweets. Retweets are ignored.
+        if (isset($status->text) && !isset($status->retweeted_status)) {
+            $url = "https://twitter.com/{$status->user->screen_name}/{$status->id_str}";
+            curl_exec($to->curlPost('favorites/create', array('id' => $status->id_str)));
+            curl_exec($to->curlPost("statuses/retweet/{$status->id_str}"));
+            echo "Favorite and retweet requests are sent for $url\n";
+            flush();
+        }
+    },
+    array('track' => 'foo,bar,baz')
+);
 ```
