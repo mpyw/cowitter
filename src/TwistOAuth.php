@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.1
+ * TwistOAuth Version 2.5.2
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -351,6 +351,16 @@ final class TwistOAuth {
             throw new OutOfRangeException('Invalid property: ' . $name);
         }
         return $this->$name;
+    }
+    
+    /**
+     * Issetter for private properties.
+     *
+     * @name string $name
+     * @return bool
+     */
+    public function __isset($name) {
+        return property_exists($this, filter_var($name));
     }
     
     /**
@@ -1707,6 +1717,16 @@ final class TwistImage {
             throw new OutOfRangeException('Invalid property: ' . $name);
         }
         return $this->$name;
+    }
+    
+    /**
+     * Issetter for private properties.
+     *
+     * @name string $name
+     * @return bool
+     */
+    public function __isset($name) {
+        return property_exists($this, filter_var($name));
     }
     
     /**

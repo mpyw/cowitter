@@ -22,7 +22,7 @@ Properties
 Content-Type. This means the following value.
 
 ```php
-substr('Content-Type: image/***', 14)
+'image/***'
 ```
 
 ### TwistImage::$data
@@ -48,7 +48,7 @@ Methods
 **Data URI**. This means the following value.
 
 ```php
-'data:image/png;base64,......'
+'data:image/***;base64,......'
 ```
 
 Class Description - TwistOAuth

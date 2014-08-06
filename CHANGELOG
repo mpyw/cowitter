@@ -95,3 +95,6 @@ TwistOAuth - changelog
 
 2.5.1 (2014-08-03)
 + Fixed risk for "Undefined variable: $add"
+
+2.5.2 (2014-08-07)
++ Added __isset()

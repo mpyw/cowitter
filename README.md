@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.5.1
+Version 2.5.2
 
 Requirements
 ============
@@ -86,6 +86,14 @@ Contents
 
 FAQ
 ====
+
+### How can I learn about Twitter API?
+
+Follow these links.
+
+- **[REST API v1.1 Resources](https://dev.twitter.com/docs/api/1.1)**
+- **[A field guide to Twitter Platform objects](https://dev.twitter.com/docs/platform-objects)**
+- [Streaming API request parameters](https://dev.twitter.com/docs/streaming-apis/parameters)
 
 ### How to use OAuth 2.0 authentication flow?
 
@@ -180,10 +188,10 @@ The following snippet may print broken HTML.
 <input type="text" name="text" value="<?=$status->text?>">
 ```
 
-You should do like this.
+You should do like this. <ins>Do not forget to set **4th** parameter into `false`.</ins>
 
 ```html+php
-<input type="text" name="text" value="<?=str_replace('"', '&#039;', $status->text)?>">
+<input type="text" name="text" value="<?=htmlspecialchars(status->text, ENT_QUOTES, 'UTF-8', false)?>">
 ```
 
 ### How about other texts?
