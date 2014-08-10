@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.2
+ * TwistOAuth Version 2.5.3
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -1510,7 +1510,9 @@ final class TwistOAuth {
         $key = array($this->cs, $this->os);
         if ($flags & self::MODE_REQUEST_TOKEN) {
             $key[1] = '';
-            $oauth['oauth_callback'] = $params['oauth_callback'];
+            if (isset($params['oauth_callback'])) {
+                $oauth['oauth_callback'] = $params['oauth_callback'];
+            }
             unset($oauth['oauth_token'], $oauth['oauth_callback']);
         }
         if ($flags & self::MODE_ACCESS_TOKEN) {

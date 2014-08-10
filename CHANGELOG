@@ -98,3 +98,6 @@ TwistOAuth - changelog
 
 2.5.2 (2014-08-07)
 + Added __isset()
+
+2.5.3 (2014-08-10)
++ Fixed risk for "Undefined index: oauth_callback"
