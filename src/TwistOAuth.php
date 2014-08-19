@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.3
+ * TwistOAuth Version 2.5.4
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -800,7 +800,7 @@ final class TwistOAuth {
     private static function curlInit($proxy) {
         $ch = curl_init();
         curl_setopt_array($ch, array(
-            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FOLLOWLOCATION => !ini_get('safe_mode'),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_ENCODING       => 'gzip',
@@ -1434,7 +1434,7 @@ final class TwistOAuth {
     }
     
     /**
-     * Solve parameters with prefix "@".
+     * Solve parameters with prefix "@" "#".
      * 
      * @param array $params
      * @return stdClass an object contains "paramData", "paramIsFile"
@@ -1446,6 +1446,9 @@ final class TwistOAuth {
         foreach ($params as $key => $value) {
             if (strpos($key, '@') === 0) {
                 $obj->paramData[substr($key, 1)]   = self::safeGetContents($key, $value);
+                $obj->paramIsFile[substr($key, 1)] = true;
+            } elseif (strpos($key, '#') === 0) {
+                $obj->paramData[substr($key, 1)]   = $value;
                 $obj->paramIsFile[substr($key, 1)] = true;
             } else {
                 $obj->paramData[$key]   = $value;

@@ -101,3 +101,7 @@ TwistOAuth - changelog
 
 2.5.3 (2014-08-10)
 + Fixed risk for "Undefined index: oauth_callback"
+
+2.5.4 (2014-08-19)
++ File data annotation with "#"
++ Enable CURLOPT_FOLLOWLOCATION only if ini_get("safe_mode") is false

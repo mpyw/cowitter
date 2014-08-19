@@ -142,7 +142,7 @@ Execute a request for Twitter.
 #### Arguments
 
 - (string) __*$url*__<br />Full or partial endpoint URL.<br />e.g. `statuses/update` `https://api.twitter.com/1.1/statuses/update.json`
-- (mixed) __*$params*__<br />1-demensional array or query string.<br />File path annotation is `@` on <ins>key</ins>.(not value)<br />`NULL` is ignored.
+- (mixed) __*$params*__<br />1-demensional array or query string.<br />File path annotation is `@` on <ins>key</ins>.<br />File data annotation is `#` on <ins>key</ins>.<br />`NULL` is ignored.
 - (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
 
 Example value of __*$params*__:
@@ -162,6 +162,13 @@ $params = array(
 $params = array(
     'status' => 'test',
     '@media[]' => 'test.jpg',
+);
+```
+
+```php
+$params = array(
+    'status' => 'test',
+    '#media[]' => file_get_contents('test.jpg'),
 );
 ```
 
