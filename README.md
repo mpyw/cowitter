@@ -36,7 +36,7 @@ Preparation
 
 ### 1. Download this library
 
-Click [here](https://github.com/Certainist/TwistOAuth/archive/master.zip) to save `TwistOAuth.php` in your working directory.
+Click [here](https://github.com/mpyw/TwistOAuth/releases) to save `TwistOAuth.php` in your working directory.
 
 ### 2. Register your application
 
