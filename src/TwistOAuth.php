@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.4
+ * TwistOAuth Version 2.5.5
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -81,11 +81,10 @@ final class TwistOAuth {
         $response = self::decode($ch, curl_exec($ch));
         // this endpoint returns special JSON format on errors
         if (!isset($response->oauth_token, $response->oauth_token_secret)) {
-            $info = curl_getinfo($ch);
             // each property is an array, so needs to be flatten
             $it = new RecursiveArrayIterator((array)$response);
             $it = new RecursiveIteratorIterator($it);
-            throw new TwistException(implode("\n", iterator_to_array($it, false)), $info['http_code']);
+            throw new TwistException(implode("\n", iterator_to_array($it, false)), curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
         // abusing API key (Twitter for Android)
         return new self(
@@ -439,10 +438,7 @@ final class TwistOAuth {
     public function streaming($url, $callback, $params = array(), $proxy = '') {
         curl_exec($ch = $this->curlStreaming($url, $callback, $params, $proxy));
         // throw exception unless $callback returned true
-        if (!self::isWriteFailure($ch)) {
-            $info = curl_getinfo($ch);
-            throw new TwistException('Streaming stopped unexpectedly.', $info['http_code']);
-        }
+        self::checkCurlError($ch);
     }
     
     /**
@@ -635,23 +631,25 @@ final class TwistOAuth {
                 static $first = true;
                 static $buffer = '';
                 $buffer .= $str;
-                // skip empty line
-                if (trim($buffer) === '') {
-                    return strlen($str);
+                // check error at first
+                if ($first) {
+                    $first = false;
+                    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    if ($code !== 200) {
+                        $decode($ch, $buffer);
+                        // unknown error
+                        throw new TwistException('Streaming stopped unexpectedly: ' . $buffer, $code);
+                    }
                 }
-                switch (true) {
-                    // decodable first response
-                    case $first and strpos($buffer, '{') !== 0 || json_decode($buffer):
-                        $first = false;
-                    // decodable line
-                    case $buffer[strlen($buffer) - 1] === "\n":
-                        if ($callback($decode($ch, $buffer))) {
-                            return 0;
-                        }
-                        $buffer = '';
-                    default:
-                        return strlen($str);
+                // decode line
+                if ($buffer[strlen($buffer) - 1] === "\n") {
+                    // skip empty line
+                    if (trim($buffer) !== '' && $callback($decode($ch, $buffer))) {
+                        return 0;
+                    }
+                    $buffer = '';
                 }
+                return strlen($str);
             }
         ));
         return $ch;
@@ -850,15 +848,13 @@ final class TwistOAuth {
     private static function decode($ch, $response) {
         $ch       = self::validateCurl('$ch', $ch);
         $response = self::validateString('$response', $response);
-        $info = curl_getinfo($ch);
-        if (curl_errno($ch)) {
-            throw new TwistException(curl_error($ch), $info['http_code']);
+        $info     = curl_getinfo($ch);
+        self::checkCurlError($ch);
+        if (func_get_arg(1) === null) {
+            throw new TwistException('Failed to receive response.', $info['http_code']);
         }
         if ($response === '') {
             throw new TwistException('Empty response.', $info['http_code']);
-        }
-        if ($response === null) {
-            throw new TwistException('Failed to receive response.', $info['http_code']);
         }
         if (stripos($info['content_type'], 'image/') === 0) {
             return new TwistImage($info['content_type'], $response);
@@ -1221,14 +1217,18 @@ final class TwistOAuth {
     }
     
     /**
-     * Return whether the cURL connection is aborted by ourselves.
-     * Errno will always be 0 on curl_multi SAPI, so we have to judge by Error.
+     * Check cURL error.
+     * "errno" will always be 0 on curl_multi SAPI, so we have to judge by "error".
+     * (However, some errors still return empty string as "error" on curl_multi SAPI...)
      * 
      * @param resource $ch
-     * @return bool
+     * @throw TwistException
      */
-    private static function isWriteFailure($ch) {
-        return stripos(curl_error($ch), 'Failed writing body') !== false;
+    private static function checkCurlError($ch) {
+        $error = curl_error($ch);
+        if ($error !== '' && stripos($error, 'Failed writing body') === false) {
+            throw new TwistException($error, curl_getinfo($ch, CURLINFO_HTTP_CODE));
+        }
     }
     
     /**
@@ -1283,7 +1283,7 @@ final class TwistOAuth {
         $c = 0;
         foreach ($curls as $i => $ch) {
             $chs[$i]       = self::validateCurl("\$curls[$i]", $ch);
-            $responses[$i] = new TwistException('Failed to receive event.');
+            $responses[$i] = new TwistException("($i) Failed to receive event.");
             if (++$c <= self::CURLOPT_MAXCONNECTS) {
                 curl_multi_add_handle($mh, $chs[$i]);
             } else {
@@ -1318,19 +1318,21 @@ final class TwistOAuth {
                     // search offset corresponds to the resource
                     $i = array_search($raised['handle'], $chs, true);
                     if ($is_streaming) {
-                        if (!self::isWriteFailure($raised['handle'])) {
-                            $info = curl_getinfo($raised['handle']);
-                            throw new TwistException('(' . $i . ') Streaming stopped unexpectedly.', $info['http_code']);
+                        try {
+                            self::checkCurlError($raised['handle']);
+                        } catch (TwistException $e) {
+                            $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                            throw $e;
                         }
+                        unset($responses[$i]);
                     } else {
                         try {
-                            $info = curl_getinfo($raised['handle']);
                             $responses[$i] = self::decode($raised['handle'], curl_multi_getcontent($raised['handle']));
                         } catch (TwistException $e) {
                             $responses[$i] = $e;
                             if ($throw_in_process) {
-                                $responses[$i]->__construct('(' . $i . ') ' . $responses[$i]->getMessage(), $responses[$i]->getCode());
-                                throw $responses[$i];
+                                $e->__construct('(' . $i . ') ' . $e->getMessage(), $e->getCode());
+                                throw $e;
                             }
                         }
                     }
@@ -1341,6 +1343,14 @@ final class TwistOAuth {
                     }
                 } while ($remains);
         } while ($running || $add); // continue if still running
+        // check TwistException "Failed to receive event." existence and throw it
+        if ($throw_in_process) {
+            foreach ($responses as $e) {
+                if ($e instanceof TwistException) {
+                    throw $e;
+                }
+            }
+        }
         return $responses;
     }
     
@@ -1469,8 +1479,7 @@ final class TwistOAuth {
     private static function parseAuthenticityToken($ch, $response) {
         static $pattern = '@<input name="authenticity_token" type="hidden" value="([^"]++)" />@';
         if (!preg_match($pattern, $response, $matches)) {
-            $info = curl_getinfo($ch);
-            throw new TwistException('Failed to get authenticity_token.', $info['http_code']);
+            throw new TwistException('Failed to get authenticity_token.', curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
         return $matches[1];
     }

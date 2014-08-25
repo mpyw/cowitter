@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.5.4
+Version 2.5.5
 
 Requirements
 ============

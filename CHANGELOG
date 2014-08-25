@@ -105,3 +105,6 @@ TwistOAuth - changelog
 2.5.4 (2014-08-19)
 + File data annotation with "#"
 + Enable CURLOPT_FOLLOWLOCATION only if ini_get("safe_mode") is false
+
+2.5.5 (2014-08-25)
++ Adopted smarter decoding method for streaming response
