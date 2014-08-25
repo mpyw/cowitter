@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.5
+ * TwistOAuth Version 2.5.6
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -798,7 +798,7 @@ final class TwistOAuth {
     private static function curlInit($proxy) {
         $ch = curl_init();
         curl_setopt_array($ch, array(
-            CURLOPT_FOLLOWLOCATION => !ini_get('safe_mode'),
+            CURLOPT_FOLLOWLOCATION => !ini_get('safe_mode') && (string)ini_get('open_basedir') === '',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_ENCODING       => 'gzip',
