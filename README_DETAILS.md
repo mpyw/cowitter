@@ -264,10 +264,6 @@ Throws `TwistException`.
 Abusing Methods
 ---------------
 
-### static TwistOAuth::androidSignUp()
-
-Create a new account. <ins>You cannot use this method by default.</ins> See **[here](https://github.com/Certainist/TwistOAuth/blob/master/README_SIGNUP.md)**.
-
 ### static TwistOAuth::login()
 
 **Direct OAuth**. (Scraping Login)
