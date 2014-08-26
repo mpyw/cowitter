@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.5.6
+Version 2.5.7
 
 Requirements
 ============
@@ -29,7 +29,6 @@ Abusing:
 - **Asynchronous Multiple requests**
 - **Asynchronous Multiple streaming**
 - **Direct OAuth** authentication
-- **Account generation**
 
 Preparation
 ===========

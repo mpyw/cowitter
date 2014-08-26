@@ -111,3 +111,6 @@ TwistOAuth - changelog
 
 2.5.6 (2014-08-25)
 + Fixed error on the environment that "open_basedir" is enabled
+
+2.5.7 (2014-08-26)
++ Removed sign up method

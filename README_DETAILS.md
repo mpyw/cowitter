@@ -266,28 +266,7 @@ Abusing Methods
 
 ### static TwistOAuth::androidSignUp()
 
-Create a new account.
-
-```php
-(TwistOAuth) TwistOAuth::androidSignUp($fullname, $screen_name, $email, $password, $proxy = '')
-(TwistOAuth) $to->androidSignUp($fullname, $screen_name, $email, $password, $proxy = '')
-```
-
-#### Arguments
-
-- (string) __*$fullname*__
-- (string) __*$screen\_name*__
-- (string) __*$email*__
-- (string) __*$password*__
-- (string) __*$proxy*__<br />Full proxy URL.<br />e.g. `https://111.222.333.444:8080`
-
-#### Return Value
-
-A new instance of `TwistOAuth`.
-
-#### Exception
-
-Throws `TwistException`.
+Create a new account. <ins>You cannot use this method by default.</ins> See **[here](https://github.com/Certainist/TwistOAuth/blob/master/README_SIGNUP.md)**.
 
 ### static TwistOAuth::login()
 
