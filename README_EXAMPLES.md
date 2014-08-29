@@ -43,7 +43,7 @@ try {
     
     // Overwrite HTTP status code.
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
-    $code = $e->getCode() > 0 ? $e->getCode() : 500;
+    $code = $e->getCode() ?: 500;
     
 }
 
@@ -117,7 +117,7 @@ if ($text !== null) {
         
         // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
-        $code = $e->getCode() > 0 ? $e->getCode() : 500;
+        $code = $e->getCode() ?: 500;
         
     }
     
@@ -205,7 +205,7 @@ try {
     
     // Send HTTP status code and display error message as text. (not HTML)
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
-    header('Content-Type: text/plain; charset=utf-8', true, $e->getCode() > 0 ? $e->getCode() : 500);
+    header('Content-Type: text/plain; charset=utf-8', true, $e->getCode() ?: 500);
     exit($e->getMessage());
     
 }
@@ -262,7 +262,7 @@ if ($text !== null) {
         
         // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
-        $code = $e->getCode() > 0 ? $e->getCode() : 500;
+        $code = $e->getCode() ?: 500;
         
     }
     
