@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.7
+ * TwistOAuth Version 2.5.8
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -812,10 +812,12 @@ final class TwistOAuth {
         if (stripos($info['content_type'], 'image/') === 0) {
             return new TwistImage($info['content_type'], $response);
         }
+        libxml_use_internal_errors(true);
         if (
             null  !== $obj = json_decode($response) or
-            false !== $obj = json_decode(json_encode(@simplexml_load_string($response)))
+            false !== $obj = json_decode(json_encode(simplexml_load_string($response)))
         ) {
+            libxml_clear_errors();
             if (isset($obj->error)) {       
                 throw new TwistException($obj->error, $info['http_code']);
             }
@@ -832,6 +834,7 @@ final class TwistOAuth {
             }
             return $obj;
         }
+        libxml_clear_errors();
         parse_str($response, $obj);
         $obj = (object)$obj;
         if (isset($obj->oauth_token, $obj->oauth_token_secret)) {

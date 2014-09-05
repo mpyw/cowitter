@@ -114,3 +114,6 @@ TwistOAuth - changelog
 
 2.5.7 (2014-08-26)
 + Removed sign up method
+
+2.5.8 (2014-09-05)
++ Use libxml internal errors
