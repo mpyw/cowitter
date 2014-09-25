@@ -22,6 +22,7 @@ Basic:
 - Requests for **REST** API
 - Requests for **Streaming** API
 - Requests using **OAuth Echo**
+- Requests via **Proxy**
 - Multipart requests
 
 Abusing:
