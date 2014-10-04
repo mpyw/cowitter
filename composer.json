@@ -1,0 +1,49 @@
+{
+    "name": "mpyw/TwistOAuth",
+    "type": "library",
+    "description" : "Advanced PHP Twitter library.",
+    "version": "2.5.8",
+    "homepage": "https://github.com/mpyw/TwistOAuth",
+    "license": "BSD-2-Clause",
+    "keywords": [
+        "Twitter",
+        "API",
+        "OAuth",
+        "streaming",
+        "UserStream",
+        "multiple",
+        "asynchronous",
+        "async",
+        "paralell",
+        "Twitpic",
+        "image",
+        "upload"
+    ],
+    "authors": [
+        {
+            "name": "CertaiN",
+            "email": "ryosuke_i_628@yahoo.co.jp",
+            "homepage": "https://gravatar.com/mpyw",
+            "role": "developer"
+        }
+    ],
+    "support": {
+        "email": "support@jublo.net",
+        "issues": "https://github.com/mpyw/TwistOAuth/issues",
+        "source": "https://github.com/mpyw/TwistOAuth/releases",
+        "wiki": "https://github.com/mpyw/TwistOAuth/wiki"
+    },
+    "require": {
+        "php": ">=5.3.2",
+        "ext-hash": "*",
+        "ext-json": "*",
+        "ext-Reflection": "*",
+        "lib-openssl": "*",
+        "lib-curl": "*",
+        "lib-libxml": "*",
+        "lib-pcre": "*"
+    },
+    "autoload": {
+        "files": ["src/TwistOAuth.php"]
+    }
+}
