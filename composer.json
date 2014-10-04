@@ -1,5 +1,5 @@
 {
-    "name": "mpyw/TwistOAuth",
+    "name": "mpyw/twistoauth",
     "type": "library",
     "description" : "Advanced PHP Twitter library.",
     "version": "2.5.8",
