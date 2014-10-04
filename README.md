@@ -36,7 +36,23 @@ Preparation
 
 ### 1. Download this library
 
+You can choose one of the following methods.
+
+#### Direct Download
+
 Click [here](https://github.com/mpyw/TwistOAuth/releases) to save `TwistOAuth.php` in your working directory.
+
+#### Composer
+
+Modify `require` directive in `composer.json`.
+
+```json
+{
+    "require": {
+        "mpyw/twistoauth": "@dev"
+    }
+}
+```
 
 ### 2. Register your application
 
