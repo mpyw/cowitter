@@ -3,7 +3,6 @@
     "type": "library",
     "description" : "Advanced PHP Twitter library.",
     "version": "2.5.8",
-    "homepage": "https://github.com/mpyw/TwistOAuth",
     "license": "BSD-2-Clause",
     "keywords": [
         "Twitter",
@@ -28,7 +27,6 @@
         }
     ],
     "support": {
-        "email": "support@jublo.net",
         "issues": "https://github.com/mpyw/TwistOAuth/issues",
         "source": "https://github.com/mpyw/TwistOAuth/releases",
         "wiki": "https://github.com/mpyw/TwistOAuth/wiki"
