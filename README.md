@@ -54,6 +54,8 @@ Modify `require` directive in `composer.json`.
 }
 ```
 
+<ins>If you choose this, replace `require 'TwistOAuth.php';` into `require 'vendor/autoload.php';` in examples.</ins>
+
 ### 2. Register your application
 
 You can manage your API keys in [https://apps.twitter.com](https://apps.twitter.com/).
@@ -107,9 +109,9 @@ FAQ
 
 Follow these links.
 
-- **[REST API v1.1 Resources](https://dev.twitter.com/docs/api/1.1)**
-- **[A field guide to Twitter Platform objects](https://dev.twitter.com/docs/platform-objects)**
-- [Streaming API request parameters](https://dev.twitter.com/docs/streaming-apis/parameters)
+- **[REST API: endpoints](https://dev.twitter.com/rest/public)**
+- **[REST API: properties of stdClass objects](https://dev.twitter.com/overview/api)**
+- [Streaming API: endpoints and field guides](https://dev.twitter.com/streaming/overview)
 
 ### How to use OAuth 2.0 authentication flow?
 

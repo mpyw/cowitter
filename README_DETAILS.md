@@ -231,7 +231,7 @@ $callback = function ($status) {
             $status->user->screen_name,
             htmlspecialchars_decode($status->text, ENT_NOQUOTES)
         );
-        flush();
+        flush(); // Required if running not on Command Line but on Apache
     }
 };
 ```
@@ -252,7 +252,7 @@ $callback = function ($status) {
             htmlspecialchars_decode($status->text, ENT_NOQUOTES)
         );
         ++$i;
-        flush();
+        flush(); // Required if running not on Command Line but on Apache
     }
 };
 ```
