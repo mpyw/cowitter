@@ -54,7 +54,19 @@ Modify `require` directive in `composer.json`.
 }
 ```
 
-<ins>If you choose this, replace `require 'TwistOAuth.php';` into `require 'vendor/autoload.php';` in examples.</ins>
+If you choose this, replace all
+
+```php
+require 'TwistOAuth.php';
+```
+
+into
+
+```php
+require 'vendor/autoload.php';
+```
+
+in examples.
 
 ### 2. Register your application
 
