@@ -125,7 +125,7 @@ Follow these links.
 - **[REST API: properties of stdClass objects](https://dev.twitter.com/overview/api)**
 - [Streaming API: endpoints and field guides](https://dev.twitter.com/streaming/overview)
 
-### Aren't there any nice tools for obtaining my own `access_token` and `access_token_secret`?
+### Aren't there any nice authentication tools for obtaining tokens?
 
 Try this tool.
 
