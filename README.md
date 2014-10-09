@@ -125,6 +125,10 @@ Follow these links.
 - **[REST API: properties of stdClass objects](https://dev.twitter.com/overview/api)**
 - [Streaming API: endpoints and field guides](https://dev.twitter.com/streaming/overview)
 
+### Aren't there any nice tools for obtaining my own `access_token` and `access_token_secret`?
+
+Try this: **[TwistHelper](https://twist-helper.herokuapp.com/)**
+
 ### How to use OAuth 2.0 authentication flow?
 
 Sorry, it is <ins>not</ins> available with this library. Use OAuth 1.0a instead.
