@@ -122,7 +122,7 @@ FAQ
 Follow these links.
 
 - **[REST API: endpoints](https://dev.twitter.com/rest/public)**
-- **[REST API: properties of stdClass objects](https://dev.twitter.com/overview/api)**
+- **[REST API: endpoints and field guides](https://dev.twitter.com/overview/api)**
 - [Streaming API: endpoints and field guides](https://dev.twitter.com/streaming/overview)
 
 ### Aren't there any nice authentication tools for obtaining tokens?
