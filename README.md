@@ -127,7 +127,9 @@ Follow these links.
 
 ### Aren't there any nice tools for obtaining my own `access_token` and `access_token_secret`?
 
-Try this: **[TwistHelper](https://twist-helper.herokuapp.com/)**
+Try this tool.
+
+- **[TwistHelper](https://twist-helper.herokuapp.com/)**
 
 ### How to use OAuth 2.0 authentication flow?
 
