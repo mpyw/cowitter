@@ -117,3 +117,6 @@ TwistOAuth - changelog
 
 2.5.8 (2014-09-05)
 + Use libxml internal errors
+
+2.5.9 (2014-11-01)
++ Fiexed tiny error message bug

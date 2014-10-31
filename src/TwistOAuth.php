@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.8
+ * TwistOAuth Version 2.5.9
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -1338,7 +1338,7 @@ final class TwistOAuth {
                     unset($params[$key]);
                     continue;
                 }
-                $params[$key] = self::validateString("\$name[$key]", $value);
+                $params[$key] = self::validateString("{$name}[$key]", $value);
             }
             return $params;
         }
