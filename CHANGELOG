@@ -120,3 +120,6 @@ TwistOAuth - changelog
 
 2.5.9 (2014-11-01)
 + Fiexed tiny error message bug
+
+2.5.10 (2014-11-15)
++ Supported friendships/accept|accept_all|deny

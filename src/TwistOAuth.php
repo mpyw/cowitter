@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.9
+ * TwistOAuth Version 2.5.10
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -992,8 +992,14 @@ final class TwistOAuth {
                     'https://api.twitter.com/1.1/friends/ids.json',
                 'friends/list' =>
                     'https://api.twitter.com/1.1/friends/list.json',
+                'friendships/accept' =>
+                    'https://api.twitter.com/1.1/friendships/accept.json',
+                'friendships/accept_all' =>
+                    'https://api.twitter.com/1.1/friendships/accept_all.json',
                 'friendships/create' =>
                     'https://api.twitter.com/1.1/friendships/create.json',
+                'friendships/deny' =>
+                    'https://api.twitter.com/1.1/friendships/deny.json',
                 'friendships/destroy' =>
                     'https://api.twitter.com/1.1/friendships/destroy.json',
                 'friendships/incoming' =>
