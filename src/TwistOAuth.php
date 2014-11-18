@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.11
+ * TwistOAuth Version 2.6.0
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -377,7 +377,7 @@ final class TwistOAuth {
     }
     
     /**
-     * Execute streaming GET request.
+     * Execute streaming POST request.
      *
      * @param string   $url      full or partial endpoint URL.
      *                           e.g. "statuses/sample", "https://stream.twitter.com/1.1/statuses/sample.json"
@@ -536,7 +536,7 @@ final class TwistOAuth {
     }
     
     /**
-     * Prepare cURL resource for streaming GET request.
+     * Prepare cURL resource for streaming POST request.
      *
      * @param string   $url      full or partial endpoint URL.
      *                           e.g. "statuses/sample", "https://stream.twitter.com/1.1/statuses/sample.json"
@@ -577,8 +577,10 @@ final class TwistOAuth {
         }
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'GET', $params, 0),
-            CURLOPT_URL            => $url . '?' . http_build_query($params, '', '&'),
+            CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'POST', $params, 0),
+            CURLOPT_URL            => $url,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
             CURLOPT_TIMEOUT        => 0,
             CURLOPT_WRITEFUNCTION  => function ($ch, $str) use ($callback, $decode) {
                 static $first = true;
