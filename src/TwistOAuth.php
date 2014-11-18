@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TwistOAuth Version 2.5.10
+ * TwistOAuth Version 2.5.11
  * 
  * @author  CertaiN
  * @github  https://github.com/mpyw/TwistOAuth
@@ -799,11 +799,9 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private static function decode($ch, $response) {
-        $ch       = self::validateCurl('$ch', $ch);
-        $response = self::validateString('$response', $response);
-        $info     = curl_getinfo($ch);
         self::checkCurlError($ch);
-        if (func_get_arg(1) === null) {
+        $info = curl_getinfo($ch);
+        if ($response === null) {
             throw new TwistException('Failed to receive response.', $info['http_code']);
         }
         if ($response === '') {
@@ -1369,11 +1367,8 @@ final class TwistOAuth {
      * @return resource cURL
      */
     private static function validateCurl($name, $ch) {
-        switch (true) {
-            case !is_resource($ch):
-            case stripos($type = get_resource_type($ch), 'curl') === false:
-            case stripos($type, 'multi') !== false:
-                throw new InvalidArgumentException("The value of $name must be a valid cURL resource.");
+        if (!is_resource($ch) || get_resource_type($ch) !== 'curl') {
+            throw new InvalidArgumentException("The value of $name must be a valid cURL resource.");
         }
         return $ch;
     }

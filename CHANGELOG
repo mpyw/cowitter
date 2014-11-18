@@ -123,3 +123,6 @@ TwistOAuth - changelog
 
 2.5.10 (2014-11-15)
 + Supported friendships/accept|accept_all|deny
+
+2.5.11 (2014-11-19)
++ Imporved some lengthy code
