@@ -376,12 +376,12 @@ echo $img->data;
 printf('<img src="%s" alt="">', $to->get($url)->getDataUri());
 ```
 
-### Update tweets with an image
+### Update tweets with an image (Deprecated)
 
 ```php
 $to->postMultipart('statuses/update_with_media', array(
     'status' => 'test',
-    '@media[]' => 'test.jpg'
+    '@media[]' => 'test.jpg',
 ));
 ```
 
@@ -394,17 +394,16 @@ foreach (array('foo.jpg', 'bar.jpg', 'baz.jpg') as $path) {
 }
 $to->post('statuses/update', array(
     'status' => 'test',
-    'media_ids' => implode(',', $media_ids)
+    'media_ids' => implode(',', $media_ids),
 ));
 ```
 
-### Upload an image into Twitpic
+### Upload an image into [img.ly](http://img.ly)
 
 ```php
-$to->postOutMultipart('http://api.twitpic.com/2/upload.json', array(
-    'key' => 'Your Twitpic API key',
+$to->postMultipartOut('http://img.ly/api/2/upload.json', array(
     'message' => 'test',
-    '@media' => 'test.jpg',
+    '@media' => 'test.png',
 ));
 ```
 
