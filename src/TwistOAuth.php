@@ -892,8 +892,7 @@ final class TwistOAuth {
                     'https://api.twitter.com/1.1/users/suggestions/$1/members.json',
                     'https://api.twitter.com/i/statuses/$1/activity/summary.json',
                 );
-                end($matches);
-                return str_replace('$1', current($matches), $list[key($matches) - 1]);
+                return str_replace('$1', end($matches), $list[key($matches) - 1]);
             };
             $list = array(
                 'urls/count' =>
@@ -1172,10 +1171,7 @@ final class TwistOAuth {
                     'https://userstream.twitter.com/1.1/user.json',
             );
         }
-        if (isset($list[$endpoint])) {
-            return $list[$endpoint];
-        }
-        return preg_replace_callback($regex, $callback, $endpoint, 1, $count);
+        return isset($list[$endpoint]) ? $list[$endpoint] : preg_replace_callback($regex, $callback, $endpoint, 1);
     }
     
     /**
