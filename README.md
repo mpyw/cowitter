@@ -40,7 +40,7 @@ You can choose one of the following methods.
 
 #### Direct Download
 
-Click [here](https://github.com/mpyw/TwistOAuth/releases) to save `TwistOAuth.phar` in your working directory.
+Click [here](https://github.com/mpyw/TwistOAuth/raw/master/build/TwistOAuth.phar) to save `TwistOAuth.phar` in your working directory.
 
 #### Composer
 
