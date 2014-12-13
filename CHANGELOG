@@ -129,3 +129,6 @@ TwistOAuth - changelog
 
 2.6.0 (2014-11-19)
 + All stream use POST method
+
+3.0.0 (2014-12-13)
++ Supported phar format and classmap autoloading

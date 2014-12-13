@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 2.6.0
+Version 3.0.0
 
 Requirements
 ============
@@ -40,7 +40,7 @@ You can choose one of the following methods.
 
 #### Direct Download
 
-Click [here](https://github.com/mpyw/TwistOAuth/releases) to save `TwistOAuth.php` in your working directory.
+Click [here](https://github.com/mpyw/TwistOAuth/releases) to save `TwistOAuth.phar` in your working directory.
 
 #### Composer
 
@@ -229,7 +229,6 @@ $obj->__construct('c', 'd'); // Break immutable rules
 
 I do not use namespace in `TwistOAuth.php`.  
 This is because to give priority to the compatibility with [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
-Therefore, a little redundant auto loading settings are defined in `composer.json`.
 
 ### Tweets are already escaped... wtf!?
 

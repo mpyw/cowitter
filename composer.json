@@ -2,7 +2,7 @@
     "name": "mpyw/twistoauth",
     "type": "library",
     "description" : "Advanced PHP Twitter library.",
-    "version": "2.6.0",
+    "version": "3.0.0",
     "license": "BSD-2-Clause",
     "keywords": [
         "Twitter",
@@ -42,6 +42,6 @@
         "lib-pcre": "*"
     },
     "autoload": {
-        "files": ["src/TwistOAuth.php"]
+        "classmap": ["src/"]
     }
 }
