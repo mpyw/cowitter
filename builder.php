@@ -15,7 +15,7 @@ $pharpath = __DIR__ . '/build/TwistOAuth.phar';
 if (is_file($pharpath)) {
     unlink($pharpath);
 }
-$phar = new \Phar($pharpath, 0, 'TwistOAuth.phar');
+$phar = new \Phar($pharpath, 0, basename($pharpath));
 $phar->startBuffering();
 $phar->setStub("<?php 
 
