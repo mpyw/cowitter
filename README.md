@@ -117,6 +117,17 @@ Contents
 FAQ
 ====
 
+- [How can I learn about Twitter API?](#how-can-i-learn-about-twitter-api)
+- [Aren't there any nice authentication tools for obtaining tokens?](#arent-there-any-nice-authentication-tools-for-obtaining-tokens)
+- [How to use OAuth 2.0 authentication flow?](#how-to-use-oauth-20-authentication-flow)
+- [What is oauth_verifier?](#what-is-oauth_verifier-)
+- [What is oauth_callback?](#what-is-oauth_callback-)
+- [How to use $to in callback closure?](#how-to-use-to-in-callback-closure)
+- [Are all classes immutable?](#are-all-classes-immutable)
+- [Why don't you use namespace?](#why-dont-you-use-namespace)
+- [Tweets are already escaped... wtf!?](#tweets-are-already-escaped-wtf)
+- [User description contains unescaped `&`... wtf!?](#tweets-are-already-escaped-wtf)
+
 ### How can I learn about Twitter API?
 
 Follow these links.
@@ -238,7 +249,7 @@ You should do like this. <ins>Do not forget to set **4th** parameter into `false
 <input type="text" name="text" value="<?=htmlspecialchars(status->text, ENT_QUOTES, 'UTF-8', false)?>">
 ```
 
-### How about other texts?
+### User description contains unescaped `&`... wtf!?
 
 HTML special chars in others are already sanitized <ins>by Twitter</ins> like this.
 
