@@ -57,7 +57,7 @@ Modify `require` directive in `composer.json`.
 If you choose this, replace all
 
 ```php
-require 'TwistOAuth.php';
+require 'TwistOAuth.phar';
 ```
 
 into

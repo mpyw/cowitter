@@ -14,7 +14,7 @@ Examples
 <?php
 
 // Load this library.
-require 'TwistOAuth.php';
+require 'TwistOAuth.phar';
 
 // Prepare simple wrapper function for htmlspecialchars.
 function h($str) {
@@ -79,7 +79,7 @@ header('Content-Type: text/html; charset=utf-8', true, $code);
 <?php
 
 // Load this library.
-require 'TwistOAuth.php';
+require 'TwistOAuth.phar';
 
 // Prepare simple wrapper function for htmlspecialchars.
 function h($str) {
@@ -154,7 +154,7 @@ Basic authentication flow.
 <?php
 
 // Load this library.
-require 'TwistOAuth.php';
+require 'TwistOAuth.phar';
 
 // Start session.
 @session_start();
@@ -217,7 +217,7 @@ try {
 <?php
 
 // Load this library.
-require 'TwistOAuth.php';
+require 'TwistOAuth.phar';
 
 // Prepare simple wrapper function for htmlspecialchars.
 function h($str) {
