@@ -127,7 +127,9 @@ Follow these links.
 
 ### Aren't there any nice authentication tools for obtaining tokens?
 
-Try this tool.
+Try this tool.  
+I absolutely promise you that <ins>I never record your credentials</ins>.  
+But please never use if you cannot trust me even a little.
 
 - **[TwistHelper](https://twist-helper.herokuapp.com/)**
 
@@ -207,6 +209,12 @@ However, you can change propety values by directly calling `__construct()`.
 $obj = new TwistOAuth('a', 'b');
 $obj->__construct('c', 'd'); // Break immutable rules
 ```
+
+### Why don't you use namespace?
+
+I do not use namespace in `TwistOAuth.php`.  
+This is because to give priority to the compatibility with [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
+Therefore, a little redundant auto loading settings are defined in `composer.json`.
 
 ### Tweets are already escaped... wtf!?
 
