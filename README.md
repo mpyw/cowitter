@@ -120,21 +120,25 @@ FAQ
 - [How can I learn about Twitter API?](#how-can-i-learn-about-twitter-api)
 - [Aren't there any nice authentication tools for obtaining tokens?](#arent-there-any-nice-authentication-tools-for-obtaining-tokens)
 - [How to use OAuth 2.0 authentication flow?](#how-to-use-oauth-20-authentication-flow)
-- [What is oauth_verifier?](#what-is-oauth_verifier-)
-- [What is oauth_callback?](#what-is-oauth_callback-)
-- [How to use $to in callback closure?](#how-to-use-to-in-callback-closure)
+- [What is `oauth_verifier`?](#what-is-oauth_verifier-)
+- [What is `oauth_callback`?](#what-is-oauth_callback-)
+- [How to use `$to` in callback closure?](#how-to-use-to-in-callback-closure)
 - [Are all classes immutable?](#are-all-classes-immutable)
 - [Why don't you use namespace?](#why-dont-you-use-namespace)
 - [Tweets are already escaped... wtf!?](#tweets-are-already-escaped-wtf)
-- [User description contains unescaped `&`... wtf!?](#tweets-are-already-escaped-wtf)
+- [User description contains unescaped `&`... wtf!?](#user-description-contains-unescaped--wtf)
 
 ### How can I learn about Twitter API?
 
-Follow these links.
+Learn from documentation.
 
 - **[REST API: endpoints](https://dev.twitter.com/rest/public)**
 - **[REST API: field guides](https://dev.twitter.com/overview/api)**
 - [Streaming API: endpoints and field guides](https://dev.twitter.com/streaming/overview)
+
+Or watch actual response. The following tool is very very useful.
+
+- **[twitSandbox](http://twitsandbox.com/)**
 
 ### Aren't there any nice authentication tools for obtaining tokens?
 
