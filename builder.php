@@ -16,7 +16,6 @@ if (is_file($pharpath)) {
     unlink($pharpath);
 }
 $phar = new \Phar($pharpath, 0, basename($pharpath));
-$phar->startBuffering();
 $phar->setStub("<?php 
 
 /* 
@@ -35,7 +34,4 @@ spl_autoload_register(function (\$class) {
 });
 
 __HALT_COMPILER(); ?>");
-foreach (glob(__DIR__ . '/src/*.php') as $path) {
-    $phar->addFile($path, basename($path));
-}
-$phar->stopBuffering();
+$phar->buildFromDirectory(__DIR__ . '/src');
