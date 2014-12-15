@@ -806,7 +806,7 @@ final class TwistOAuth {
         }
         libxml_use_internal_errors(true);
         if (
-            null  !== $obj = json_decode(preg_replace('@\A/\*{2}/[^(]++\((.+)\)\z/@s', '$1', $response)) or
+            null  !== $obj = json_decode(preg_replace('@\A/\*{2}/[^(]++\((.+)\);\z@s', '$1', $response)) or
             false !== $obj = json_decode(json_encode(simplexml_load_string($response)))
         ) {
             libxml_clear_errors();
