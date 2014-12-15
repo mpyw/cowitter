@@ -132,3 +132,6 @@ TwistOAuth - changelog
 
 3.0.0 (2014-12-13)
 + Supported phar format and classmap autoloading
+
+3.0.1 (2014-12-15)
++ Supported JSONP
