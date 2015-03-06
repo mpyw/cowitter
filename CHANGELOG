@@ -135,3 +135,6 @@ TwistOAuth - changelog
 
 3.0.1 (2014-12-15)
 + Supported JSONP
+
+3.1.0 (2015-03-07)
++ Supported Japanese slugs

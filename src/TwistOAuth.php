@@ -863,8 +863,8 @@ final class TwistOAuth {
                 'statuses/retweet/(\d++)',
                 'statuses/retweets/(\d++)',
                 'statuses/show/(\d++)',
-                'users/suggestions/([\w-]++)',
-                'users/suggestions/([\w-]++)/members',
+                'users/suggestions/([^/]++)',
+                'users/suggestions/([^/]++)/members',
                 'i/statuses/(\d++)/activity/summary',
             ));
             $regex = '@\A(?:' . $regex . ')\z@';
@@ -884,7 +884,7 @@ final class TwistOAuth {
                     'https://api.twitter.com/1.1/users/suggestions/$1/members.json',
                     'https://api.twitter.com/i/statuses/$1/activity/summary.json',
                 );
-                return str_replace('$1', end($matches), $list[key($matches) - 1]);
+                return str_replace('$1', urlencode(urldecode(end($matches))), $list[key($matches) - 1]);
             };
             $list = array(
                 'urls/count' =>
