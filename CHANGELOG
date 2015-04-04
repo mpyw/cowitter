@@ -138,3 +138,6 @@ TwistOAuth - changelog
 
 3.1.0 (2015-03-07)
 + Supported Japanese slugs
+
+3.1.1 (2015-04-04)
++ Followed specification change for DirectOAuth

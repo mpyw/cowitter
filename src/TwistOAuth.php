@@ -1424,7 +1424,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private static function parseAuthenticityToken($ch, $response) {
-        static $pattern = '@<input name="authenticity_token" type="hidden" value="([^"]++)" />@';
+        static $pattern = '@<input name="authenticity_token" type="hidden" value="([^"]++)">@';
         if (!preg_match($pattern, $response, $matches)) {
             throw new TwistException('Failed to get authenticity_token.', curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
