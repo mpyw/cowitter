@@ -278,13 +278,14 @@ name: <?=htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')?><br>
 
 ### cURL causes `SSL certificate problem` error in Windows!
 
-In the past library, this problem was resolved with following code.
+In the past library, this problem was done with the following solution.
 
 ```php
+// You are saying, "Hey libcurl, do not certificate whether I'm really talking to Twitter."
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 ```
 
-However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wikipedia.org/wiki/Man-in-the-middle_attack)*. This is not so serious when you are in cable LANs or private wireless LANs, but <ins>very serious in public wireless LANs</ins>. Your connection can be hijacked even if using the protocol `https://`.
+However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wikipedia.org/wiki/Man-in-the-middle_attack)*. This is not so serious when you are on cable LANs or private wireless LANs, but <ins>very serious on **public wireless LANs**</ins>. Your connection can be hijacked <ins>even if using the protocol `https://`.</ins>
 
 The right way is to download to add CA information to your computer.
 
@@ -298,11 +299,11 @@ C:\ca-bundles\ca-bundles.crt
 C:\Users\田所浩二\Documents\証明書\ca-bundles.crt
 ```
 
-2. Add the following definition in `php.ini`.
+2&#46; Add the following definition in `php.ini`.
 
 ```ini
 curl.cainfo="C:\ca-bundles\ca-bundles.crt"
 ```
 
-3. Restart Apache.
+3&#46; Restart Apache.
 
