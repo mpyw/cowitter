@@ -747,7 +747,7 @@ final class TwistOAuth {
         curl_setopt_array($ch, array(
             CURLOPT_FOLLOWLOCATION => !ini_get('safe_mode') && (string)ini_get('open_basedir') === '',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_ENCODING       => 'gzip',
             CURLOPT_COOKIEJAR      => '',
             CURLOPT_CONNECTTIMEOUT => self::CURLOPT_CONNECTTIMEOUT,

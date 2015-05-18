@@ -141,3 +141,6 @@ TwistOAuth - changelog
 
 3.1.1 (2015-04-04)
 + Followed specification change for DirectOAuth
+
+3.2.0 (2015-05-18)
++ Enabled CURLOPT_SSL_VERIFYPEER

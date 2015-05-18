@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 3.1.1
+Version 3.2.0
 
 Requirements
 ============
@@ -127,6 +127,7 @@ FAQ
 - [Why don't you use namespace?](#why-dont-you-use-namespace)
 - [Tweets are already escaped... wtf!?](#tweets-are-already-escaped-wtf)
 - [User description contains unescaped `&`... wtf!?](#user-description-contains-unescaped--wtf)
+- [cURL causes `SSL certificate problem` error in Windows!](#curl-causes-ssl-certificate-problem-error-in-windows-)
 
 ### How can I learn about Twitter API?
 
@@ -274,3 +275,34 @@ You should do like this.
 ```html+php
 name: <?=htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')?><br>
 ```
+
+### cURL causes `SSL certificate problem` error in Windows!
+
+In the past library, this problem was resolved with following code.
+
+```php
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+```
+
+However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wikipedia.org/wiki/Man-in-the-middle_attack)*. This is not so serious when you are in cable LANs or private wireless LANs, but <ins>very serious in public wireless LANs</ins>. Your connection can be hijacked even if using the protocol `https://`.
+
+The right way is to download to add CA information to your computer.
+
+1. Download [ca-bundle.crt](https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt) to save in the directory, which <ins>path should not contain multibyte characters</ins>.
+
+```bash
+# Good
+C:\ca-bundles\ca-bundles.crt
+
+# Bad
+C:\Users\田所浩二\Documents\証明書\ca-bundles.crt
+```
+
+2. Add the following definition in `php.ini`.
+
+```ini
+curl.cainfo="C:\ca-bundles\ca-bundles.crt"
+```
+
+3. Restart Apache.
+
