@@ -289,7 +289,8 @@ However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wi
 
 The right way is to download to add CA information to your computer.
 
-1. Download [ca-bundle.crt](https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt) to save in the directory, which <ins>path should not contain multibyte characters</ins>.
+1&#46; Download [ca-bundle.crt](https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt) to save in the directory,
+&#32;&#32;&#32;which <ins>path should not contain multibyte characters</ins>.
 
 ```bash
 # Good
