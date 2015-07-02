@@ -285,7 +285,10 @@ In the past library, this problem was done with the following solution.
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 ```
 
-However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wikipedia.org/wiki/Man-in-the-middle_attack)*. This is not so serious when you are on cable LANs or private wireless LANs, but <ins>very serious on **public wireless LANs**</ins>. Your connection can be hijacked <ins>even if using the protocol `https://`.</ins>
+However, it makes **vulnerability** for *[man-in-the-middle attack](http://en.wikipedia.org/wiki/Man-in-the-middle_attack)*. Your connection can be hijacked <ins>even if using the protocol `https://`.</ins> This attack can be committed in the following case.
+
+- Some DNS servers' caches are poisoned. Refer to *[DSN spoofing](https://en.wikipedia.org/wiki/DNS_spoofing)*
+- You are connecting a public access point that an attacker launched as a trap.
 
 The right way is to download to add CA information to your computer.
 
