@@ -360,6 +360,50 @@ do {
 } while ($cursor = $result->next_cusror_str);
 ```
 
+#### Get all friend and following to calculate "friend only" ids to unfollow them
+
+Basic implemention (Slow):
+
+```php
+$get_all_ids = function ($endpoint, array $params = array()) use ($to) {
+    $ids = array();
+    $params['cursor'] = '-1';
+    $params['stringify_ids'] = '1';
+    do {
+        $result = $to->get($endpoint, $params);
+        $ids = array_merge($ids, $result->ids);
+    } while ($cursor = $result->next_cusror_str);
+    return $ids;
+}
+$friends = $get_all_ids('friends/ids');
+$followers = $get_all_ids('followers/ids');
+$friends_only = array_diff($friends, $followers);
+foreach ($friends_only as $id) {
+    $to->post('friendships/destroy', array('user_id' => $id));
+}
+```
+
+**Advanced implemention (Faster):**
+
+```php
+$get_all_ids_flipped = function ($endpoint, array $params = array()) use ($to) {
+    $ids = array();
+    $params['cursor'] = '-1';
+    $params['stringify_ids'] = '1';
+    do {
+        $result = $to->get($endpoint, $params);
+        $ids += array_flip($result->ids);
+    } while ($cursor = $result->next_cusror_str);
+    return $ids;
+}
+$friends = $get_all_ids('friends/ids');
+$followers = $get_all_ids('followers/ids');
+$friends_only = array_diff_key($friends, $followers);
+foreach ($friends_only as $id => $_) {
+    $to->post('friendships/destroy', array('user_id' => $id));
+}
+```
+
 ### Access media in direct messages
 
 #### Raw output
