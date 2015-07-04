@@ -374,7 +374,7 @@ $get_all_ids = function ($endpoint, array $params = array()) use ($to) {
         $ids = array_merge($ids, $result->ids);
     } while ($cursor = $result->next_cusror_str);
     return $ids;
-}
+};
 $friends = $get_all_ids('friends/ids');
 $followers = $get_all_ids('followers/ids');
 $friends_only = array_diff($friends, $followers);
@@ -395,7 +395,7 @@ $get_all_ids_flipped = function ($endpoint, array $params = array()) use ($to) {
         $ids += array_flip($result->ids);
     } while ($cursor = $result->next_cusror_str);
     return $ids;
-}
+};
 $friends = $get_all_ids('friends/ids');
 $followers = $get_all_ids('followers/ids');
 $friends_only = array_diff_key($friends, $followers);
