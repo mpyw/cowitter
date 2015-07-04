@@ -127,7 +127,7 @@ FAQ
 - [Why don't you use namespace?](#why-dont-you-use-namespace)
 - [Tweets are already escaped... wtf!?](#tweets-are-already-escaped-wtf)
 - [User description contains unescaped `&`... wtf!?](#user-description-contains-unescaped--wtf)
-- [cURL causes `SSL certificate problem` error in Windows!](#curl-causes-ssl-certificate-problem-error-in-windows-)
+- [cURL causes `SSL certificate problem` error in Windows!](#curl-causes-ssl-certificate-problem-error-in-windows)
 
 ### How can I learn about Twitter API?
 
