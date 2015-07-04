@@ -376,7 +376,20 @@ echo $img->data;
 printf('<img src="%s" alt="">', $to->get($url)->getDataUri());
 ```
 
-### Update tweets with an image (Deprecated)
+### Update tweets with an image
+
+#### Recommended
+
+```php
+$media_id = $to->postMultipart('media/upload', array('@media' => 'test.jpg'))
+               ->media_id_string;
+$to->post('statuses/update', array(
+    'status' => 'test',
+    'media_ids' => $media_id,
+));
+```
+
+#### Deprecated
 
 ```php
 $to->postMultipart('statuses/update_with_media', array(
@@ -395,6 +408,60 @@ foreach (array('foo.jpg', 'bar.jpg', 'baz.jpg') as $path) {
 $to->post('statuses/update', array(
     'status' => 'test',
     'media_ids' => implode(',', $media_ids),
+));
+```
+
+### Update tweets with an small mp4 video
+
+```php
+$filename = 'test.mp4';
+$info = $to->post('media/upload', array(
+    'command' => 'INIT',
+    'media_type' => 'video/mp4',
+    'total_bytes' => filesize($filename),
+));
+$to->postMultipart('media/upload', array(
+    'command' => 'APPEND',
+    'media_id' => $info->media_id_string,
+    'segment_index' => 0,
+    '@media' => $filename,
+));
+$to->post('media/upload', array(
+    'command' => 'FINALIZE',
+    'media_id' => $info->media_id_string,
+));
+$to->post('statuses/update', array(
+    'status' => 'test',
+    'media_ids' => $info->media_id_string,
+));
+```
+
+### Update tweets with a large mp4 video that is divided into some segments
+
+```php
+$file = new SplFileObject('test.mp4', 'rb');
+$whole_size = $file->getSize();
+$chunk_size = (int)($whole_size / 3); // divided into 3 or 4 segments
+$info = $to->post('media/upload', array(
+    'command' => 'INIT',
+    'media_type' => 'video/mp4',
+    'total_bytes' => $whole_size,
+));
+for ($i = 0; '' !== $buffer = $file->fread($chunk_size); ++$i) {
+    $to->postMultipart('media/upload', array(
+        'command' => 'APPEND',
+        'media_id' => $info->media_id_string,
+        'segment_index' => $i,
+        '#media' => $buffer,
+    ));
+}
+$to->post('media/upload', array(
+    'command' => 'FINALIZE',
+    'media_id' => $info->media_id_string,
+));
+$to->post('statuses/update', array(
+    'status' => 'test',
+    'media_ids' => $info->media_id_string,
 ));
 ```
 
