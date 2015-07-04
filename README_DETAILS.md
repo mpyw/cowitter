@@ -4,18 +4,21 @@ Class Description - TwistException
 Simply extended from `RuntimeException`.  
 Treats errors caused on Twitter.
 
-Class Description - TwistImage
+Class Description - TwistMedia
 =============================
 
-Some `TwistOAuth` methods return an instance of `TwistImage` when `Content-Type: image/***` header is detected.
+Some `TwistOAuth` methods return an instance of `TwistMedia` when the following types of header is detected.
+
+- `Content-Type: image/***`
+- `Content-Type: video/***`
 
 Properties
 ----------
 
-### TwistImage::$type
+### TwistMedia::$type
 
 ```php
-(string) $img->type
+(string) $media->type
 ```
 
 *Readonly*.  
@@ -23,24 +26,25 @@ Content-Type. This means the following value.
 
 ```php
 'image/***'
+'video/***'
 ```
 
-### TwistImage::$data
+### TwistMedia::$data
 
 ```php
-(string) $img->data
+(string) $media->data
 ```
 
 *Readonly*.  
-This means binary image data.
+This means binary media data.
 
 Methods
 -------
 
-### TwistImage::getDataUri()
+### TwistMedia::getDataUri()
 
 ```php
-(string) $img->getDataUri()
+(string) $media->getDataUri()
 ```
 
 #### Return Value
@@ -49,6 +53,7 @@ Methods
 
 ```php
 'data:image/***;base64,......'
+'data:video/***;base64,......'
 ```
 
 Class Description - TwistOAuth
@@ -174,7 +179,7 @@ $params = array(
 
 #### Return Value
 
-Return value will mainly be `stdClass`, array or `TwistImage`.
+Return value will mainly be `stdClass`, array or `TwistMedia`.
 
 #### Exception
 
@@ -198,7 +203,7 @@ Execute a request for third party sites using **OAuth Echo**.
 
 #### Return Value
 
-Return value will mainly be `stdClass`, array or `TwistImage`.
+Return value will mainly be `stdClass`, array or `TwistMedia`.
 
 #### Exception
 

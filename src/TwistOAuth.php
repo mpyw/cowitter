@@ -239,9 +239,9 @@ final class TwistOAuth {
      * @return array
      *     e.g.
      *     array(
-     *         'foo' => stdClass or array or TwistImage or TwistException,
-     *         'bar' => stdClass or array or TwistImage or TwistException,
-     *         'baz' => stdClass or array or TwistImage or TwistException,
+     *         'foo' => stdClass or array or TwistMedia or TwistException,
+     *         'bar' => stdClass or array or TwistMedia or TwistException,
+     *         'baz' => stdClass or array or TwistMedia or TwistException,
      *         ...
      *     )
      * @throws TwistException
@@ -805,8 +805,11 @@ final class TwistOAuth {
             }
             throw new TwistException('Empty response.', $info['http_code']);
         }
-        if (stripos($info['content_type'], 'image/') === 0) {
-            return new TwistImage($info['content_type'], $response);
+        if (
+            stripos($info['content_type'], 'image/') === 0 ||
+            stripos($info['content_type'], 'video/') === 0
+        ) {
+            return new TwistMedia($info['content_type'], $response);
         }
         libxml_use_internal_errors(true);
         if (

@@ -360,7 +360,7 @@ do {
 } while ($cursor = $result->next_cusror_str);
 ```
 
-### Access images in direct messages
+### Access media in direct messages
 
 #### Raw output
 

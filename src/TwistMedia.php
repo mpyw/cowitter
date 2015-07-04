@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Image class.
+ * Media class.
  * Instances are internally genereted.
  */
-final class TwistImage {
+final class TwistMedia {
     
     /**
      * @property-read string $type
