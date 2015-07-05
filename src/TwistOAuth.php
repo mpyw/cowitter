@@ -806,7 +806,7 @@ final class TwistOAuth {
             throw new TwistException('Empty response.', $info['http_code']);
         }
         if ($info['content_type'] === 'application/dash+xml' || $info['content_type'] === 'application/x-mpegURL') {
-            throw new TwistException("{$info['content_type']} is currently unsupported.", $response);
+            throw new TwistException("{$info['content_type']} is currently unsupported.", $info['http_code']);
         }
         if (stripos($info['content_type'], 'image/') === 0 || stripos($info['content_type'], 'video/') === 0) {
             return new TwistMedia($info['content_type'], $response);
