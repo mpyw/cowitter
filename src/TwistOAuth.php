@@ -805,12 +805,10 @@ final class TwistOAuth {
             }
             throw new TwistException('Empty response.', $info['http_code']);
         }
-        if (
-            stripos($info['content_type'], 'image/') === 0 ||
-            stripos($info['content_type'], 'video/') === 0 ||
-            $info['content_type'] === 'application/dash+xml' ||
-            $info['content_type'] === 'application/x-mpegURL'
-        ) {
+        if ($info['content_type'] === 'application/dash+xml' || $info['content_type'] === 'application/x-mpegURL') {
+            return new TwistMedia("{$info['content_type']} is currently unsupported.", $response);
+        }
+        if (stripos($info['content_type'], 'image/') === 0 || stripos($info['content_type'], 'video/') === 0) {
             return new TwistMedia($info['content_type'], $response);
         }
         libxml_use_internal_errors(true);
@@ -819,7 +817,7 @@ final class TwistOAuth {
             false !== $obj = json_decode(json_encode(simplexml_load_string($response)))
         ) {
             libxml_clear_errors();
-            if (isset($obj->error)) {       
+            if (isset($obj->error)) {
                 throw new TwistException($obj->error, $info['http_code']);
             }
             if (isset($obj->errors)) {
