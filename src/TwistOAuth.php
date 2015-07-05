@@ -807,7 +807,9 @@ final class TwistOAuth {
         }
         if (
             stripos($info['content_type'], 'image/') === 0 ||
-            stripos($info['content_type'], 'video/') === 0
+            stripos($info['content_type'], 'video/') === 0 ||
+            $info['content_type'] === 'application/dash+xml' ||
+            $info['content_type'] === 'application/x-mpegURL'
         ) {
             return new TwistMedia($info['content_type'], $response);
         }
