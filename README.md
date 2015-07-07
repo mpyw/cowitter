@@ -119,10 +119,10 @@ FAQ
 
 - [How can I learn about Twitter API?](#how-can-i-learn-about-twitter-api)
 - [Aren't there any nice authentication tools for obtaining tokens?](#arent-there-any-nice-authentication-tools-for-obtaining-tokens)
-- [How to use OAuth 2.0 authentication flow?](#how-to-use-oauth-20-authentication-flow)
+- [How do I use OAuth 2.0 authentication flow?](#how-do-i-use-oauth-20-authentication-flow)
 - [What is `oauth_verifier`?](#what-is-oauth_verifier-)
 - [What is `oauth_callback`?](#what-is-oauth_callback-)
-- [How to use `$to` in callback closure?](#how-to-use-to-in-callback-closure)
+- [How do I use `$to` in callback closure?](#how-do-i-use-to-in-callback-closure)
 - [Are all classes immutable?](#are-all-classes-immutable)
 - [Why don't you use namespace?](#why-dont-you-use-namespace)
 - [Tweets are already escaped... wtf!?](#tweets-are-already-escaped-wtf)
@@ -149,7 +149,7 @@ But please never use if you cannot trust me even a little.
 
 - **[TwistHelper](https://twist-helper.herokuapp.com/)**
 
-### How to use OAuth 2.0 authentication flow?
+### How do I use OAuth 2.0 authentication flow?
 
 Sorry, it is <ins>not</ins> available with this library. Use OAuth 1.0a instead.
 
@@ -185,7 +185,7 @@ There are three value types.
 You can only use URL if your application is configured as **Browser Application**.  
 This means <ins>`Callback URL` is not empty</ins>.
 
-### How to use `$to` in callback closure?
+### How do I use `$to` in callback closure?
 
 Use `use()`.
 
