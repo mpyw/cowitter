@@ -4,10 +4,10 @@
  * Main class.
  */
 final class TwistOAuth {
-    
+
     /**
      * cURL execution limit.
-     * 
+     *
      * @const CURLOPT_CONNECTTIMEOUT
      * @const CURLOPT_TIMEOUT
      * @const CURLOPT_MAXCONNECTS
@@ -15,10 +15,10 @@ final class TwistOAuth {
     const CURLOPT_CONNECTTIMEOUT = 10;
     const CURLOPT_TIMEOUT        = 20;
     const CURLOPT_MAXCONNECTS    = 10;
-    
+
     /**
      * Request options.
-     * 
+     *
      * @const MODE_DEFAULT       for various endpoints.
      * @const MODE_REQUEST_TOKEN for "oauth/request_token".
      * @const MODE_ACCESS_TOKEN  for "oauth/access_token".
@@ -26,27 +26,27 @@ final class TwistOAuth {
     const MODE_DEFAULT        = 0;
     const MODE_REQUEST_TOKEN  = 1;
     const MODE_ACCESS_TOKEN   = 2;
-    
+
     /**
      * OAuth parameters.
-     * 
+     *
      * @property-read string $ck consumer_key.
      * @property-read string $cs consumer_secret.
      * @property-read string $ot oauth_token. (request_token or access_token)
      * @property-read string $os oauth_token_secret. (request_token_secret or access_token_secret)
      */
-    private $ck = ''; 
+    private $ck = '';
     private $cs = '';
     private $ot = '';
     private $os = '';
-    
+
     /**
      * Execute direct OAuth login.
-     * 
+     *
      * @param string $ck       consumer_key.
      * @param string $cs       consumer_secret.
      * @param string $username screen_name or email.
-     * @param string $password 
+     * @param string $password
      * @param string [$proxy]  full proxy URL.
      *                         e.g. https://111.222.333.444:8080
      * @return TwistOAuth
@@ -65,7 +65,7 @@ final class TwistOAuth {
         $verifier = self::parseVerifier($ch, curl_exec($ch));
         return $to->renewWithAccessToken($verifier);
     }
-    
+
     /**
      * Execute multiple direct OAuth logins.
      * If $throw_in_process is false...
@@ -73,7 +73,7 @@ final class TwistOAuth {
      *    In non-fatal case, return value contains TwistException as its elements.
      * If $throw_in_process is true...
      *    TwistException is thrown in all failure cases.
-     * 
+     *
      * @param array $credentials
      *     e.g.
      *     array(
@@ -82,7 +82,7 @@ final class TwistOAuth {
      *         'baz' => array('CONSUMER_KEY_baz', 'CONSUMER_SECRET_baz', 'USERNAME_baz', 'PASSWORD_baz'),
      *         ...
      *     )
-     * @param bool   [$throw_in_process] 
+     * @param bool   [$throw_in_process]
      * @param string [$proxy]            full proxy URL.
      *                                   e.g. https://111.222.333.444:8080
      * @return array
@@ -138,7 +138,7 @@ final class TwistOAuth {
             }
         }
         unset($credential);
-        // start requests 
+        // start requests
         while (CURLM_CALL_MULTI_PERFORM === $stat = curl_multi_exec($mh, $running));
         if (!$running || $stat !== CURLM_OK) {
             throw new TwistException('Failed to start multiple requests.');
@@ -218,7 +218,7 @@ final class TwistOAuth {
         } while ($running || $add); // continue if still running or added new cURL resources
         return $res;
     }
-    
+
     /**
      * Execute multiple cURL requests.
      * If $throw_in_process is false...
@@ -226,7 +226,7 @@ final class TwistOAuth {
      *    In non-fatal case, return value contains TwistException as its elements.
      * If $throw_in_process is true...
      *    TwistException is thrown in all failure cases.
-     * 
+     *
      * @param array $curls
      *     e.g.
      *     array(
@@ -249,11 +249,11 @@ final class TwistOAuth {
     public static function curlMultiExec(array $curls, $throw_in_process = false) {
         return self::curlMultiExecAction($curls, false, $throw_in_process);
     }
-    
+
     /**
      * Execute multiple cURL streaming requests.
      * TwistException is thrown in all failure cases.
-     * 
+     *
      * @param array $curls
      *     e.g.
      *     array(
@@ -267,7 +267,7 @@ final class TwistOAuth {
     public static function curlMultiStreaming(array $curls) {
         self::curlMultiExecAction($curls, true, true);
     }
-    
+
     /**
      * Constructor.
      *
@@ -282,7 +282,7 @@ final class TwistOAuth {
         $this->ot = self::validateString('$ot', $ot);
         $this->os = self::validateString('$os', $os);
     }
-    
+
     /**
      * Getter for private properties.
      *
@@ -296,7 +296,7 @@ final class TwistOAuth {
         }
         return $this->$name;
     }
-    
+
     /**
      * Issetter for private properties.
      *
@@ -306,7 +306,7 @@ final class TwistOAuth {
     public function __isset($name) {
         return property_exists($this, filter_var($name));
     }
-    
+
     /**
      * Get URL for authentication.
      *
@@ -320,7 +320,7 @@ final class TwistOAuth {
         ), '', '&');
         return 'https://api.twitter.com/oauth/authenticate?' . $params;
     }
-    
+
     /**
      * Get URL for authorization.
      *
@@ -334,7 +334,7 @@ final class TwistOAuth {
         ), '', '&');
         return 'https://api.twitter.com/oauth/authorize?' . $params;
     }
-    
+
     /**
      * Execute GET request.
      *
@@ -351,7 +351,7 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Execute GET OAuth Echo request.
      *
@@ -367,7 +367,7 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Execute streaming POST request.
      *
@@ -385,7 +385,7 @@ final class TwistOAuth {
         // throw exception unless $callback returned true
         self::checkCurlError($ch);
     }
-    
+
     /**
      * Execute POST request.
      *
@@ -402,7 +402,7 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Execute POST OAuth Echo request.
      *
@@ -418,11 +418,11 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Execute POST request for "oauth/request_token".
      *
-     * @param string [$oauth_callback] 
+     * @param string [$oauth_callback]
      * @param string [$proxy]          full proxy URL.
      *                                 e.g. https://111.222.333.444:8080
      * @return TwistOAuth
@@ -433,7 +433,7 @@ final class TwistOAuth {
         $response = self::decode($ch, curl_exec($ch));
         return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
     }
-    
+
     /**
      * Execute POST request for "oauth/access_token".
      *
@@ -448,12 +448,12 @@ final class TwistOAuth {
         $response = self::decode($ch, curl_exec($ch));
         return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
     }
-    
+
     /**
      * Execute POST request for "oauth/access_token" using xAuth.
      *
      * @param string $username screen_name or email.
-     * @param string $password 
+     * @param string $password
      * @param string [$proxy]  full proxy URL.
      *                         e.g. https://111.222.333.444:8080
      * @return TwistOAuth
@@ -464,7 +464,7 @@ final class TwistOAuth {
         $response = self::decode($ch, curl_exec($ch));
         return new self($this->ck, $this->cs, $response->oauth_token, $response->oauth_token_secret);
     }
-        
+
     /**
      * Execute multipart POST request.
      *
@@ -481,7 +481,7 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Execute multipart POST OAuth Echo request.
      *
@@ -497,7 +497,7 @@ final class TwistOAuth {
         $response = curl_exec($ch);
         return self::decode($ch, $response);
     }
-    
+
     /**
      * Prepare cURL resource for GET request.
      *
@@ -512,7 +512,7 @@ final class TwistOAuth {
     public function curlGet($url, $params = array(), $proxy = '') {
         return self::curlGetAction($url, $params, false, $proxy);
     }
-    
+
     /**
      * Prepare cURL resource for GET OAuth Echo request.
      *
@@ -526,7 +526,7 @@ final class TwistOAuth {
     public function curlGetOut($url, $params = array(), $proxy = '') {
         return self::curlGetAction($url, $params, true, $proxy);
     }
-    
+
     /**
      * Prepare cURL resource for streaming POST request.
      *
@@ -601,7 +601,7 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for POST request.
      *
@@ -616,7 +616,7 @@ final class TwistOAuth {
     public function curlPost($url, $params = array(), $proxy = '') {
         return self::curlPostAction($url, $params, false, $proxy);
     }
-    
+
     /**
      * Prepare cURL resource for POST OAuth Echo request.
      *
@@ -630,11 +630,11 @@ final class TwistOAuth {
     public function curlPostOut($url, $params = array(), $proxy = '') {
         return self::curlPostAction($url, $params, true, $proxy);
     }
-    
+
     /**
      * Prepare cURL resource for POST request "oauth/request_token".
      *
-     * @param string [$oauth_callback] 
+     * @param string [$oauth_callback]
      * @param string [$proxy]          full proxy URL.
      *                                 e.g. https://111.222.333.444:8080
      * @return resource cURL
@@ -642,7 +642,7 @@ final class TwistOAuth {
      */
     public function curlPostRequestToken($oauth_callback = '', $proxy = '') {
         $oauth_callback = self::validateString('$oauth_callback', $oauth_callback);
-        $proxy          = self::validateString('$proxy', $proxy);        
+        $proxy          = self::validateString('$proxy', $proxy);
         $url    = 'https://api.twitter.com/oauth/request_token';
         $params = compact('oauth_callback');
         $ch     = self::curlInit($proxy);
@@ -654,7 +654,7 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for POST request "oauth/access_token".
      *
@@ -678,12 +678,12 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for POST request "oauth/access_token" using xAuth.
      *
      * @param string $username screen_name or email.
-     * @param string $password 
+     * @param string $password
      * @param string [$proxy]  full proxy URL.
      *                         e.g. https://111.222.333.444:8080
      * @return resource cURL
@@ -708,7 +708,7 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for multipart POST request.
      *
@@ -722,7 +722,7 @@ final class TwistOAuth {
     public function curlPostMultipart($url, $params = array(), $proxy = '') {
         return self::curlPostMultipartAction($url, $params, false, $proxy);
     }
-    
+
     /**
      * Prepare cURL resource for multipart POST OAuth Echo request.
      *
@@ -735,10 +735,10 @@ final class TwistOAuth {
     public function curlPostMultipartOut($url, $params = array(), $proxy = '') {
         return self::curlPostMultipartAction($url, $params, true, $proxy);
     }
-    
+
     /**
      * Initialize cURL resource.
-     * 
+     *
      * @proxy string $proxy
      * @return resource cURL
      */
@@ -783,10 +783,10 @@ final class TwistOAuth {
         }
         return $ch;
     }
-    
+
     /**
      * Decode response.
-     * 
+     *
      * @param resource $ch
      * @param string   $response
      * @return mixed
@@ -834,23 +834,26 @@ final class TwistOAuth {
             return $obj;
         }
         libxml_clear_errors();
-        parse_str($response, $obj);
-        $obj = (object)$obj;
-        if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
-            return $obj;
-        }
-        if (preg_match("@Reason:\n<pre>([^<]++)</pre>@", $response, $matches)) {
-            throw new TwistException(trim($matches[1]), $info['http_code']);
-        }
         if (strip_tags($response) === $response) {
+            parse_str($response, $obj);
+            $obj = (object)$obj;
+            if (isset($obj->oauth_token, $obj->oauth_token_secret)) {
+                return $obj;
+            }
             throw new TwistException(trim($response), $info['http_code']);
+        }
+        if (
+            $info['http_code'] >= 400 &&
+            preg_match("@<(?:pre|h1)>([^<]++)</(?:pre|h1)>@", $response, $matches)
+        ) {
+            throw new TwistException(trim($matches[1]), $info['http_code']);
         }
         throw new TwistException('Malformed response detected: ' . $response, $info['http_code']);
     }
-    
+
     /**
      * Parse endpoint url.
-     * 
+     *
      * @param string $endpoint
      * @return string URL
      */
@@ -1172,12 +1175,12 @@ final class TwistOAuth {
         }
         return isset($list[$endpoint]) ? $list[$endpoint] : preg_replace_callback($regex, $callback, $endpoint, 1);
     }
-    
+
     /**
      * Check cURL error.
      * "errno" will always be 0 on curl_multi SAPI, so we have to judge by "error".
      * (However, some errors still return empty string as "error" on curl_multi SAPI...)
-     * 
+     *
      * @param resource $ch
      * @throw TwistException
      */
@@ -1187,7 +1190,7 @@ final class TwistOAuth {
             throw new TwistException($error, curl_getinfo($ch, CURLINFO_HTTP_CODE));
         }
     }
-    
+
     /**
      * Set cURL options for authenticity_token.
      *
@@ -1197,7 +1200,7 @@ final class TwistOAuth {
     private static function curlSetOptForAuthenticityToken($ch, $to) {
         curl_setopt($ch, CURLOPT_URL, $to->getAuthorizeUrl(true));
     }
-    
+
     /**
      * Set cURL options for oauth_verifier.
      *
@@ -1219,10 +1222,10 @@ final class TwistOAuth {
             CURLOPT_POST       => true,
         ));
     }
-    
+
     /**
      * Execute multiple cURL requests actually.
-     * 
+     *
      * @param array $curls
      * @param bool $is_streaming
      * @param bool $throw_in_process
@@ -1310,10 +1313,10 @@ final class TwistOAuth {
         }
         return $responses;
     }
-    
+
     /**
      * Force callable function.
-     * 
+     *
      * @param string $name
      * @param mixed  $callback
      * @return callable filtered callback
@@ -1324,10 +1327,10 @@ final class TwistOAuth {
         }
         return $callback;
     }
-    
+
     /**
      * Force parameters 1-demensional array or query string.
-     * 
+     *
      * @param string $name
      * @param mixed  $params
      * @return array filterd parameters
@@ -1355,10 +1358,10 @@ final class TwistOAuth {
         }
         return $tmp;
     }
-    
+
     /**
      * Force valid cURL resource.
-     * 
+     *
      * @param string $name
      * @param mixed  $ch
      * @return resource cURL
@@ -1369,10 +1372,10 @@ final class TwistOAuth {
         }
         return $ch;
     }
-    
+
     /**
      * Force string.
-     * 
+     *
      * @param mixed $name
      * @param mixed $str
      * @return string filtered string
@@ -1383,10 +1386,10 @@ final class TwistOAuth {
         }
         return $str;
     }
-    
+
     /**
      * Safe file_get_contents().
-     * 
+     *
      * @param mixed  $name
      * @param string $path
      */
@@ -1396,10 +1399,10 @@ final class TwistOAuth {
         }
         return $data;
     }
-    
+
     /**
      * Solve parameters with prefix "@" "#".
-     * 
+     *
      * @param array $params
      * @return stdClass an object contains "paramData", "paramIsFile"
      */
@@ -1421,10 +1424,10 @@ final class TwistOAuth {
         }
         return $obj;
     }
-    
+
     /**
      * Parse authenticity_token.
-     * 
+     *
      * @param resource $ch
      * @param string $response
      * @return string authenticity_token
@@ -1437,10 +1440,10 @@ final class TwistOAuth {
         }
         return $matches[1];
     }
-    
+
     /**
      * Parse oauth_verifier.
-     * 
+     *
      * @param resource $ch cURL resource
      * @param string $response
      * @return string oauth_verifier
@@ -1454,7 +1457,7 @@ final class TwistOAuth {
         }
         return $matches[1];
     }
-    
+
     /**
      * Prepare headers for authorization.
      *
@@ -1493,8 +1496,8 @@ final class TwistOAuth {
                 $method,
                 $url,
                 str_replace(
-                    array('+', '%7E'), 
-                    array('%20', '~'), 
+                    array('+', '%7E'),
+                    array('%20', '~'),
                     http_build_query($base, '', '&')
                 ),
             ))),
@@ -1503,13 +1506,13 @@ final class TwistOAuth {
         ));
         $tmp = array();
         foreach ($oauth as $key => $value) {
-            $tmp[] = urlencode($key) . '="' . urlencode($value) . '"'; 
+            $tmp[] = urlencode($key) . '="' . urlencode($value) . '"';
         }
         return array(
             'Authorization: OAuth ' . implode(', ', $tmp)
         );
     }
-    
+
     /**
      * Prepare headers for OAuth Echo.
      *
@@ -1524,7 +1527,7 @@ final class TwistOAuth {
             'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/", ' . substr($headers[0], 21),
         );
     }
-    
+
     /**
      * Prepare cURL resource for GET request actually.
      *
@@ -1554,7 +1557,7 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for POST request actually.
      *
@@ -1586,7 +1589,7 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
     /**
      * Prepare cURL resource for GET request actually.
      *
@@ -1646,5 +1649,5 @@ final class TwistOAuth {
         ));
         return $ch;
     }
-    
+
 }

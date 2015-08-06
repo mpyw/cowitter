@@ -2,7 +2,7 @@ TwistOAuth
 ==========
 
 Advanced PHP Twitter library.  
-Version 3.4.1
+Version 3.4.2
 
 Requirements
 ============
@@ -310,4 +310,3 @@ curl.cainfo="C:\ca-bundles\ca-bundles.crt"
 ```
 
 3&#46; Restart Apache.
-
