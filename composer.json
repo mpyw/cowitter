@@ -2,7 +2,7 @@
     "name": "mpyw/twistoauth",
     "type": "library",
     "description" : "Advanced PHP Twitter library.",
-    "version": "3.4.3",
+    "version": "3.5.0",
     "license": "BSD-2-Clause",
     "keywords": [
         "Twitter",

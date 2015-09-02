@@ -555,9 +555,9 @@ final class TwistOAuth {
                 $decode = array(__CLASS__, 'decode');
             }
         }
-        $url      = self::url(self::validateString('$url', $url));
+        $u        = self::url(self::validateString('$url', $url));
         $callback = self::validateCallback('$callback', $callback);
-        $obj      = self::getParamObject(self::validateParams('$params', $params));
+        $obj      = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy    = self::validateString('$proxy', $proxy);
         $params   = array();
         foreach ($obj->paramData as $key => $value) {
@@ -569,8 +569,8 @@ final class TwistOAuth {
         }
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER     => $this->getAuthorization($url, 'POST', $params, 0),
-            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => $this->getAuthorization($u[0], 'POST', $params, 0),
+            CURLOPT_URL            => $u[0] . $u[2],
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
             CURLOPT_TIMEOUT        => 0,
@@ -855,14 +855,16 @@ final class TwistOAuth {
      * Parse endpoint url.
      *
      * @param string $endpoint
-     * @return string URL
+     * @return array<mixed> array(header, params, trailer)
      */
     private static function url($endpoint) {
         static $regex;
         static $callback;
         static $list;
+        static $versions;
         if (!$regex) {
             $regex = implode('|', array(
+                'i/statuses/(\d++)/activity/summary',
                 'conversation/show/(\d++)',
                 'geo/id/(\d++)',
                 'saved_searches/destroy/(\d++)',
@@ -875,11 +877,11 @@ final class TwistOAuth {
                 'statuses/show/(\d++)',
                 'users/suggestions/([^/]++)',
                 'users/suggestions/([^/]++)/members',
-                'i/statuses/(\d++)/activity/summary',
             ));
             $regex = '@\A(?:' . $regex . ')\z@';
             $callback = function ($matches) {
                 static $list = array(
+                    'https://api.twitter.com/i/statuses/$1/activity/summary.json',
                     'https://api.twitter.com/1.1/conversation/show/$1.json',
                     'https://api.twitter.com/1.1/geo/id/$1.json',
                     'https://api.twitter.com/1.1/saved_searches/destroy/$1.json',
@@ -892,269 +894,12 @@ final class TwistOAuth {
                     'https://api.twitter.com/1.1/statuses/show/$1.json',
                     'https://api.twitter.com/1.1/users/suggestions/$1.json',
                     'https://api.twitter.com/1.1/users/suggestions/$1/members.json',
-                    'https://api.twitter.com/i/statuses/$1/activity/summary.json',
                 );
                 return str_replace('$1', urlencode(urldecode(end($matches))), $list[key($matches) - 1]);
             };
             $list = array(
                 'urls/count' =>
                     'http://urls.api.twitter.com/1/urls/count.json',
-                'account/login_verification_request' =>
-                    'https://api.twitter.com/1.1/account/login_verification_request.json',
-                'account/login_verification_enrollment__post' =>
-                    'https://api.twitter.com/1.1/account/login_verification_request__post.json',
-                'account/remove_profile_banner' =>
-                    'https://api.twitter.com/1.1/account/remove_profile_banner.json',
-                'account/settings' =>
-                    'https://api.twitter.com/1.1/account/settings.json',
-                'account/update_delivery_device' =>
-                    'https://api.twitter.com/1.1/account/update_delivery_device.json',
-                'account/update_profile' =>
-                    'https://api.twitter.com/1.1/account/update_profile.json',
-                'account/update_profile_background_image' =>
-                    'https://api.twitter.com/1.1/account/update_profile_background_image.json',
-                'account/update_profile_banner' =>
-                    'https://api.twitter.com/1.1/account/update_profile_banner.json',
-                'account/update_profile_colors' =>
-                    'https://api.twitter.com/1.1/account/update_profile_colors.json',
-                'account/update_profile_image' =>
-                    'https://api.twitter.com/1.1/account/update_profile_image.json',
-                'account/verification' =>
-                    'https://api.twitter.com/1.1/account/verification.json',
-                'account/verify_credentials' =>
-                    'https://api.twitter.com/1.1/account/verify_credentials.json',
-                'activity/about_me' =>
-                    'https://api.twitter.com/1.1/activity/about_me.json',
-                'activity/by_friends' =>
-                    'https://api.twitter.com/1.1/activity/by_friends.json',
-                'application/rate_limit_status' =>
-                    'https://api.twitter.com/1.1/application/rate_limit_status.json',
-                'beta/timelines/custom/add' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/add.json',
-                'beta/timelines/custom/create' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/create.json',
-                'beta/timelines/custom/destroy' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/destroy.json',
-                'beta/timelines/custom/list' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/list.json',
-                'beta/timelines/custom/remove' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/remove.json',
-                'beta/timelines/custom/show' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/show.json',
-                'beta/timelines/custom/update' =>
-                    'https://api.twitter.com/1.1/beta/timelines/custom/update.json',
-                'beta/timelines/timeline' =>
-                    'https://api.twitter.com/1.1/beta/timelines/timeline.json',
-                'blocks/create' =>
-                    'https://api.twitter.com/1.1/blocks/create.json',
-                'blocks/destroy' =>
-                    'https://api.twitter.com/1.1/blocks/destroy.json',
-                'blocks/ids' =>
-                    'https://api.twitter.com/1.1/blocks/ids.json',
-                'blocks/list' =>
-                    'https://api.twitter.com/1.1/blocks/list.json',
-                'device/token' =>
-                    'https://api.twitter.com/1.1/device/token.json',
-                'device_following/ids' =>
-                    'https://api.twitter.com/1.1/device_following/ids.json',
-                'device_following/list' =>
-                    'https://api.twitter.com/1.1/device_following/list.json',
-                'direct_messages' =>
-                    'https://api.twitter.com/1.1/direct_messages.json',
-                'direct_messages/destroy' =>
-                    'https://api.twitter.com/1.1/direct_messages/destroy.json',
-                'direct_messages/new' =>
-                    'https://api.twitter.com/1.1/direct_messages/new.json',
-                'direct_messages/read' =>
-                    'https://api.twitter.com/1.1/direct_messages/read.json',
-                'direct_messages/sent' =>
-                    'https://api.twitter.com/1.1/direct_messages/sent.json',
-                'direct_messages/show' =>
-                    'https://api.twitter.com/1.1/direct_messages/show.json',
-                'discover/highlight' =>
-                    'https://api.twitter.com/1.1/discover/highlight.json',
-                'discover/home' =>
-                    'https://api.twitter.com/1.1/discover/home.json',
-                'discover/nearby' =>
-                    'https://api.twitter.com/1.1/discover/nearby.json',
-                'discover/universal' =>
-                    'https://api.twitter.com/1.1/discover/universal.json',
-                'favorites/create' =>
-                    'https://api.twitter.com/1.1/favorites/create.json',
-                'favorites/destroy' =>
-                    'https://api.twitter.com/1.1/favorites/destroy.json',
-                'favorites/list' =>
-                    'https://api.twitter.com/1.1/favorites/list.json',
-                'followers/ids' =>
-                    'https://api.twitter.com/1.1/followers/ids.json',
-                'followers/list' =>
-                    'https://api.twitter.com/1.1/followers/list.json',
-                'friends/ids' =>
-                    'https://api.twitter.com/1.1/friends/ids.json',
-                'friends/list' =>
-                    'https://api.twitter.com/1.1/friends/list.json',
-                'friendships/accept' =>
-                    'https://api.twitter.com/1.1/friendships/accept.json',
-                'friendships/accept_all' =>
-                    'https://api.twitter.com/1.1/friendships/accept_all.json',
-                'friendships/create' =>
-                    'https://api.twitter.com/1.1/friendships/create.json',
-                'friendships/deny' =>
-                    'https://api.twitter.com/1.1/friendships/deny.json',
-                'friendships/destroy' =>
-                    'https://api.twitter.com/1.1/friendships/destroy.json',
-                'friendships/incoming' =>
-                    'https://api.twitter.com/1.1/friendships/incoming.json',
-                'friendships/lookup' =>
-                    'https://api.twitter.com/1.1/friendships/lookup.json',
-                'friendships/no_retweets/ids' =>
-                    'https://api.twitter.com/1.1/friendships/no_retweets/ids.json',
-                'friendships/outgoing' =>
-                    'https://api.twitter.com/1.1/friendships/outgoing.json',
-                'friendships/show' =>
-                    'https://api.twitter.com/1.1/friendships/show.json',
-                'friendships/update' =>
-                    'https://api.twitter.com/1.1/friendships/update.json',
-                'geo/place' =>
-                    'https://api.twitter.com/1.1/geo/place.json',
-                'geo/reverse_geocode' =>
-                    'https://api.twitter.com/1.1/geo/reverse_geocode.json',
-                'geo/search' =>
-                    'https://api.twitter.com/1.1/geo/search.json',
-                'geo/similar_places' =>
-                    'https://api.twitter.com/1.1/geo/similar_places.json',
-                'help/configuration' =>
-                    'https://api.twitter.com/1.1/help/configuration.json',
-                'help/experiments' =>
-                    'https://api.twitter.com/1.1/help/experiments.json',
-                'help/languages' =>
-                    'https://api.twitter.com/1.1/help/languages.json',
-                'help/privacy' =>
-                    'https://api.twitter.com/1.1/help/privacy.json',
-                'help/tos' =>
-                    'https://api.twitter.com/1.1/help/tos.json',
-                'lists/create' =>
-                    'https://api.twitter.com/1.1/lists/create.json',
-                'lists/destroy' =>
-                    'https://api.twitter.com/1.1/lists/destroy.json',
-                'lists/list' =>
-                    'https://api.twitter.com/1.1/lists/list.json',
-                'lists/members' =>
-                    'https://api.twitter.com/1.1/lists/members.json',
-                'lists/members/create' =>
-                    'https://api.twitter.com/1.1/lists/members/create.json',
-                'lists/members/create_all' =>
-                    'https://api.twitter.com/1.1/lists/members/create_all.json',
-                'lists/members/destroy' =>
-                    'https://api.twitter.com/1.1/lists/members/destroy.json',
-                'lists/members/destroy_all' =>
-                    'https://api.twitter.com/1.1/lists/members/destroy_all.json',
-                'lists/members/show' =>
-                    'https://api.twitter.com/1.1/lists/members/show.json',
-                'lists/memberships' =>
-                    'https://api.twitter.com/1.1/lists/memberships.json',
-                'lists/ownerships' =>
-                    'https://api.twitter.com/1.1/lists/ownerships.json',
-                'lists/show' =>
-                    'https://api.twitter.com/1.1/lists/show.json',
-                'lists/statuses' =>
-                    'https://api.twitter.com/1.1/lists/statuses.json',
-                'lists/subscribers' =>
-                    'https://api.twitter.com/1.1/lists/subscribers.json',
-                'lists/subscribers/create' =>
-                    'https://api.twitter.com/1.1/lists/subscribers/create.json',
-                'lists/subscribers/destroy' =>
-                    'https://api.twitter.com/1.1/lists/subscribers/destroy.json',
-                'lists/subscribers/show' =>
-                    'https://api.twitter.com/1.1/lists/subscribers/show.json',
-                'lists/subscriptions' =>
-                    'https://api.twitter.com/1.1/lists/subscriptions.json',
-                'lists/update' =>
-                    'https://api.twitter.com/1.1/lists/update.json',
-                'mutes/users/create' =>
-                    'https://api.twitter.com/1.1/mutes/users/create.json',
-                'mutes/users/destroy' =>
-                    'https://api.twitter.com/1.1/mutes/users/destroy.json',
-                'mutes/users/ids' =>
-                    'https://api.twitter.com/1.1/mutes/users/ids.json',
-                'mutes/users/list' =>
-                    'https://api.twitter.com/1.1/mutes/users/list.json',
-                'prompts/suggest' =>
-                    'https://api.twitter.com/1.1/prompts/suggest.json',
-                'account/push_destinations/device' =>
-                    'https://api.twitter.com/1.1/push_destinations/device.json',
-                'push_destinations/enable_login_verification' =>
-                    'https://api.twitter.com/1.1/push_destinations/enable_login_verification.json',
-                'saved_searches/create' =>
-                    'https://api.twitter.com/1.1/saved_searches/create.json',
-                'saved_searches/list' =>
-                    'https://api.twitter.com/1.1/saved_searches/list.json',
-                'scheduled/list' =>
-                    'https://api.twitter.com/1.1/scheduled/list.json',
-                'scheduled/lookup' =>
-                    'https://api.twitter.com/1.1/scheduled/lookup.json',
-                'search/tweets' =>
-                    'https://api.twitter.com/1.1/search/tweets.json',
-                'search/typeahead' =>
-                    'https://api.twitter.com/1.1/search/typeahead.json',
-                'search/universal' =>
-                    'https://api.twitter.com/1.1/search/universal.json',
-                'statuses/home_timeline' =>
-                    'https://api.twitter.com/1.1/statuses/home_timeline.json',
-                'statuses/lookup' =>
-                    'https://api.twitter.com/1.1/statuses/lookup.json',
-                'statuses/media_timeline' =>
-                    'https://api.twitter.com/1.1/statuses/media_timeline.json',
-                'statuses/mentions_timeline' =>
-                    'https://api.twitter.com/1.1/statuses/mentions_timeline.json',
-                'statuses/oembed' =>
-                    'https://api.twitter.com/1.1/statuses/oembed.json',
-                'statuses/retweeters/ids' =>
-                    'https://api.twitter.com/1.1/statuses/retweeters/ids.json',
-                'statuses/retweets_of_me' =>
-                    'https://api.twitter.com/1.1/statuses/retweets_of_me.json',
-                'statuses/update' =>
-                    'https://api.twitter.com/1.1/statuses/update.json',
-                'statuses/update_with_media' =>
-                    'https://api.twitter.com/1.1/statuses/update_with_media.json',
-                'statuses/user_timeline' =>
-                    'https://api.twitter.com/1.1/statuses/user_timeline.json',
-                'timeline/home' =>
-                    'https://api.twitter.com/1.1/timeline/home.json',
-                'translations/show' =>
-                    'https://api.twitter.com/1.1/translations/show.json',
-                'trends/available' =>
-                    'https://api.twitter.com/1.1/trends/available.json',
-                'trends/closest' =>
-                    'https://api.twitter.com/1.1/trends/closest.json',
-                'trends/personalized' =>
-                    'https://api.twitter.com/1.1/trends/personalized.json',
-                'trends/place' =>
-                    'https://api.twitter.com/1.1/trends/place.json',
-                'trends/timeline' =>
-                    'https://api.twitter.com/1.1/trends/timeline.json',
-                'users/contributees' =>
-                    'https://api.twitter.com/1.1/users/contributees.json',
-                'users/contributors' =>
-                    'https://api.twitter.com/1.1/users/contributors.json',
-                'users/lookup' =>
-                    'https://api.twitter.com/1.1/users/lookup.json',
-                'users/profile_banner' =>
-                    'https://api.twitter.com/1.1/users/profile_banner.json',
-                'users/recommendations' =>
-                    'https://api.twitter.com/1.1/users/recommendations.json',
-                'users/report_spam' =>
-                    'https://api.twitter.com/1.1/users/report_spam.json',
-                'users/reverse_lookup' =>
-                    'https://api.twitter.com/1.1/users/reverse_lookup.json',
-                'users/search' =>
-                    'https://api.twitter.com/1.1/users/search.json',
-                'users/show' =>
-                    'https://api.twitter.com/1.1/users/show.json',
-                'users/suggestions' =>
-                    'https://api.twitter.com/1.1/users/suggestions.json',
-                'users/wipe_addressbook' =>
-                    'https://api.twitter.com/1.1/users/wipe_addressbook.json',
                 'i/activity/about_me' =>
                     'https://api.twitter.com/i/activity/about_me.json',
                 'i/activity/by_friends' =>
@@ -1172,8 +917,38 @@ final class TwistOAuth {
                 'user' =>
                     'https://userstream.twitter.com/1.1/user.json',
             );
+            $versions = array_flip(array('1.1', '1', 'i'));
         }
-        return isset($list[$endpoint]) ? $list[$endpoint] : preg_replace_callback($regex, $callback, $endpoint, 1);
+        if (isset($list[$endpoint])) {
+            return array($list[$endpoint], array(), '');
+        }
+        $endpoint = preg_replace_callback($regex, $callback, $endpoint, 1, $count);
+        if ($count) {
+            return array($endpoint, array(), '');
+        }
+        $e = parse_url($endpoint);
+        $path = preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
+        $end = count($path) - 1;
+        if ($end >= 0) {
+            if (!isset($versions[$path[0]])) {
+                array_unshift($path, '1.1');
+                ++$end;
+            }
+            if ($end >= 1) {
+                $path[$end] = basename($path[$end], '.json') . '.json';
+            }
+        }
+        parse_str(isset($e['query']) ? $e['query'] : '', $params);
+        $header = (isset($e['scheme']) ? $e['scheme'] : 'https')
+            . '://'
+            . (isset($e['user']) ? $e['user'] . (isset($e['pass']) ? ':' . $e['pass'] : '') . '@' : '')
+            . (isset($e['host']) ? $e['host'] : 'api.twitter.com')
+            . (isset($e['port']) ? ':' . $e['port'] : '')
+            . '/'
+            . implode('/', $path)
+        ;
+        $trailer = isset($e['fragment']) ? '#' . $e['fragment'] : '';
+        return array($header, $params, $trailer);
     }
 
     /**
@@ -1333,12 +1108,13 @@ final class TwistOAuth {
      *
      * @param string $name
      * @param mixed  $params
+     * @param array  $others additional params
      * @return array filterd parameters
      */
-    private static function validateParams($name, $params) {
+    private static function validateParams($name, $params, array $others) {
         if (is_array($params)) {
-            foreach ($params as $key => $value) {
-                if ($value === null) {
+            foreach ($params + $others as $key => $value) {
+                if ($key === '' || $value === null) {
                     unset($params[$key]);
                     continue;
                 }
@@ -1349,7 +1125,7 @@ final class TwistOAuth {
         if (false === $params = filter_var($params)) {
             throw new InvalidArgumentException("The value of $name must be a 1-demensional array or query string.");
         }
-        $tmp = array();
+        $tmp = $others;
         if ('' !== $params = trim($params)) {
             foreach (explode('&', $params) as $pair) {
                 list($key, $value) = explode('=', $pair, 2) + array(1 => '');
@@ -1482,7 +1258,7 @@ final class TwistOAuth {
             if (isset($params['oauth_callback'])) {
                 $oauth['oauth_callback'] = $params['oauth_callback'];
             }
-            unset($oauth['oauth_token'], $oauth['oauth_callback']);
+            unset($oauth['oauth_token'], $params['oauth_callback']);
         }
         if ($flags & self::MODE_ACCESS_TOKEN) {
             $oauth['oauth_verifier'] = $params['oauth_verifier'];
@@ -1539,8 +1315,8 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private function curlGetAction($url, $params, $out, $proxy) {
-        $url    = self::url(self::validateString('$url', $url));
-        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $u      = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
         foreach ($obj->paramData as $key => $value) {
@@ -1552,8 +1328,8 @@ final class TwistOAuth {
         }
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'GET', $params, 0),
-            CURLOPT_URL        => $url . '?' . http_build_query($params, '', '&'),
+            CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'GET', $params, 0),
+            CURLOPT_URL        => $u[0] . ($params ? '?' . http_build_query($params, '', '&') : '') . $u[2],
         ));
         return $ch;
     }
@@ -1569,8 +1345,8 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private function curlPostAction($url, $params, $out, $proxy) {
-        $url    = self::url(self::validateString('$url', $url));
-        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $u      = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
         foreach ($obj->paramData as $key => $value) {
@@ -1582,8 +1358,8 @@ final class TwistOAuth {
         }
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'POST', $params, 0),
-            CURLOPT_URL        => $url,
+            CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'POST', $params, 0),
+            CURLOPT_URL        => $u[0] . $u[2],
             CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
             CURLOPT_POST       => true,
         ));
@@ -1601,8 +1377,8 @@ final class TwistOAuth {
      */
     private function curlPostMultipartAction($url, $params, $out, $proxy) {
         static $disallow = array("\0", "\"", "\r", "\n");
-        $url    = self::url(self::validateString('$url', $url));
-        $obj    = self::getParamObject(self::validateParams('$params', $params));
+        $u      = self::url(self::validateString('$url', $url));
+        $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $body = array();
         foreach ($obj->paramData as $key => $value) {
@@ -1640,10 +1416,10 @@ final class TwistOAuth {
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => array_merge(
-                $out ? $this->getOAuthEcho() : $this->getAuthorization($url, 'POST', $params, 0),
+                $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'POST', $params, 0),
                 array('Content-Type: multipart/form-data; boundary=' . $boundary)
             ),
-            CURLOPT_URL        => $url,
+            CURLOPT_URL        => $u[0] . $u[2],
             CURLOPT_POSTFIELDS => implode("\r\n", $body),
             CURLOPT_POST       => true,
         ));
