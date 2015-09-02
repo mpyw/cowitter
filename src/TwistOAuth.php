@@ -570,7 +570,7 @@ final class TwistOAuth {
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER     => $this->getAuthorization($u[0], 'POST', $params, 0),
-            CURLOPT_URL            => $u[0] . $u[2],
+            CURLOPT_URL            => $u[0],
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
             CURLOPT_TIMEOUT        => 0,
@@ -855,7 +855,7 @@ final class TwistOAuth {
      * Parse endpoint url.
      *
      * @param string $endpoint
-     * @return array<mixed> array(header, params, trailer)
+     * @return array<mixed> array(header, params)
      */
     private static function url($endpoint) {
         static $regex;
@@ -941,14 +941,11 @@ final class TwistOAuth {
         parse_str(isset($e['query']) ? $e['query'] : '', $params);
         $header = (isset($e['scheme']) ? $e['scheme'] : 'https')
             . '://'
-            . (isset($e['user']) ? $e['user'] . (isset($e['pass']) ? ':' . $e['pass'] : '') . '@' : '')
             . (isset($e['host']) ? $e['host'] : 'api.twitter.com')
-            . (isset($e['port']) ? ':' . $e['port'] : '')
             . '/'
             . implode('/', $path)
         ;
-        $trailer = isset($e['fragment']) ? '#' . $e['fragment'] : '';
-        return array($header, $params, $trailer);
+        return array($header, $params);
     }
 
     /**
@@ -1329,7 +1326,7 @@ final class TwistOAuth {
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'GET', $params, 0),
-            CURLOPT_URL        => $u[0] . ($params ? '?' . http_build_query($params, '', '&') : '') . $u[2],
+            CURLOPT_URL        => $u[0] . ($params ? '?' . http_build_query($params, '', '&') : ''),
         ));
         return $ch;
     }
@@ -1359,7 +1356,7 @@ final class TwistOAuth {
         $ch = self::curlInit($proxy);
         curl_setopt_array($ch, array(
             CURLOPT_HTTPHEADER => $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'POST', $params, 0),
-            CURLOPT_URL        => $u[0] . $u[2],
+            CURLOPT_URL        => $u[0],
             CURLOPT_POSTFIELDS => http_build_query($params, '', '&'),
             CURLOPT_POST       => true,
         ));
@@ -1419,7 +1416,7 @@ final class TwistOAuth {
                 $out ? $this->getOAuthEcho() : $this->getAuthorization($u[0], 'POST', $params, 0),
                 array('Content-Type: multipart/form-data; boundary=' . $boundary)
             ),
-            CURLOPT_URL        => $u[0] . $u[2],
+            CURLOPT_URL        => $u[0],
             CURLOPT_POSTFIELDS => implode("\r\n", $body),
             CURLOPT_POST       => true,
         ));
