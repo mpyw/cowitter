@@ -555,7 +555,7 @@ final class TwistOAuth {
                 $decode = array(__CLASS__, 'decode');
             }
         }
-        $u        = self::url(self::validateString('$url', $url));
+        $u        = self::url(self::validateString('$url', $url), false);
         $callback = self::validateCallback('$callback', $callback);
         $obj      = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy    = self::validateString('$proxy', $proxy);
@@ -855,9 +855,10 @@ final class TwistOAuth {
      * Parse endpoint url.
      *
      * @param string $endpoint
+     * @param bool $out
      * @return array<mixed> array(header, params)
      */
-    private static function url($endpoint) {
+    private static function url($endpoint, $out) {
         static $regex;
         static $callback;
         static $list;
@@ -919,32 +920,50 @@ final class TwistOAuth {
             );
             $versions = array_flip(array('1.1', '1', 'i'));
         }
-        if (isset($list[$endpoint])) {
-            return array($list[$endpoint], array(), '');
-        }
-        $endpoint = preg_replace_callback($regex, $callback, $endpoint, 1, $count);
-        if ($count) {
-            return array($endpoint, array(), '');
+        if (!$out) {
+            if (isset($list[$endpoint])) {
+                return array($list[$endpoint], array(), '');
+            }
+            $endpoint = preg_replace_callback($regex, $callback, $endpoint, 1, $count);
+            if ($count) {
+                return array($endpoint, array(), '');
+            }
         }
         $e = parse_url($endpoint);
         $path = preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
         $end = count($path) - 1;
-        if ($end >= 0) {
-            if (!isset($versions[$path[0]])) {
-                array_unshift($path, '1.1');
-                ++$end;
-            }
-            if ($end >= 1) {
-                $path[$end] = basename($path[$end], '.json') . '.json';
+        if (!$out) {
+            if ($end >= 0) {
+                if (!isset($versions[$path[0]])) {
+                    array_unshift($path, '1.1');
+                    ++$end;
+                }
+                if ($end >= 1) {
+                    $path[$end] = basename($path[$end], '.json') . '.json';
+                }
             }
         }
         parse_str(isset($e['query']) ? $e['query'] : '', $params);
-        $header = (isset($e['scheme']) ? $e['scheme'] : 'https')
-            . '://'
-            . (isset($e['host']) ? $e['host'] : 'api.twitter.com')
-            . '/'
-            . implode('/', $path)
-        ;
+        if (!$out) {
+            $header = (isset($e['scheme']) ? $e['scheme'] : 'https')
+                . '://'
+                . (isset($e['host']) ? $e['host'] : 'api.twitter.com')
+                . '/'
+                . implode('/', $path)
+            ;
+        } else {
+            if (!isset($e['host'])) {
+                throw new \InvalidArgumentException('Invalid endpoint: Has not host.');
+            }
+            $header = (isset($e['scheme']) ? $e['scheme'] : 'https')
+                . '://'
+                . (isset($e['user']) ? $e['user'] . (isset($e['pass']) ? ':' . $e['pass'] : '') . '@' : '')
+                . $e['host']
+                . (isset($e['port']) ? ':' . $e['port'] : '')
+                . '/'
+                . implode('/', $path)
+            ;
+        }
         return array($header, $params);
     }
 
@@ -1312,7 +1331,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private function curlGetAction($url, $params, $out, $proxy) {
-        $u      = self::url(self::validateString('$url', $url));
+        $u      = self::url(self::validateString('$url', $url), $out);
         $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
@@ -1342,7 +1361,7 @@ final class TwistOAuth {
      * @throws TwistException
      */
     private function curlPostAction($url, $params, $out, $proxy) {
-        $u      = self::url(self::validateString('$url', $url));
+        $u      = self::url(self::validateString('$url', $url), $out);
         $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $params = array();
@@ -1374,7 +1393,7 @@ final class TwistOAuth {
      */
     private function curlPostMultipartAction($url, $params, $out, $proxy) {
         static $disallow = array("\0", "\"", "\r", "\n");
-        $u      = self::url(self::validateString('$url', $url));
+        $u      = self::url(self::validateString('$url', $url), $out);
         $obj    = self::getParamObject(self::validateParams('$params', $params, $u[1]));
         $proxy  = self::validateString('$proxy', $proxy);
         $body = array();
