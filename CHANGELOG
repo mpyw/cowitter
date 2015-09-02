@@ -163,3 +163,6 @@ TwistOAuth - changelog
 
 3.5.0 (2015-09-02)
 + Improved URL parser
+
+3.5.1 (2015-09-02)
++  Extra elements in URL are to be ignored
