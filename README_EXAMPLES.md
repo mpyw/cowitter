@@ -28,23 +28,23 @@ $code = 200;
 date_default_timezone_set('Asia/Tokyo');
 
 try {
-    
+
     // Generate your TwistOAuth object.
     $to = new TwistOAuth('CK', 'CS', 'AT', 'AS');
-    
+
     // Get tweets on your home timeline within 5.
     // This method may throw TwistException.
     $statuses = $to->get('statuses/home_timeline', array('count' => 5));
-    
+
 } catch (TwistException $e) {
-    
+
     // Set error message.
     $error = $e->getMessage();
-    
+
     // Overwrite HTTP status code.
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
     $code = $e->getCode() ?: 500;
-    
+
 }
 
 // Send charset and HTTP status code to your browser.
@@ -94,33 +94,33 @@ $code = 200;
 $text = filter_input(INPUT_POST, 'text');
 
 if ($text !== null) {
-    
+
     try {
-        
+
         // Generate your TwistOAuth object.
         $to = new TwistOAuth('CK', 'CS', 'AT', 'AS');
-        
+
         // Update your status.
         // This method may throw TwistException.
         $to->post('statuses/update', array('status' => $text));
-        
+
         // Set message.
         $message = array('green', 'Successfully tweeted.');
-        
+
         // Clear text.
         $text = '';
-        
+
     } catch (TwistException $e) {
-        
+
         // Set error message.
         $message = array('red', $e->getMessage());
-        
+
         // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
         $code = $e->getCode() ?: 500;
-        
+
     }
-    
+
 }
 
 // Send charset and HTTP status code to your browser.
@@ -174,40 +174,40 @@ if (isset($_SESSION['logined'])) {
 try {
 
     if (!isset($_SESSION['to'])) { /* First Access */
-        
+
         // Initialize a TwistOAuth object, then reinitialize with request_token.
         $_SESSION['to'] = new TwistOAuth('CK', 'CS');
         $_SESSION['to'] = $_SESSION['to']->renewWithRequestToken('http://127.0.0.1/my_twitter_app/login.php');
-        
+
         // Redirect to Twitter.
         header("Location: {$_SESSION['to']->getAuthenticateUrl()}");
         header('Content-Type: text/plain; charset=utf-8');
         exit("Redirecting to {$_SESSION['to']->getAuthenticateUrl()} ...");
-        
+
     } else { /* Redirected From Twitter */
-        
+
         // Reinitialize with access_token using oauth_verifier, then set login flag.
         $_SESSION['to'] = $_SESSION['to']->renewWithAccessToken(filter_input(INPUT_GET, 'oauth_verifier'));
         $_SESSION['logined'] = true;
-        
+
         // Regenerate session id for security reasons.
         session_regenerate_id(true); /* IMPORTANT */
-        
+
         // Redirect to the main page.
         redirect_to_main_page();
-        
+
     }
 
 } catch (TwistException $e) { /* Error */
-    
+
     // Clear session.
     $_SESSION = array();
-    
+
     // Send HTTP status code and display error message as text. (not HTML)
     // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
     header('Content-Type: text/plain; charset=utf-8', true, $e->getCode() ?: 500);
     exit($e->getMessage());
-    
+
 }
 ```
 
@@ -243,29 +243,29 @@ $code = 200;
 $text = filter_input(INPUT_POST, 'text');
 
 if ($text !== null) {
-    
+
     try {
-        
+
         // Update status.
         $_SESSION['to']->post('statuses/update', array('status' => $text));
-        
+
         // Set message.
         $message = array('green', 'Successfully tweeted.');
-        
+
         // Clear text.
         $text = '';
-        
+
     } catch (TwistException $e) {
-        
+
         // Set error message.
         $message = array('red', $e->getMessage());
-        
+
         // Overwrite HTTP status code.
         // The exception code will be zero when it thrown before accessing Twitter, we need to change it into 500.
         $code = $e->getCode() ?: 500;
-        
+
     }
-    
+
 }
 
 // Send charset and HTTP status code to your browser.
@@ -316,7 +316,7 @@ $params = array('q' => 'foobarbaz');
 while ($params) {
     $result = $to->get('search/tweets', $params);
     $statuses = array_merge($statuses, $result->statuses);
-    $params = 
+    $params =
         isset($result->search_metadata->next_results) ?
         substr($result->search_metadata->next_results, 1) :
         null
@@ -491,14 +491,16 @@ $info = $to->post('media/upload', array(
     'media_type' => 'video/mp4',
     'total_bytes' => $whole_size,
 ));
+$curls = array();
 for ($i = 0; '' !== $buffer = $file->fread($chunk_size); ++$i) {
-    $to->postMultipart('media/upload', array(
+    $curls[] = $to->curlPostMultipart('media/upload', array(
         'command' => 'APPEND',
         'media_id' => $info->media_id_string,
         'segment_index' => $i,
         '#media' => $buffer,
     ));
 }
+$to->curlMultiExec($curls, true);
 $to->post('media/upload', array(
     'command' => 'FINALIZE',
     'media_id' => $info->media_id_string,
@@ -545,7 +547,7 @@ $to->streaming('user', function ($status) {
 });
 ```
 
-#### At once favorite and retweet tweets containing specified keywords 
+#### At once favorite and retweet tweets containing specified keywords
 
 ```php
 // Disable timeout.
