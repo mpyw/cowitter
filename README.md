@@ -153,7 +153,7 @@ Global install is recommended.
 
 #### Web tool hosted on Heroku (Deprecated)
 
-- **[TwistHelper](https://twist-helper.herokuapp.com/)**
+- [TwistHelper](https://twist-helper.herokuapp.com/)
 
 I absolutely promise you that <ins>I never record your credentials</ins>.  
 But please never use if you cannot trust me even a little.
@@ -237,7 +237,8 @@ $obj->__construct('c', 'd'); // Break immutable rules
 
 ### Why don't you use namespace?
 
-This is because to give priority to the compatibility with previous version of [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  I believe that the prefix `Twist-` will never collide with any other libraries.
+This is because of the compatibility with previous version of [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
+I believe that the prefix `Twist-` will never collide with any other libraries.
 
 ### Tweets are already escaped... wtf!?
 
