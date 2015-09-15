@@ -202,7 +202,7 @@ Use `use()`.
 $to->streaming('user', function ($status) use ($to) { ... });
 ```
 
-### How to ignore `TwistException` thrown?
+### How do I ignore `TwistException` thrown?
 
 Now your code is:
 
@@ -237,7 +237,7 @@ $obj->__construct('c', 'd'); // Break immutable rules
 
 ### Why don't you use namespace?
 
-This is because of the compatibility with previous version of [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
+This is because of the compatibility with previous versions of [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
 I believe that the prefix `Twist-` will never collide with any other libraries.
 
 ### Tweets are already escaped... wtf!?
