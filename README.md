@@ -143,11 +143,20 @@ Or watch actual response. The following tool is very very useful.
 
 ### Aren't there any nice authentication tools for obtaining tokens?
 
-Try this tool.  
-I absolutely promise you that <ins>I never record your credentials</ins>.  
-But please never use if you cannot trust me even a little.
+Try these tools.  
+
+#### Commandline tool (Recommended)
+
+- **[mpyw/twhelp](https://github.com/mpyw/twhelp)**
+
+Global install is recommended.
+
+#### Web tool hosted on Heroku (Deprecated)
 
 - **[TwistHelper](https://twist-helper.herokuapp.com/)**
+
+I absolutely promise you that <ins>I never record your credentials</ins>.  
+But please never use if you cannot trust me even a little.
 
 ### How do I use OAuth 2.0 authentication flow?
 
@@ -228,8 +237,7 @@ $obj->__construct('c', 'd'); // Break immutable rules
 
 ### Why don't you use namespace?
 
-I do not use namespace in `TwistOAuth.php`.  
-This is because to give priority to the compatibility with [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  
+This is because to give priority to the compatibility with previous version of [abraham/twitteroauth](https://github.com/abraham/twitteroauth).  I believe that the prefix `Twist-` will never collide with any other libraries.
 
 ### Tweets are already escaped... wtf!?
 
