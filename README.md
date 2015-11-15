@@ -147,7 +147,8 @@ Try these tools.
 
 #### Commandline tool (Recommended)
 
-- **[mpyw/twhelp](https://github.com/mpyw/twhelp)**
+- **[mpyw/twhelp-go](https://github.com/mpyw/twhelp-go)** **(Cross-compiled binaries)**
+- [mpyw/twhelp](https://github.com/mpyw/twhelp) (\*nix or MSYS2/Cygwin required)
 
 Global install is recommended.
 
