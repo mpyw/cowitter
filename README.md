@@ -49,7 +49,7 @@ Modify `require` directive in `composer.json`.
 ```json
 {
     "require": {
-        "mpyw/twistoauth": "@dev"
+        "mpyw/twistoauth": "~3.0"
     }
 }
 ```
