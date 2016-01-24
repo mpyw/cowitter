@@ -4,6 +4,10 @@ TwistOAuth
 Advanced PHP Twitter library.  
 Version 3.5.2
 
+**Warning:**  
+Version 4.x will have incompatible change!!  
+Please do not require `dev-master` anymore with Composer.
+
 Requirements
 ============
 
