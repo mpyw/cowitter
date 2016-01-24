@@ -2,7 +2,7 @@
     "name": "mpyw/twistoauth",
     "type": "library",
     "description" : "Advanced PHP Twitter library.",
-    "version": "3.5.1",
+    "version": "3.5.2",
     "license": "BSD-2-Clause",
     "keywords": [
         "Twitter",
@@ -20,7 +20,7 @@
     ],
     "authors": [
         {
-            "name": "CertaiN",
+            "name": "mpyw",
             "email": "ryosuke_i_628@yahoo.co.jp",
             "homepage": "https://gravatar.com/mpyw",
             "role": "developer"

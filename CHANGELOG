@@ -165,4 +165,7 @@ TwistOAuth - changelog
 + Improved URL parser
 
 3.5.1 (2015-09-02)
-+  Extra elements in URL are to be ignored
++ Extra elements in URL are to be ignored
+
+3.5.2 (2016-01-24)
++ Avoid exception for http status code 20X with empty response

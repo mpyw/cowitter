@@ -21,7 +21,7 @@ $phar->setStub("<?php
 /* 
  * TwistOAuth Version $version
  * 
- * @author  CertaiN
+ * @author  mpyw
  * @github  https://github.com/mpyw/TwistOAuth
  * @license BSD 2-Clause
  */
