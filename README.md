@@ -8,6 +8,10 @@ Version 3.5.2
 Version 4.x will have incompatible change!!  
 Please do not require `dev-master` anymore with Composer.
 
+**(2016/07/19 UPDATE)**  
+**[mpyw\Co](https://github.com/mpyw/co): Generator-based asynchronous cURL executor library is released!**  
+**Upcoming versions of TwistOAuth will require this.**
+
 Requirements
 ============
 
