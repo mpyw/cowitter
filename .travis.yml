@@ -1,0 +1,25 @@
+language: php
+
+php:
+  - 7.0.8
+
+install:
+  - composer install
+  - ./vendor/bin/codecept build
+
+sudo: false
+
+cache:
+  directories:
+    - ./vendor
+    - $HOME/.composer/cache
+
+script:
+  - php vendor/bin/codecept run unit --coverage --coverage-xml
+
+branches:
+  only:
+    - master
+
+after_script:
+  - travis_retry php vendor/bin/coveralls

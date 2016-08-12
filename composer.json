@@ -1,47 +1,45 @@
 {
-    "name": "mpyw/twistoauth",
+    "name": "mpyw/cowitter",
     "type": "library",
-    "description" : "Advanced PHP Twitter library.",
-    "version": "3.5.2",
-    "license": "BSD-2-Clause",
+    "description" : "Asynchronous Twitter client compatible with mpyw/co Generator-based flows.",
+    "license": "MIT",
     "keywords": [
         "Twitter",
         "API",
         "OAuth",
         "streaming",
-        "UserStream",
-        "multiple",
         "asynchronous",
         "async",
         "paralell",
-        "Twitpic",
         "image",
+        "video",
         "upload"
     ],
     "authors": [
         {
             "name": "mpyw",
-            "email": "ryosuke_i_628@yahoo.co.jp",
-            "homepage": "https://gravatar.com/mpyw",
-            "role": "developer"
+            "email": "ryosuke_i_628@yahoo.co.jp"
         }
     ],
-    "support": {
-        "issues": "https://github.com/mpyw/TwistOAuth/issues",
-        "source": "https://github.com/mpyw/TwistOAuth/releases",
-        "wiki": "https://github.com/mpyw/TwistOAuth/wiki"
-    },
     "require": {
-        "php": ">=5.3.2",
+        "php": ">=5.5.0",
         "ext-hash": "*",
         "ext-json": "*",
-        "ext-Reflection": "*",
-        "lib-openssl": "*",
+        "ext-openssl": "*",
         "lib-curl": "*",
-        "lib-libxml": "*",
-        "lib-pcre": "*"
+        "mpyw/co": "^1.4"
+    },
+    "require-dev": {
+        "php": ">=7.0.0",
+        "codeception/aspect-mock": "^2.0",
+        "codeception/codeception": "^2.2",
+        "codeception/specify": "*",
+        "satooshi/php-coveralls": "^1.0",
+        "mpyw/privator": "^2.0"
     },
     "autoload": {
-        "classmap": ["src/"]
+        "psr-4": {
+            "mpyw\\Cowitter\\": "src/"
+        }
     }
 }
