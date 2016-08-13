@@ -35,11 +35,8 @@ class CurlInitializer
         list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
         $params += $extra;
         $params = RequestParamValidator::validateParams($params);
-        if ($params) {
-            $url .= '?' . http_build_query($params, '', '&');
-        }
         curl_setopt_array($ch, array_replace($this->options, [
-            CURLOPT_URL            => $url,
+            CURLOPT_URL            => !$params ? $url : $url . '?' . http_build_query($params, '', '&'),
             CURLOPT_HTTPHEADER     => $this->credential->getOAuthHeaders($url, 'GET', $params),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
@@ -106,11 +103,8 @@ class CurlInitializer
         list($url, $extra) = UrlNormalizer::outSplitUrlAndParameters($endpoint);
         $params += $extra;
         $params = RequestParamValidator::validateParams($params);
-        if ($params) {
-            $url .= '?' . http_build_query($params, '', '&');
-        }
         curl_setopt_array($ch, array_replace($this->options, [
-            CURLOPT_URL            => $url,
+            CURLOPT_URL            => !$params ? $url : $url . '?' . http_build_query($params, '', '&'),
             CURLOPT_HTTPHEADER     => $this->credential->getOAuthHeadersForOAuthEcho(),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
@@ -282,11 +276,8 @@ class CurlInitializer
         list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
         $params += $extra;
         $params = RequestParamValidator::validateParams($params);
-        if ($params) {
-            $url .= '?' . http_build_query($params, '', '&');
-        }
         curl_setopt_array($ch, array_replace($this->options, [
-            CURLOPT_URL            => $url,
+            CURLOPT_URL            => !$params ? $url : $url . '?' . http_build_query($params, '', '&'),
             CURLOPT_HTTPHEADER     => $this->credential->getBearerHeaders(),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
