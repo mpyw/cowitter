@@ -10,7 +10,7 @@ class Media
     public function __construct($content_type, $data)
     {
         $this->contentType = $content_type;
-        $this->buffer = $buffer;
+        $this->data = $data;
     }
 
     public function getContentType()

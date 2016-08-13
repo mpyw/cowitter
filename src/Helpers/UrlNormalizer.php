@@ -63,8 +63,8 @@ class UrlNormalizer
         if (!isset(static::$versions[$segments[0]])) {
             array_unshift($segments, '1.1');
         }
-        if (count($segments) > 1 && substr(end($segments), -5) !== '.json') {
-            $segments[] = basename(array_pop($segments), '.json') . '.json';
+        if (count($segments) > 1 && !preg_match('/[.:]/', end($segments))) {
+            $segments[] = array_pop($segments) . '.json';
         }
         return $segments;
     }
@@ -81,7 +81,6 @@ class UrlNormalizer
 
     public static function twitterSplitUrlAndParameters($endpoint)
     {
-        $endpoint = strtolower($endpoint);
         if (null !== $result = static::twitterFastMatching($endpoint)) {
             return $result;
         }

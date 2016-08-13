@@ -78,6 +78,11 @@ class Response
         return $this->content;
     }
 
+    public function hasContent()
+    {
+        return $this->content !== null;
+    }
+
     public function withDecodedContent($content)
     {
         $clone = clone $this;

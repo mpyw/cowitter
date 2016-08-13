@@ -11,32 +11,38 @@ trait RequestorTrait
 {
     public function getAsync($endpoint, array $params = [])
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->get($endpoint, $params));
+        yield CoInterface::RETURN_WITH => $this->invokeFilter(
+            yield ResponseYielder::asyncExecDecoded($this->curl->get($endpoint, $params))
+        );
     }
 
     public function postAsync($endpoint, array $params = [])
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->post($endpoint, $params));
+        yield CoInterface::RETURN_WITH => $this->invokeFilter(
+            yield ResponseYielder::asyncExecDecoded($this->curl->post($endpoint, $params))
+        );
     }
 
     public function postMultipartAsync($endpoint, array $params = [])
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->postMultipart($endpoint, $params));
+        yield CoInterface::RETURN_WITH => $this->invokeFilter(
+            yield ResponseYielder::asyncExecDecoded($this->curl->postMultipart($endpoint, $params))
+        );
     }
 
     public function get($endpoint, array $params = [])
     {
-        return ResponseYielder::syncExecDecoded($this->curl->get($endpoint, $params));
+        return $this->invokeFilter(ResponseYielder::syncExecDecoded($this->curl->get($endpoint, $params)));
     }
 
     public function post($endpoint, array $params = [])
     {
-        return ResponseYielder::syncExecDecoded($this->curl->post($endpoint, $params));
+        return $this->invokeFilter(ResponseYielder::syncExecDecoded($this->curl->post($endpoint, $params)));
     }
 
     public function postMultipart($endpoint, array $params = [])
     {
-        return ResponseYielder::syncExecDecoded($this->curl->postMultipart($endpoint, $params));
+        return $this->invokeFilter(ResponseYielder::syncExecDecoded($this->curl->postMultipart($endpoint, $params)));
     }
 
     public function streamingAsync($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null)
@@ -53,7 +59,7 @@ trait RequestorTrait
         if (!$handler->isHaltedByUser()) {
             throw new \UnexpectedValueException('Streaming stopped unexpectedly.');
         }
-        return $handler->getHeaderResponse();
+        yield CoInterface::RETURN_WITH => $this->invokeFilter($handler->getHeaderResponse());
     }
 
     public function streaming($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null)
@@ -67,6 +73,6 @@ trait RequestorTrait
         if (!$handler->isHaltedByUser()) {
             throw new \UnexpectedValueException('Streaming stopped unexpectedly.');
         }
-        return $handler->getHeaderResponse();
+        return $this->invokeFilter($handler->getHeaderResponse());
     }
 }

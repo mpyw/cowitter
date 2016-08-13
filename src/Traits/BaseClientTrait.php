@@ -10,7 +10,7 @@ trait BaseClientTrait
 {
     public function __construct($credential, array $options = [])
     {
-        if ($credential instanceof Credential) {
+        if (!$credential instanceof Credential) {
             $credential = new Credential($credential);
         }
         $this->credential = $credential;
@@ -20,7 +20,7 @@ trait BaseClientTrait
 
     public function withCredential($credentail)
     {
-        if ($credential instanceof Credential) {
+        if (!$credential instanceof Credential) {
             $credential = new Credential($credential);
         }
         return new static($credentail, $this->options);

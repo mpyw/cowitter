@@ -4,6 +4,7 @@ namespace mpyw\Cowitter\Helpers;
 
 use mpyw\Cowitter\HttpException;
 use mpyw\Cowitter\Response;
+use mpyw\Cowitter\Media;
 
 class ResponseBodyDecoder
 {
