@@ -54,9 +54,9 @@ class Credential implements \ArrayAccess
         return $this->{CredentialNormalizer::normalizeCredentialParamName($key)};
     }
 
-    public function __set($key, $value)
+    public function __isset($key)
     {
-        throw new \BadMethodCallException('Unsupported operation.');
+        return isset($this->{CredentialNormalizer::normalizeCredentialParamName($key)});
     }
 
     public function getAuthorizeUrl($force_login = false)
