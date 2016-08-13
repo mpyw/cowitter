@@ -4,7 +4,7 @@ namespace mpyw\Cowitter;
 
 use mpyw\Cowitter\Response;
 
-class HttpException extends \RuntimeException
+class HttpException extends \RuntimeException implements HttpExceptionInterface
 {
     protected $ch;
     protected $response;

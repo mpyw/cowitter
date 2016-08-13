@@ -1,6 +1,6 @@
 <?php
 
-namespace mpyw\Cowitter;
+namespace mpyw\Cowitter\Components;
 use mpyw\Cowitter\Helpers\CredentialNormalizer;
 
 class Credential implements \ArrayAccess
@@ -27,6 +27,12 @@ class Credential implements \ArrayAccess
             $this->{CredentialNormalizer::normalizeCredentialParamName($key)} = $value;
         }
         return $clone;
+    }
+
+    public function toArray($assoc = false)
+    {
+        $values = get_object_vars($this);
+        return $assoc ? $values : array_values($values);
     }
 
     public function offsetGet($offset)
@@ -97,12 +103,12 @@ class Credential implements \ArrayAccess
             $this->consumer_key,
             $this->consumer_secret,
         ])));
-        return ['Authorization: Basic ' . urlencode($header)];
+        return ['Authorization: Basic ' . $header];
     }
 
     public function getBearerHeaders()
     {
-        return ['Authorization: Bearear ' . urlencode($this->token)];
+        return ['Authorization: Bearer ' . $this->token];
     }
 
     public function getOAuthHeadersForOAuthEcho()

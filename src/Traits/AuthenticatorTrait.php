@@ -14,74 +14,68 @@ trait AuthenticatorTrait
 {
     public function oauthForRequestTokenAsync($oauth_callback = null)
     {
-        $response = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForRequestToken($oauth_callback)));
-        $obj = $response->getContent();
-        yield CoInterface::RETURN_WITH => $this->withCredential(new Credential([
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForRequestToken($oauth_callback)));
+        yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function oauthForAccessTokenAsync($oauth_verifier)
     {
-        $response = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier)));
-        $obj = $response->getContent();
-        yield CoInterface::RETURN_WITH => $this->withCredential(new Credential([
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier)));
+        yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function xauthForAccessTokenAsync($username, $password)
     {
-        $response = (yield ResponseYielder::asyncExecDecoded($this->curl->xauthForAccessToken($username, $password)));
-        $obj = $response->getContent();
-        yield CoInterface::RETURN_WITH => $this->withCredential(new Credential([
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->xauthForAccessToken($username, $password)));
+        yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function oauthForRequestToken($oauth_callback = null)
     {
-        $response = ResponseYielder::syncExecDecoded($this->curl->oauthForRequestToken($oauth_callback));
-        $obj = $response->getContent();
-        return $this->withCredential(new Credential([
+        $obj = ResponseYielder::syncExecDecoded($this->curl->oauthForRequestToken($oauth_callback));
+        return $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function oauthForAccessToken($oauth_verifier)
     {
-        $response = ResponseYielder::syncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier));
-        $obj = $response->getContent();
-        return $this->withCredential(new Credential([
+        $obj = ResponseYielder::syncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier));
+        return $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function xauthForAccessToken($username, $password)
     {
-        $response = ResponseYielder::syncExecDecoded($this->curl->xauthForAccessToken($username, $password));
-        $obj = $response->getContent();
-        return $this->withCredential(new Credential([
+        $obj = ResponseYielder::syncExecDecoded($this->curl->xauthForAccessToken($username, $password));
+        return $this->withCredentials([
             $this->credential['consumer_key'],
             $this->credential['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
-        ]));
+        ]);
     }
 
     public function loginAsync($username, $password)

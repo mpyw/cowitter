@@ -75,26 +75,25 @@ class ResponseBodyDecoder
             libxml_clear_errors();
             libxml_use_internal_errors($orig);
         }
-        if (isset($obj->error)) {
-            throw new HttpException($obj->error, -1, $this->ch, $this->response);
+        if (!empty($obj->error)) {
+            $errors = $obj->error;
+        } elseif (!empty($obj->errors)) {
+            $errors = $obj->errors;
+        } else {
+            return $obj;
         }
-        if (isset($obj->errors)) {
-            if (is_string($obj->errors)) {
-                throw new HttpException($obj->errors, -1, $this->ch, $this->response);
-            }
-            $messages = [];
-            foreach ($obj->errors as $error) {
-                $messages[] = $error->message;
-            }
-            $current = current($obj->errors);
-            throw new HttpException(
-                implode("\n", $messages),
-                $current === false ? -1 : $current->code,
-                $this->ch,
-                $this->response
-            );
+        if (!is_array($errors)) {
+            $errors = [$errors];
         }
-        return $obj;
+        $messages = [];
+        $code = -1;
+        foreach ($errors as $error) {
+            if (isset($error->code)) {
+                $code = (int)filter_var($error->code);
+            }
+            $messages[] = (string)filter_var(isset($error->message) ? $error->message : $error);
+        }
+        throw new HttpException(implode("\n", $messages), $code, $this->ch, $this->response);
     }
 
     protected function handleText()

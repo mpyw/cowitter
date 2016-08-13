@@ -2,19 +2,21 @@
 
 namespace mpyw\Cowitter;
 
-use mpyw\Cowitter\Response;
-use mpyw\Cowitter\Components\AbstractClient;
-use mpyw\Cowitter\SimpleClient;
-
-class Client extends AbstractClient
+class Client implements \ArrayAccess, ClientInterface
 {
-    protected function invokeFilter(Response $r)
-    {
-        return $r;
-    }
+    protected static $defaultOptions = [
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 20,
+        CURLOPT_ENCODING       => 'gzip',
+    ];
 
-    public function simplify()
-    {
-        return new SimpleClient($this->credential, $this->options);
-    }
+    protected $credential;
+    protected $options;
+    protected $curl;
+
+    use \mpyw\Cowitter\Traits\BaseClientTrait;
+    use \mpyw\Cowitter\Traits\AuthenticatorTrait;
+    use \mpyw\Cowitter\Traits\RequestorTrait;
+    use \mpyw\Cowitter\Traits\UploaderTrait;
+    use \mpyw\Cowitter\Traits\OAuth2ClientTrait;
 }

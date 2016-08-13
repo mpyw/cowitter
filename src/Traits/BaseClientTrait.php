@@ -4,31 +4,60 @@ namespace mpyw\Cowitter\Traits;
 
 use mpyw\Cowitter\Helpers\CurlOptionNormalizer;
 use mpyw\Cowitter\Components\CurlInitializer;
-use mpyw\Cowitter\Credential;
+use mpyw\Cowitter\Components\Credential;
 
 trait BaseClientTrait
 {
-    public function __construct($credential, array $options = [])
+    public function __construct(array $credentials, array $options = [])
     {
-        if (!$credential instanceof Credential) {
-            $credential = new Credential($credential);
-        }
-        $this->credential = $credential;
+        $this->credential = new Credential($credentials);
         $this->options = CurlOptionNormalizer::numerifyAll($options);
-        $this->curl = new CurlInitializer($credential, $this->options);
+        $this->curl = new CurlInitializer($this->credential, $this->options);
     }
 
-    public function withCredential($credentail)
+    public function offsetGet($offset)
     {
-        if (!$credential instanceof Credential) {
-            $credential = new Credential($credential);
-        }
-        return new static($credentail, $this->options);
+        return $this->credential->offsetGet($offset);
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        return $this->credential->offsetSet($offset, $value);
+    }
+
+    public function offsetUnset($offset)
+    {
+        return $this->credential->offsetUnset($offset);
+    }
+
+    public function offsetExists($offset)
+    {
+        return $this->credential->offsetExists($offset);
+    }
+
+    public function __get($key)
+    {
+        return $this->credential->$key;
+    }
+
+    public function __isset($key)
+    {
+        return isset($this->credential->$key);
+    }
+
+    public function withCredentials(array $credentials)
+    {
+        return new static($credentials, $this->options);
     }
 
     public function withOptions(array $options)
     {
-        return new static($this->credentail, $options);
+        return new static($this->credential, $options);
+    }
+
+    public function getCredentials($assoc = false)
+    {
+        return $this->credential->toArray($assoc);
     }
 
     public function getOptions($stringify = false)
@@ -43,6 +72,6 @@ trait BaseClientTrait
 
     public function getAuthenticateUrl($force_login = false)
     {
-        return $this->credentail->getAuthenticateUrl($force_login);
+        return $this->credential->getAuthenticateUrl($force_login);
     }
 }

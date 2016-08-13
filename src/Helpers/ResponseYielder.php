@@ -44,15 +44,23 @@ class ResponseYielder
         yield CoInterface::RETURN_WITH => $response;
     }
 
-    public static function syncExecDecoded($ch)
+    public static function syncExecDecoded($ch, $return_response_object = false)
     {
         $response = static::syncExec($ch);
-        return ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        $response = ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        if (!$return_response_object) {
+            $response = $response->hasContent() ? $response->getContent() : null;
+        }
+        return $response;
     }
 
-    public static function asyncExecDecoded($ch)
+    public static function asyncExecDecoded($ch, $return_response_object = false)
     {
         $response = (yield static::asyncExec($ch));
-        yield CoInterface::RETURN_WITH => ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        $response = ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        if (!$return_response_object) {
+            $response = $response->hasContent() ? $response->getContent() : null;
+        }
+        yield CoInterface::RETURN_WITH => $response;
     }
 }

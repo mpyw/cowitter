@@ -2,7 +2,6 @@
 
 namespace mpyw\Cowitter\Components;
 
-use mpyw\Cowitter\Credential;
 use mpyw\Cowitter\Response;
 use mpyw\Cowitter\Helpers\ResponseBodyNormalizer;
 use mpyw\Cowitter\Helpers\RequestParamValidator;
@@ -252,6 +251,62 @@ class CurlInitializer
                 'x_auth_password' => $password,
                 'x_auth_mode'     => 'client_auth',
             ], '', '&'),
+        ]));
+        return $ch;
+    }
+
+    /**
+     * [oauthForBearerToken description]
+     * @param  [type] $oauth_callback [description]
+     * @return [type]                 [description]
+     */
+    public function oauthForBearerToken()
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, array_replace($this->options, [
+            CURLOPT_URL            => 'https://api.twitter.com/oauth2/token',
+            CURLOPT_HTTPHEADER     => $this->credential->getBasicHeaders(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query([
+                'grant_type' => 'client_credentials',
+            ], '', '&'),
+        ]));
+        return $ch;
+    }
+
+    public function get2($endpoint, $params = [])
+    {
+        $ch = curl_init();
+        list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
+        $params += $extra;
+        $params = RequestParamValidator::validateParams($params);
+        if ($params) {
+            $url .= '?' . http_build_query($params, '', '&');
+        }
+        curl_setopt_array($ch, array_replace($this->options, [
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => $this->credential->getBearerHeaders(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_HTTPGET        => true,
+        ]));
+        return $ch;
+    }
+
+    public function invalidateBearerToken()
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, array_replace($this->options, [
+            CURLOPT_URL            => 'https://api.twitter.com/oauth2/invalidate_token',
+            CURLOPT_HTTPHEADER     => $this->credential->getBasicHeaders(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query([
+                'access_token' => rawurldecode($this->credential->token),
+            ], '', '&', PHP_QUERY_RFC3986),
         ]));
         return $ch;
     }

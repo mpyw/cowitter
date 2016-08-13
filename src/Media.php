@@ -2,7 +2,7 @@
 
 namespace mpyw\Cowitter;
 
-class Media
+class Media implements MediaInterface
 {
     protected $contentType;
     protected $data;
