@@ -4,6 +4,7 @@ namespace mpyw\Cowitter;
 
 use mpyw\Cowitter\ClientInterface;
 use mpyw\Cowitter\ResponseInterface;
+use mpyw\Cowitter\HttpExceptionInterface;
 
 interface ClientInterface
 {
@@ -65,6 +66,7 @@ interface ClientInterface
      * @param string      $oauth_verifier
      * @param string      $username       Username or email.
      * @param string      $password
+     * @throws HttpExceptionInterface
      */
     public function oauthForRequestToken($oauth_callback = null); // : ClientInterface
     public function oauthForAccessToken($oauth_verifier); // : ClientInterface
@@ -88,6 +90,7 @@ interface ClientInterface
      *     CURLFile is automatically Base64-encoded in non-multipart mode.
      * @param bool $return_response_object
      *     Wrap content with Response object or not.
+     * @throws HttpExceptionInterface
      */
     public function get($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
     public function post($endpoint, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
@@ -108,6 +111,7 @@ interface ClientInterface
      *     CURLFile is automatically Base64-encoded in non-multipart mode.
      * @param bool $return_response_object
      *     Wrap content with Response object or not.
+     * @throws HttpExceptionInterface
      */
     public function getOut($url, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
     public function postOut($url, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
@@ -132,6 +136,7 @@ interface ClientInterface
      * @param callable|null $header_response_handler
      *     Receive Response object that only contains header information as the first argument.
      *       Signature: function (ResponseInterface $response);
+     * @throws HttpExceptionInterface
      */
     public function streaming($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null); // : null
     public function streamingAsync($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null); // : \Generator<null>
@@ -147,6 +152,7 @@ interface ClientInterface
      *     Progress functions while uploading.
      *       Signature: function (\stdClass $processing_info, $percent, ResponseInterface $response);
      *       NOTE: $percent is nullable.
+     * @throws HttpExceptionInterface
      */
     public function uploadFile(\SplFileObject $file, array $params = []); // : ResponseInterface
     public function uploadLargeFile(\SplFileObject $file, array $params = [], callable $on_progress = null); // : ResponseInterface
@@ -155,12 +161,14 @@ interface ClientInterface
 
     /**
      * Renew with OAuth 2.0 authorized/authenticated credential.
+     * @throws HttpExceptionInterface
      */
     public function oauthForBearerToken(); // : ClientInterface
     public function oauthForBearerTokenAsync(); // : \Generator<ClientInterface>
 
     /**
      * Invalidate OAuth 2.0 token.
+     * @throws HttpExceptionInterface
      */
     public function invalidateBearerToken(); // : null
     public function invalidateBearerTokenAsync(); // : \Generator<null>
@@ -176,6 +184,7 @@ interface ClientInterface
      *     Null is ignored.
      * @param bool $return_response_object
      *     Wrap content with Response object or not.
+     * @throws HttpExceptionInterface
      */
     public function get2($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
     public function get2Async($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|ResponseInterface
