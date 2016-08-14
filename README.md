@@ -90,10 +90,10 @@ Co::wait($tasks);
 ```php
 // Rapidly update tweet with multiple images
 Co::wait(function () use ($client) {
-    $ids = yield [
-        $client->postMultipartAsync('media/upload', ['media' => 'photo01'])->media_id_string,
-        $client->postMultipartAsync('media/upload', ['media' => 'photo02'])->media_id_string,
-    ];
+    $ids = array_column(yield [
+        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo01.png')])
+        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo02.png')])
+    ], 'media_id_string');
     yield $client->postAsync('statuses/update', [
         'status' => 'My photos',
         'media_ids' => implode(',', $ids);
