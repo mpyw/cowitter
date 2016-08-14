@@ -2,27 +2,116 @@
 
 namespace mpyw\Cowitter\Traits;
 
+use mpyw\Cowitter\HttpException;
+use mpyw\Co\Co;
+
 trait UploaderTrait
 {
-    public function uploadFileAsync(\SplFileObject $file, array $params = [])
+    protected static function validateChunkSize($value)
     {
-        yield;
-        throw new \BadMethodCallException('Not yet implemented');
+        if (false === $value = filter_var($value, FILTER_VALIDATE_INT)) {
+            throw new \InvalidArgumentException('Chunk size must be integer.');
+        }
+        if ($value < 10000) {
+            throw new \LengthException('Chunk size must be no less than 10000 bytes.');
+        }
+        return $value;
     }
 
-    public function uploadLargeFileAsync(\SplFileObject $file, array $params = [], callable $on_progress = null)
+    protected static function getMimeType(\SplFileObject $file)
     {
-        yield;
-        throw new \BadMethodCallException('Not yet implemented');
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $type = $finfo->buffer($file->fread(1024));
+        $file->rewind();
+        return $type;
     }
 
-    public function uploadFile(\SplFileObject $file, array $params = [])
+    public function uploadAsync(\SplFileObject $file, $media_category = null, callable $on_progress = null, $chunk_size = 300000)
     {
-        throw new \BadMethodCallException('Not yet implemented');
+        $chunk_size = static::validateChunkSize($chunk_size);
+
+        $info = (yield $this->postAsync('media/upload', [
+            'command' => 'INIT',
+            'media_type' => static::getMimeType($file),
+            'total_bytes' => $file->getSize(),
+            'media_category' => $media_category,
+        ]));
+
+        $tasks = [];
+        for ($i = 0; '' !== $buffer = $file->fread($chunk_size); ++$i) {
+            $tasks[] = $this->postMultipartAsync('media/upload', [
+                'command' => 'APPEND',
+                'media_id' => $info->media_id_string,
+                'segment_index' => $i,
+                'media' => $buffer,
+            ]);
+        }
+        yield $tasks;
+
+        $response = (yield $this->postAsync('media/upload', [
+            'command' => 'FINALIZE',
+            'media_id' => $info->media_id_string,
+        ], true));
+        $info = $response->getContent();
+
+        if (!isset($info->processing_info)) {
+            yield Co::RETURN_WITH => $info;
+        }
+
+        $canceled = false;
+        while ($info->processing_info->state === 'pending' || $info->processing_info->state === 'in_progress') {
+            $percent = isset($info->processing_info->progress_percent)
+                ? $info->processing_info->progress_percent
+                : null
+            ;
+            if ($on_progress && (new \ReflectionFunction($on_progress))->isGenerator()) {
+                Co::async(function () use ($on_progress, $percent, $response, &$canceled) {
+                    if (false === (yield $on_progress($percent, $response))) {
+                        $canceled = true;
+                    }
+                });
+            } elseif ($on_progress) {
+                if (false === $on_progress($percent, $response)) {
+                    yield Co::RETURN_WITH => $info;
+                }
+            }
+            if ($canceled) yield Co::RETURN_WITH => $info;
+            yield Co::DELAY => $info->processing_info->check_after_secs;
+            if ($canceled) yield Co::RETURN_WITH => $info;
+            $response = (yield $this->getAsync('media/upload', [
+                'command' => 'STATUS',
+                'media_id' => $info->media_id_string,
+            ], true));
+            $info = $response->getContent();
+            if ($canceled) yield Co::RETURN_WITH => $info;
+        }
+
+        if ($info->processing_info->state === 'failed') {
+            throw new HttpException(
+                isset($info->processing_info->error->message)
+                    ? $info->processing_info->error->message
+                    : $info->processing_info->error->name,
+                $info->processing_info->error->code,
+                $response->getHandle(),
+                $response
+            );
+        }
+
+        yield Co::RETURN_WITH => $info;
     }
 
-    public function uploadLargeFile(\SplFileObject $file, array $params = [], callable $on_progress = null)
+    public function uploadImageAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000)
     {
-        throw new \BadMethodCallException('Not yet implemented');
+        return $this->uploadAsync($file, 'tweet_image', $on_progress, $chunk_size);
+    }
+
+    public function uploadAnimeGifAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000)
+    {
+        return $this->uploadAsync($file, 'tweet_gif', $on_progress, $chunk_size);
+    }
+
+    public function uploadVideoAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000)
+    {
+        return $this->uploadAsync($file, 'tweet_video', $on_progress, $chunk_size);
     }
 }

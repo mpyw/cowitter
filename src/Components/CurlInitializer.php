@@ -12,23 +12,12 @@ class CurlInitializer
     protected $credential;
     protected $options;
 
-    /**
-     * [__construct description]
-     * @param Credential $credential [description]
-     * @param array      $options    [description]
-     */
     public function __construct(Credential $credential, array $options)
     {
         $this->credential = $credential;
         $this->options = $options;
     }
 
-    /**
-     * [get description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function get($endpoint, array $params)
     {
         $ch = curl_init();
@@ -45,12 +34,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [post description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function post($endpoint, array $params)
     {
         $ch = curl_init();
@@ -68,12 +51,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [postMultipart description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function postMultipart($endpoint, array $params)
     {
         $ch = curl_init();
@@ -91,12 +68,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [getOut description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function getOut($endpoint, array $params)
     {
         $ch = curl_init();
@@ -113,12 +84,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [postOut description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function postOut($endpoint, array $params)
     {
         $ch = curl_init();
@@ -136,12 +101,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [postMultipartOut description]
-     * @param  [type] $endpoint [description]
-     * @param  array  $params   [description]
-     * @return [type]           [description]
-     */
     public function postMultipartOut($endpoint, array $params)
     {
         $ch = curl_init();
@@ -159,13 +118,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [streaming description]
-     * @param  [type]        $endpoint [description]
-     * @param  array         $params   [description]
-     * @param  StreamHandler $handler  [description]
-     * @return [type]                  [description]
-     */
     public function streaming($endpoint, array $params, StreamHandler $handler)
     {
         $ch = curl_init();
@@ -183,11 +135,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [oauthForRequestToken description]
-     * @param  [type] $oauth_callback [description]
-     * @return [type]                 [description]
-     */
     public function oauthForRequestToken($oauth_callback = null)
     {
         if ($oauth_callback !== null) {
@@ -204,11 +151,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [oauthForAccessToken description]
-     * @param  [type] $oauth_verifier [description]
-     * @return [type]                 [description]
-     */
     public function oauthForAccessToken($oauth_verifier)
     {
         $oauth_verifier = RequestParamValidator::validateStringable('oauth_verifier', $oauth_verifier);
@@ -223,12 +165,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [xauthForAccessToken description]
-     * @param  [type] $username [description]
-     * @param  [type] $password [description]
-     * @return [type]           [description]
-     */
     public function xauthForAccessToken($username, $password)
     {
         $username = RequestParamValidator::validateStringable('username', $username);
@@ -249,11 +185,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [oauthForBearerToken description]
-     * @param  [type] $oauth_callback [description]
-     * @return [type]                 [description]
-     */
     public function oauthForBearerToken()
     {
         $ch = curl_init();
@@ -302,10 +233,6 @@ class CurlInitializer
         return $ch;
     }
 
-    /**
-     * [browsing description]
-     * @return [type] [description]
-     */
     public function browsing()
     {
         $ch = curl_init();

@@ -10,6 +10,7 @@ class Response implements ResponseInterface
     protected $statusCode;
     protected $reasonPhrase;
     protected $headers = [];
+    protected $handle;
     protected $rawContent;
     protected $content;
 
@@ -30,6 +31,7 @@ class Response implements ResponseInterface
             list($key, $value) = explode(':', $line, 2) + [1 => ''];
             $this->headers[strtolower(trim($key))][] = trim($value);
         }
+        $this->handle = $ch;
         $this->rawContent = $body_buffer;
     }
 
@@ -63,6 +65,11 @@ class Response implements ResponseInterface
     {
         $name = strtolower($name);
         return implode($delimiter, $this->getHeader($name));
+    }
+
+    public function getHandle()
+    {
+        return $this->handle;
     }
 
     public function getRawContent()

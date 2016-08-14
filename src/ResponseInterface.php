@@ -44,6 +44,12 @@ interface ResponseInterface
     public function getHeaderLine($name, $delimiter = ', ');
 
     /**
+     * Return cURL handle used for sending request.
+     * @return resource
+     */
+    public function getHandle();
+
+    /**
      * Return raw body.
      * @return string
      */

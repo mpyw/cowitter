@@ -2,6 +2,7 @@
 
 namespace mpyw\Cowitter\Components;
 
+use mpyw\Co\Co;
 use mpyw\Cowitter\Response;
 use mpyw\Cowitter\Helpers\ResponseBodyDecoder;
 
@@ -26,7 +27,9 @@ class StreamHandler
         $this->headerResponseBuffer .= $str;
         if ($str === "\r\n") {
             $this->headerResponse = new Response($this->headerResponseBuffer, $ch);
-            if ($handle) {
+            if ($handle && (new \ReflectionFunction($handle))->isGenerator()) {
+                Co::async($handle($this->headerResponse));
+            } elseif ($handle) {
                 $handle($this->headerResponse);
             }
         }
@@ -35,6 +38,9 @@ class StreamHandler
 
     public function writeFunction($ch, $str)
     {
+        if ($this->haltedByUser) {
+            return 0;
+        }
         $handle = $this->eventHandler;
         $this->eventBuffer .= $str;
         if (200 !== $code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
@@ -49,7 +55,21 @@ class StreamHandler
             return strlen($str);
         }
         $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $this->eventBuffer);
-        $signal = $handle ? $handle($event->getContent()) : true;
+        if (!$handle) {
+            $this->eventBuffer = '';
+            return strlen($str);
+        }
+        if ((new \ReflectionFunction($handle))->isGenerator()) {
+            Co::async(function () use ($handle, $event) {
+                $signal = (yield $handle($event->getContent()));
+                if ($signal === false) {
+                    $this->haltedByUser = true;
+                }
+            });
+            $this->eventBuffer = '';
+            return strlen($str);
+        }
+        $signal = $handle($event->getContent());
         if ($signal === false) {
             $this->haltedByUser = true;
             return 0;
