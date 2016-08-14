@@ -5,6 +5,7 @@ namespace mpyw\Cowitter;
 use mpyw\Cowitter\ClientInterface;
 use mpyw\Cowitter\ResponseInterface;
 use mpyw\Cowitter\HttpExceptionInterface;
+use mpyw\Cowitter\MediaInterface;
 
 interface ClientInterface
 {
@@ -104,10 +105,10 @@ interface ClientInterface
      *
      * @throws HttpExceptionInterface
      */
-    public function get($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
+    public function get($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|MediaInterface|ResponseInterface
     public function post($endpoint, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
     public function postMultipart($endpoint, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
-    public function getAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|ResponseInterface
+    public function getAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|MediaInterface|ResponseInterface
     public function postAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
     public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
 
