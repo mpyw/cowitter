@@ -32,15 +32,18 @@ $client = new Client(['CK', 'CS', 'AT', 'ATS']);
 ### Synchronous requests
 
 ```php
+// Search tweets
 $statuses = $client->get('search/tweets', ['q' => 'cowitter'])->statuses;
 var_dump($statuses);
 ```
 
 ```php
+// Update tweet
 $client->post('statuses/update', ['status' => 'Cowitter is the best twitter library for PHP!']);
 ```
 
 ```php
+// Update tweet with multiple images
 $ids = [
     $client->postMultipart('media/upload', ['media' => new \CURLFile('photo01.png')])->media_id_string,
     $client->postMultipart('media/upload', ['media' => new \CURLFile('photo02.jpg')])->media_id_string,
@@ -52,6 +55,7 @@ $client->post('statuses/update', [
 ```
 
 ```php
+// Listen user streaming
 $client->streaming('user', function ($status) {
     if (!isset($status->text)) return;
     printf("%s(@s) - %s\n",
@@ -65,6 +69,7 @@ $client->streaming('user', function ($status) {
 ### Asynchronous requests
 
 ```php
+// Search tweets
 Co::wait(function () use ($client) {
     $statuses = (yield $client->getAsync('search/tweets', ['q' => 'cowitter']))->statuses;
     var_dump($statuses);
@@ -72,6 +77,7 @@ Co::wait(function () use ($client) {
 ```
 
 ```php
+// Rapidly update tweets for 10 times
 $tasks = [];
 foreach ($i = 0; $i < 20; ++$i) {
     $tasks[] = client->postAsync('statuses/update', [
@@ -82,6 +88,7 @@ Co::wait($tasks);
 ```
 
 ```php
+// Rapidly update tweet with multiple images
 Co::wait(function () use ($client) {
     $ids = yield [
         $client->postMultipartAsync('media/upload', ['media' => 'photo01'])->media_id_string,
@@ -95,6 +102,7 @@ Co::wait(function () use ($client) {
 ```
 
 ```php
+// Listen filtered streaming to favorite/retweet at once each tweet
 Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($client) {
     if (!isset($status->text)) return;
     printf("%s(@s) - %s\n",
@@ -102,7 +110,7 @@ Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($cli
         $status->user->screen_name,
         htmlspecialchars_decode($status->text, ENT_NOQUOTES)
     );
-    yield Co::SAFE => [ // Ignore errors
+    yield Co::SAFE => [ // ignore errors
         $client->postAsync('favorites/create', ['id' => $status->id_str]),
         $client->postAsync("statuses/retweet/{$status->id_str}"),
     ];
@@ -110,6 +118,7 @@ Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($cli
 ```
 
 ```php
+// Rapidly update with MP4 video
 Co::wait(function () use ($client) {
     $file = new \SplFileObject('video.mp4');
     $on_progress = function ($percent) {
@@ -126,22 +135,7 @@ Co::wait(function () use ($client) {
     ]);
     echo "Done\n";
 });
-
-Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($client) {
-    if (!isset($status->text)) return;
-    printf("%s(@s) - %s\n",
-        $status->user->name,
-        $status->user->screen_name,
-        htmlspecialchars_decode($status->text, ENT_NOQUOTES)
-    );
-    yield Co::SAFE => [ // Ignore errors
-        $client->postAsync('favorites/create', ['id' => $status->id_str]),
-        $client->postAsync("statuses/retweet/{$status->id_str}"),
-    ];
-}, ['track' => 'PHP']));
 ```
-
-
 
 ### Handle exceptions
 
@@ -167,7 +161,6 @@ try {
 
 }
 ```
-
 
 ## Details
 
