@@ -106,11 +106,11 @@ interface ClientInterface
      * @throws HttpExceptionInterface
      */
     public function get($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|MediaInterface|ResponseInterface
-    public function post($endpoint, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
-    public function postMultipart($endpoint, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
+    public function post($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
+    public function postMultipart($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
     public function getAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|MediaInterface|ResponseInterface
-    public function postAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
-    public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
+    public function postAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
+    public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
 
     /**
      * Send OAuth Echo request to external JSON API.
@@ -131,11 +131,11 @@ interface ClientInterface
      * @throws HttpExceptionInterface
      */
     public function getOut($url, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
-    public function postOut($url, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
-    public function postMultipartOut($url, array $params = [], $return_response_object = false); // : \stdClass|null|ResponseInterface
+    public function postOut($url, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
+    public function postMultipartOut($url, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
     public function getOutAsync($url, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|ResponseInterface
-    public function postOutAsync($url, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
-    public function postMultipartOutAsync($url, array $params = [], $return_response_object = false); // : \Generator<\stdClass|null|ResponseInterface>
+    public function postOutAsync($url, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
+    public function postMultipartOutAsync($url, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
 
     /**
      * Send OAuth 1.0a streaming request.
