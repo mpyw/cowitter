@@ -120,7 +120,7 @@ Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($cli
 ```php
 // Rapidly update with MP4 video
 Co::wait(function () use ($client) {
-    $file = new \SplFileObject('video.mp4');
+    $file = new \SplFileObject('video.mp4', 'rb');
     $on_progress = function ($percent) {
         if ($percent === null) {
             echo "Processing ...\n";
