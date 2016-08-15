@@ -4,6 +4,7 @@ namespace mpyw\Cowitter\Traits;
 
 use mpyw\Cowitter\HttpException;
 use mpyw\Co\Co;
+use mpyw\Cowitter\ResponseInterface;
 
 trait UploaderTrait
 {
@@ -32,15 +33,22 @@ trait UploaderTrait
 
     public function uploadAsync(\SplFileObject $file, $media_category = null, callable $on_progress = null, $chunk_size = 300000)
     {
-        $chunk_size = static::validateChunkSize($chunk_size);
+        $response = (yield $this->uploadStep1($file, $media_category, $chunk_size));
+        if (!isset($response->getContent()->processing_info)) {
+            yield Co::RETURN_WITH => $response->getContent();
+        }
+        yield Co::RETURN_WITH => (yield $this->uploadStep2($response, $file, $on_progress));
+    }
 
+    protected function uploadStep1(\SplFileObject $file, $media_category = null, $chunk_size = 300000)
+    {
+        $chunk_size = static::validateChunkSize($chunk_size);
         $info = (yield $this->postAsync('media/upload', [
             'command' => 'INIT',
             'media_type' => static::getMimeType($file),
             'total_bytes' => $file->getSize(),
             'media_category' => $media_category,
         ]));
-
         $tasks = [];
         for ($i = 0; '' !== $buffer = $file->fread($chunk_size); ++$i) {
             $tasks[] = $this->postMultipartAsync('media/upload', [
@@ -51,17 +59,15 @@ trait UploaderTrait
             ]);
         }
         yield $tasks;
-
-        $response = (yield $this->postAsync('media/upload', [
+        yield Co::RETURN_WITH => (yield $this->postAsync('media/upload', [
             'command' => 'FINALIZE',
             'media_id' => $info->media_id_string,
         ], true));
+    }
+
+    protected function uploadStep2(ResponseInterface $response, \SplFileObject $file, callable $on_progress = null)
+    {
         $info = $response->getContent();
-
-        if (!isset($info->processing_info)) {
-            yield Co::RETURN_WITH => $info;
-        }
-
         $canceled = false;
         while ($info->processing_info->state === 'pending' || $info->processing_info->state === 'in_progress') {
             $percent = isset($info->processing_info->progress_percent)
@@ -87,7 +93,6 @@ trait UploaderTrait
                 'media_id' => $info->media_id_string,
             ], true));
             $info = $response->getContent();
-            if ($canceled) yield Co::RETURN_WITH => $info;
         }
 
         if ($info->processing_info->state === 'failed') {
