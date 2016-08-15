@@ -12,12 +12,16 @@ use mpyw\Co\CoInterface;
 
 trait AuthenticatorTrait
 {
+    abstract public function withCredentials(array $credentails);
+    abstract protected function getInternalCurl();
+    abstract protected function getInternalCredential();
+
     public function oauthForRequestTokenAsync($oauth_callback = null)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForRequestToken($oauth_callback)));
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForRequestToken($oauth_callback)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -25,10 +29,10 @@ trait AuthenticatorTrait
 
     public function oauthForAccessTokenAsync($oauth_verifier)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier)));
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForAccessToken($oauth_verifier)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -36,10 +40,10 @@ trait AuthenticatorTrait
 
     public function xauthForAccessTokenAsync($username, $password)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->curl->xauthForAccessToken($username, $password)));
+        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->xauthForAccessToken($username, $password)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -47,10 +51,10 @@ trait AuthenticatorTrait
 
     public function oauthForRequestToken($oauth_callback = null)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->curl->oauthForRequestToken($oauth_callback));
+        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForRequestToken($oauth_callback));
         return $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -58,10 +62,10 @@ trait AuthenticatorTrait
 
     public function oauthForAccessToken($oauth_verifier)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->curl->oauthForAccessToken($oauth_verifier));
+        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForAccessToken($oauth_verifier));
         return $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -69,10 +73,10 @@ trait AuthenticatorTrait
 
     public function xauthForAccessToken($username, $password)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->curl->xauthForAccessToken($username, $password));
+        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->xauthForAccessToken($username, $password));
         return $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
@@ -81,7 +85,7 @@ trait AuthenticatorTrait
     public function loginAsync($username, $password)
     {
         $author = (yield $this->oauthForRequestTokenAsync('oob'));
-        $scraper = $this->curl->browsing();
+        $scraper = $this->getInternalCurl()->browsing();
         curl_setopt_array($scraper, [
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),
@@ -103,7 +107,7 @@ trait AuthenticatorTrait
     public function login($username, $password)
     {
         $author = $this->oauthForRequestToken('oob');
-        $scraper = $this->curl->browsing();
+        $scraper = $this->getInternalCurl()->browsing();
         curl_setopt_array($scraper, [
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),

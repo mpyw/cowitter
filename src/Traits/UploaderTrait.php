@@ -7,6 +7,10 @@ use mpyw\Co\Co;
 
 trait UploaderTrait
 {
+    abstract public function getAsync($endpoint, array $params = [], $return_response_object = false);
+    abstract public function postAsync($endpoint, array $params = [], $return_response_object = false);
+    abstract public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false);
+
     protected static function validateChunkSize($value)
     {
         if (false === $value = filter_var($value, FILTER_VALIDATE_INT)) {

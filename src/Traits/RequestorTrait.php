@@ -9,40 +9,42 @@ use mpyw\Cowitter\Helpers\ResponseYielder;
 
 trait RequestorTrait
 {
+    abstract protected function getInternalCurl();
+
     public function getAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->get($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->get($endpoint, $params), $return_response_object);
     }
 
     public function postAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->post($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->post($endpoint, $params), $return_response_object);
     }
 
     public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->postMultipart($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->postMultipart($endpoint, $params), $return_response_object);
     }
 
     public function get($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->get($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->get($endpoint, $params), $return_response_object);
     }
 
     public function post($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->post($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->post($endpoint, $params), $return_response_object);
     }
 
     public function postMultipart($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->postMultipart($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->postMultipart($endpoint, $params), $return_response_object);
     }
 
     public function streamingAsync($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null)
     {
         $handler = new StreamHandler($header_response_handler, $event_handler);
-        $ch = $this->curl->streaming($endpoint, $params, $handler);
+        $ch = $this->getInternalCurl()->streaming($endpoint, $params, $handler);
         try {
             $result = (yield $ch);
         } catch (CURLException $e) {
@@ -58,7 +60,7 @@ trait RequestorTrait
     public function streaming($endpoint, callable $event_handler, array $params = [], callable $header_response_handler = null)
     {
         $handler = new StreamHandler($header_response_handler, $event_handler);
-        $ch = $this->curl->streaming($endpoint, $params, $handler);
+        $ch = $this->getInternalCurl()->streaming($endpoint, $params, $handler);
         $result = curl_exec($ch);
         if (!$handler->isHaltedByUser() && $result === false) {
             throw new CURLException(curl_error($ch), curl_errno($ch), $ch);
@@ -70,31 +72,31 @@ trait RequestorTrait
 
     public function getOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->getOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->getOut($endpoint, $params), $return_response_object);
     }
 
     public function postOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->postOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->postOut($endpoint, $params), $return_response_object);
     }
 
     public function postMultipartOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->curl->postMultipartOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->postMultipartOut($endpoint, $params), $return_response_object);
     }
 
     public function getOut($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->getOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->getOut($endpoint, $params), $return_response_object);
     }
 
     public function postOut($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->postOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->postOut($endpoint, $params), $return_response_object);
     }
 
     public function postMultipartOut($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->curl->postMultipartOut($endpoint, $params), $return_response_object);
+        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->postMultipartOut($endpoint, $params), $return_response_object);
     }
 }
