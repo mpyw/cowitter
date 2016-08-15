@@ -19,7 +19,7 @@ trait BaseClientTrait
     {
         $this->setInternalCredential(new Credential($credentials));
         $this->setInternalOptions(CurlOptionNormalizer::numerifyAll($options));
-        $this->setInternalCurl(new CurlInitializer($this->credential, $this->getInternalOptions()));
+        $this->setInternalCurl(new CurlInitializer($this->getInternalCredential(), $this->getInternalOptions()));
     }
 
     public function offsetGet($offset)
