@@ -37,7 +37,7 @@ trait UploaderTrait
         if (!isset($response->getContent()->processing_info)) {
             yield Co::RETURN_WITH => $response->getContent();
         }
-        yield Co::RETURN_WITH => (yield $this->uploadStep2($response, $file, $on_progress));
+        yield Co::RETURN_WITH => (yield $this->uploadStep2($response, $on_progress));
     }
 
     protected function uploadStep1(\SplFileObject $file, $media_category = null, $chunk_size = 300000)
@@ -65,7 +65,7 @@ trait UploaderTrait
         ], true));
     }
 
-    protected function uploadStep2(ResponseInterface $response, \SplFileObject $file, callable $on_progress = null)
+    protected function uploadStep2(ResponseInterface $response, callable $on_progress = null)
     {
         $info = $response->getContent();
         $canceled = false;
