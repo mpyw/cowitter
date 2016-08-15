@@ -2,6 +2,12 @@
 
 Asynchronous Twitter client compatible with mpyw/co Generator-based flows.
 
+| PHP | :question: | Feature Restriction |
+|:---:|:---:|:---:|
+| 7.0~ | :smile: | Full Support |
+| 5.5~5.6 | :anguished: | Generator is not so cool |
+| ~5.4 | :boom: | Incompatible |
+
 ## Installing
 
 Currently there are no stable versions, sorry xD
