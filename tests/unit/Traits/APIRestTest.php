@@ -36,15 +36,65 @@ class APIRestTest extends \Codeception\TestCase\Test {
 
     public function testHomeTimeline()
     {
-        $expected = self::t([['text' => 'a'], ['text' => 'b']]);
-        $actual = $this->c->get('statuses/home_timeline');
-        $this->assertEquals($expected, $actual);
+        $count = mt_rand(1, 10);
+        $this->assertEquals($count, count(
+            $this->c->get('statuses/home_timeline', compact('count'))
+        ));
     }
 
     public function testHomeTimelineAsync()
     {
-        $expected = self::t([['text' => 'a'], ['text' => 'b']]);
-        $actual = Co::wait($this->c->getAsync('statuses/home_timeline'));
-        $this->assertEquals($expected, $actual);
+        $count = mt_rand(1, 10);
+        $this->assertEquals($count, count(
+            Co::wait($this->c->getAsync('statuses/home_timeline', compact('count')))
+        ));
+    }
+
+    public function testUpdate()
+    {
+        $status = bin2hex(openssl_random_pseudo_bytes(32));
+        $this->assertEquals(
+            $status,
+            $this->c->post('statuses/update', compact('status'))->text
+        );
+    }
+
+    public function testUpdateAsync()
+    {
+        $status = bin2hex(openssl_random_pseudo_bytes(32));
+        $this->assertEquals(
+            $status,
+            Co::wait($this->c->postAsync('statuses/update', compact('status')))->text
+        );
+    }
+
+    public function testUpdateWithMedia()
+    {
+        $status = bin2hex(openssl_random_pseudo_bytes(32));
+        $this->assertEquals(
+            (object)[
+                'status' => 'test',
+                'media[]' => sha1_file(__FILE__),
+            ],
+            $this->c->postMultipart('statuses/update_with_media', [
+                'status' => 'test',
+                'media[]' => new \CURLFile(__FILE__),
+            ])
+        );
+    }
+
+    public function testUpdateWithMediaAsync()
+    {
+        $status = bin2hex(openssl_random_pseudo_bytes(32));
+        $this->assertEquals(
+            (object)[
+                'status' => 'test',
+                'media[]' => sha1_file(__FILE__),
+            ],
+            Co::wait($this->c->postMultipartAsync('statuses/update_with_media', [
+                'status' => 'test',
+                'media[]' => new \CURLFile(__FILE__),
+            ]))
+        );
     }
 }
