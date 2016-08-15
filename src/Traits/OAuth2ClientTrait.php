@@ -3,8 +3,6 @@
 namespace mpyw\Cowitter\Traits;
 
 use mpyw\Co\CoInterface;
-use mpyw\Co\CURLException;
-use mpyw\Cowitter\Components\StreamHandler;
 use mpyw\Cowitter\Helpers\ResponseYielder;
 
 trait OAuth2ClientTrait

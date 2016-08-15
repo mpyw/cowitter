@@ -2,12 +2,8 @@
 
 namespace mpyw\Cowitter\Traits;
 
-use mpyw\Cowitter\Credential;
-use mpyw\Cowitter\Response;
-use mpyw\Cowitter\Components\CurlManager;
 use mpyw\Cowitter\Helpers\ResponseYielder;
 use mpyw\Cowitter\Helpers\RegexParser;
-use mpyw\Co\CURLException;
 use mpyw\Co\CoInterface;
 
 trait AuthenticatorTrait
