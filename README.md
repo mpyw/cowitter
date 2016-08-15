@@ -90,13 +90,13 @@ Co::wait($tasks);
 ```php
 // Rapidly update tweet with multiple images
 Co::wait(function () use ($client) {
-    $ids = array_column(yield [
-        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo01.png')])
-        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo02.png')])
-    ], 'media_id_string');
+    $info = yield [
+        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo01.png')]),
+        $client->postMultipartAsync('media/upload', ['media' => new \CURLFile('photo02.png')]),
+    ];
     yield $client->postAsync('statuses/update', [
         'status' => 'My photos',
-        'media_ids' => implode(',', $ids);
+        'media_ids' => implode(',', array_column($info, 'media_id_string')),
     ]);
 });
 ```
