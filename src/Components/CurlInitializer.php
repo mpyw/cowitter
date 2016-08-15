@@ -2,8 +2,6 @@
 
 namespace mpyw\Cowitter\Components;
 
-use mpyw\Cowitter\Response;
-use mpyw\Cowitter\Helpers\ResponseBodyNormalizer;
 use mpyw\Cowitter\Helpers\RequestParamValidator;
 use mpyw\Cowitter\Helpers\UrlNormalizer;
 
