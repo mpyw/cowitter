@@ -1,4 +1,4 @@
-# cowitter [![Build Status](https://travis-ci.org/mpyw/cowitter.svg?branch=master)](https://travis-ci.org/mpyw/cowitter) [![Code Coverage](https://scrutinizer-ci.com/g/mpyw/cowitter/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mpyw/cowitter/?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mpyw/cowitter/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mpyw/cowitter/?branch=master)
+# cowitter [![Build Status](https://travis-ci.org/mpyw/cowitter.svg?branch=master)](https://travis-ci.org/mpyw/cowitter) [![Coverage Status](https://coveralls.io/repos/github/mpyw/cowitter/badge.svg?branch=master)](https://coveralls.io/github/mpyw/cowitter?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mpyw/cowitter/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mpyw/cowitter/?branch=master)
 
 Asynchronous Twitter client compatible with mpyw/co Generator-based flows.
 
