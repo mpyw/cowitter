@@ -11,8 +11,9 @@ class RequestParamValidator
                 $error = error_get_last();
                 throw new \RuntimeException($error['message']);
             }
-            $value = base64_encode($value);
-        } else if (false === $result = filter_var($value)) {
+            return base64_encode($value);
+        }
+        if (false === $result = filter_var($value)) {
             $type = gettype($value);
             throw new \InvalidArgumentException("\"$name\" must be stringable, $type given.");
         }
@@ -22,6 +23,10 @@ class RequestParamValidator
     public static function validateParams(array $params)
     {
         foreach ($params as $key => $value) {
+            if ($value === null) {
+                unset($params[$key]);
+                continue;
+            }
             $params[$key] = static::validateStringable($key, $value);
         }
         return $params;
@@ -30,6 +35,10 @@ class RequestParamValidator
     public static function validateMultipartParams(array $params)
     {
         foreach ($params as $key => $value) {
+            if ($value === null) {
+                unset($params[$key]);
+                continue;
+            }
             if (!$value instanceof \CURLFile) {
                 $params[$key] = static::validateStringable($key, $value);
             }
