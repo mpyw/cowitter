@@ -45,7 +45,7 @@ trait RequestorTrait
         $handler = new StreamHandler($header_response_handler, $event_handler);
         $ch = $this->getInternalCurl()->streaming($endpoint, $params, $handler);
         try {
-            $result = (yield $ch);
+            yield $ch;
         } catch (CURLException $e) {
             if (!$handler->isHaltedByUser()) {
                 throw $e;

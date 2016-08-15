@@ -8,14 +8,15 @@ use mpyw\Cowitter\Helpers\ResponseYielder;
 trait OAuth2ClientTrait
 {
     abstract public function withCredentials(array $credentails);
+    abstract protected function getInternalCredential();
     abstract protected function getInternalCurl();
 
     public function oauthForBearerToken()
     {
         $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForBearerToken());
         return $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->access_token,
             '',
         ]);
@@ -25,8 +26,8 @@ trait OAuth2ClientTrait
     {
         $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForBearerToken()));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
-            $this->credential['consumer_key'],
-            $this->credential['consumer_secret'],
+            $this->getInternalCredential()['consumer_key'],
+            $this->getInternalCredential()['consumer_secret'],
             $obj->access_token,
             '',
         ]);
