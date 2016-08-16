@@ -8,23 +8,37 @@ switch (true) {
         exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
 }
 
-$headers = ['Authorization: OAuth ' . substr(
+$oauth_params = array_map('urldecode', parse_ini_string(str_replace(', ', "\n", substr(
     filter_input(INPUT_SERVER, 'HTTP_X_VERIFY_CREDENTIALS_AUTHORIZATION'),
-    strlen('OAuth realm="http://api.twitter.com/", ')
-)];
+    strlen('OAuth ')
+))));
+unset($oauth_params['realm']);
 
-$ch = curl_init();
-curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://localhost:8081/1.1/account/verify_credentials.json.php',
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => $headers,
-    CURLOPT_FORBID_REUSE => true,
-    CURLOPT_FRESH_CONNECT => true,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_SSL_VERIFYHOST => false,
-]);
-$response = curl_exec($ch);
+if (!isset($oauth_params['oauth_signature'])) {
+    header('Content-Type: application/json', true, 400);
+    exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
+}
+$actual_signature = $oauth_params['oauth_signature'];
+unset($oauth_params['oauth_signature']);
 
-header('Content-Type: ' . curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
-http_response_code(curl_getinfo($ch, CURLINFO_HTTP_CODE));
-echo $response;
+$base = $oauth_params;
+$key = ['cs', isset($oauth_params['oauth_token']) ? 'ts' : ''];
+
+uksort($base, 'strnatcmp');
+$expected_signature = base64_encode(hash_hmac(
+    'sha1',
+    implode('&', array_map('rawurlencode', [
+        'GET',
+        'https://api.twitter.com/1.1/account/verify_credentials.json',
+        http_build_query($base, '', '&', PHP_QUERY_RFC3986)
+    ])),
+    implode('&', array_map('rawurlencode', $key)),
+    true
+));
+
+if ($expected_signature !== $actual_signature) {
+    header('Content-Type: application/json', true, 400);
+    exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
+}
+
+echo '{"id_str":"114514"}';
