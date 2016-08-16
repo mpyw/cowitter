@@ -31,6 +31,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = $c->oauthForRequestToken('oob');
         $this->assertEquals('t', $client['token']);
@@ -42,6 +44,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = $c->oauthForAccessToken('1919810');
         $this->assertEquals('t', $client['token']);
@@ -53,6 +57,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = $c->xauthForAccessToken('username', 'password');
         $this->assertEquals('t', $client['token']);
@@ -64,6 +70,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = Co::wait($c->oauthForRequestTokenAsync('oob'));
         $this->assertEquals('t', $client['token']);
@@ -75,6 +83,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = Co::wait($c->oauthForAccessTokenAsync('1919810'));
         $this->assertEquals('t', $client['token']);
@@ -86,6 +96,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $client = Co::wait($c->xauthForAccessTokenAsync('username', 'password'));
         $this->assertEquals('t', $client['token']);
@@ -97,6 +109,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $ch = (function () {
             return $this->getInternalCurl();
@@ -114,6 +128,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $ch = (function () {
             return $this->getInternalCurl();
@@ -131,6 +147,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $ch = (function () {
             return $this->getInternalCurl();
@@ -154,6 +172,8 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
         $c = new Client(['ck', 'cs'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
         $ch = (function () {
             return $this->getInternalCurl();
