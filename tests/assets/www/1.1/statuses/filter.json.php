@@ -14,6 +14,7 @@ function write($msg)
 write('{"text":"hello"}' . "\n");
 write('{"text":"he');
 write('llo"}' . "\n");
+write("\n");
 write('{"text":"hello"}');
 write("\n");
 write('');

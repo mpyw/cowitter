@@ -97,4 +97,25 @@ class APIRestTest extends \Codeception\TestCase\Test {
             ]))
         );
     }
+
+    public function testGetMedia()
+    {
+        $file = __DIR__ . '/../../assets/www/1.1/oauth_required_media/image.json.php';
+        $media = $this->c->get('oauth_required_media/image');
+        $this->assertEquals(
+            'image/png',
+            $media->getContentType()
+        );
+        $this->assertEquals(
+            file_get_contents($file),
+            $media->getBinaryString()
+        );
+        $this->assertEquals(
+            'data:image/png;base64,' . base64_encode(file_get_contents($file)),
+            $media->getDataUri()
+        );
+        $this->assertNull($media->save('/dev/null'));
+        $this->setExpectedException(\RuntimeException::class);
+        $media->save('http://127.0.0.1');
+    }
 }

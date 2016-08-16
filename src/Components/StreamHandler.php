@@ -59,7 +59,9 @@ class StreamHandler
     public function writeFunction($ch, $str)
     {
         if ($this->haltedByUser) {
+            // @codeCoverageIgnoreStart
             return 0;
+            // @codeCoverageIgnoreEnd
         }
         $this->eventBuffer .= $str;
         if (200 !== $code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
@@ -80,10 +82,5 @@ class StreamHandler
     public function isHaltedByUser()
     {
         return $this->haltedByUser;
-    }
-
-    public function getHeaderResponse()
-    {
-        return $this->headerResponse;
     }
 }
