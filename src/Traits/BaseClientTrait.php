@@ -54,12 +54,18 @@ trait BaseClientTrait
 
     public function withCredentials(array $credentials)
     {
-        return new static($credentials, $this->getInternalOptions());
+        return new static(
+            array_replace($this->getInternalCredential()->toArray(), $credentials),
+            $this->getInternalOptions()
+        );
     }
 
     public function withOptions(array $options)
     {
-        return new static($this->getInternalCredential()->toArray(), $options);
+        return new static(
+            $this->getInternalCredential()->toArray(),
+            array_replace($this->getInternalOptions(), $options)
+        );
     }
 
     public function getCredentials($assoc = false)

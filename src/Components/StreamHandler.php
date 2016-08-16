@@ -25,15 +25,35 @@ class StreamHandler
     {
         $handle = $this->headerResponseHandler;
         $this->headerResponseBuffer .= $str;
-        if ($str === "\r\n") {
+        if (substr($this->headerResponseBuffer, -4) === "\r\n\r\n") {
             $this->headerResponse = new Response($this->headerResponseBuffer, $ch);
-            if ($handle && (new \ReflectionFunction($handle))->isGenerator()) {
-                Co::async($handle($this->headerResponse));
-            } elseif ($handle) {
-                $handle($this->headerResponse);
+            if ($handle) {
+                (new \ReflectionFunction($handle))->isGenerator()
+                ? Co::async($handle($this->headerResponse))
+                : $handle($this->headerResponse);
             }
         }
         return strlen($str);
+    }
+
+    protected function processLine($ch, $line)
+    {
+        $handle = $this->eventHandler;
+        if ('' === $line = rtrim($line)) {
+            return;
+        }
+        $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $line);
+        if ($handle) {
+            if ((new \ReflectionFunction($handle))->isGenerator()) {
+                Co::async(function () use ($handle, $event) {
+                    if (false === (yield $handle($event->getContent()))) {
+                        $this->haltedByUser = true;
+                    }
+                });
+            } elseif (false === $handle($event->getContent())) {
+                $this->haltedByUser = true;
+            }
+        }
     }
 
     public function writeFunction($ch, $str)
@@ -41,40 +61,19 @@ class StreamHandler
         if ($this->haltedByUser) {
             return 0;
         }
-        $handle = $this->eventHandler;
         $this->eventBuffer .= $str;
         if (200 !== $code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
             ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $this->eventBuffer);
             throw new \UnexpectedValueException('Unexpected response: ' . $this->eventBuffer);
         }
-        if (substr($this->eventBuffer, -1) !== "\n") {
-            return strlen($str);
+        while (false !== $pos = strpos($this->eventBuffer, "\n")) {
+            $line = substr($this->eventBuffer, 0, $pos + 1);
+            $this->eventBuffer = substr($this->eventBuffer, $pos + 1);
+            $this->processLine($ch, $line);
+            if ($this->haltedByUser) {
+                return 0;
+            }
         }
-        if (rtrim($this->eventBuffer) === '') {
-            $this->eventBuffer = '';
-            return strlen($str);
-        }
-        $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $this->eventBuffer);
-        if (!$handle) {
-            $this->eventBuffer = '';
-            return strlen($str);
-        }
-        if ((new \ReflectionFunction($handle))->isGenerator()) {
-            Co::async(function () use ($handle, $event) {
-                $signal = (yield $handle($event->getContent()));
-                if ($signal === false) {
-                    $this->haltedByUser = true;
-                }
-            });
-            $this->eventBuffer = '';
-            return strlen($str);
-        }
-        $signal = $handle($event->getContent());
-        if ($signal === false) {
-            $this->haltedByUser = true;
-            return 0;
-        }
-        $this->eventBuffer = '';
         return strlen($str);
     }
 

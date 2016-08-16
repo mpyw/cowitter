@@ -74,14 +74,14 @@ trait UploaderTrait
                 ? $info->processing_info->progress_percent
                 : null
             ;
-            if ($on_progress && (new \ReflectionFunction($on_progress))->isGenerator()) {
-                Co::async(function () use ($on_progress, $percent, $response, &$canceled) {
-                    if (false === (yield $on_progress($percent, $response))) {
-                        $canceled = true;
-                    }
-                });
-            } elseif ($on_progress) {
-                if (false === $on_progress($percent, $response)) {
+            if ($on_progress) {
+                if ((new \ReflectionFunction($on_progress))->isGenerator()) {
+                    Co::async(function () use ($on_progress, $percent, $response, &$canceled) {
+                        if (false === (yield $on_progress($percent, $response))) {
+                            $canceled = true;
+                        }
+                    });
+                } elseif (false === $on_progress($percent, $response)) {
                     yield Co::RETURN_WITH => $info;
                 }
             }

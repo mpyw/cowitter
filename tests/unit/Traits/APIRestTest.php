@@ -2,7 +2,7 @@
 
 namespace mpyw\TestOfCowitter;
 
-require __DIR__ . '/../../assets/dummy_curl.php';
+require_once __DIR__ . '/../../assets/dummy_curl.php';
 
 use mpyw\Co\Co;
 use mpyw\Co\CURLException;

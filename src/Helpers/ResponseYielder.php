@@ -42,7 +42,9 @@ class ResponseYielder
             yield CoInterface::RETURN_WITH => static::syncExec($ch);
         }
         yield CoInterface::RETURN_WITH => $response;
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public static function syncExecDecoded($ch, $return_response_object = false)
     {
@@ -62,5 +64,7 @@ class ResponseYielder
             $response = $response->hasContent() ? $response->getContent() : null;
         }
         yield CoInterface::RETURN_WITH => $response;
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 }
