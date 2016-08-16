@@ -1,6 +1,7 @@
 <?php
 
-header('Content-Type: application/json');
+require __DIR__ . '/../../../dummy_oauth.php';
+verify_oauth_1a();
 
 ?>
 {
