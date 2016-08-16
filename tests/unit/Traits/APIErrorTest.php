@@ -42,7 +42,7 @@ class APIErrorTest extends \Codeception\TestCase\Test {
 
     public function testBasicErrorCurl()
     {
-        $this->setExpectedException(CURLException::class, 'The requested URL returned error: 400 Bad Request');
+        $this->setExpectedException(CURLException::class, 'The requested URL returned error: 400');
         $this->c->withOptions([CURLOPT_FAILONERROR => true])
                 ->get('errors/basic_error');
     }
@@ -99,7 +99,7 @@ class APIErrorTest extends \Codeception\TestCase\Test {
 
     public function testFailedStreamingCurl()
     {
-        $this->setExpectedException(CURLException::class, 'The requested URL returned error: 401 Unauthorized');
+        $this->setExpectedException(CURLException::class, 'The requested URL returned error: 401');
         $this->c->withOptions([CURLOPT_FAILONERROR => true])
                 ->streaming('errors/failed_streaming', function () {});
     }
