@@ -1,20 +1,14 @@
 <?php
 
-const CONSUMER_SECRET = 'cs';
-const TOKEN_SECRET = 'ts';
-
-function verify_oauth_1a($origin = 'https://api.twitter.com', $send_content_type = true)
+function verify_oauth_1a($origin = 'https://api.twitter.com')
 {
-    if ($send_content_type) {
-        header('Content-Type: application/json');
-    }
-
     $oauth_params = array_map('urldecode', parse_ini_string(str_replace(', ', "\n", substr(
         filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION'),
         strlen('OAuth ')
     ))));
 
     if (!isset($oauth_params['oauth_signature'])) {
+        header('Content-Type: application/json', true, 400);
         exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
     }
 
@@ -28,7 +22,7 @@ function verify_oauth_1a($origin = 'https://api.twitter.com', $send_content_type
     }
 
     $base = $oauth_params + $additional_params;
-    $key = [CONSUMER_SECRET, TOKEN_SECRET];
+    $key = ['cs', isset($oauth_params['oauth_token']) ? 'ts' : ''];
 
     uksort($base, 'strnatcmp');
     $expected_signature = base64_encode(hash_hmac(
@@ -41,8 +35,9 @@ function verify_oauth_1a($origin = 'https://api.twitter.com', $send_content_type
         implode('&', array_map('rawurlencode', $key)),
         true
     ));
-    
+
     if ($expected_signature !== $actual_signature) {
+        header('Content-Type: application/json', true, 400);
         exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
     }
 }
