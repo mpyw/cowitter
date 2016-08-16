@@ -96,11 +96,17 @@ class APIErrorTest extends \Codeception\TestCase\Test {
         $this->c->streaming('errors/unexpected', function () {});
     }
 
-
     public function testFailedStreamingCurl()
     {
         $this->setExpectedException(CURLException::class, 'The requested URL returned error: 401');
         $this->c->withOptions([CURLOPT_FAILONERROR => true])
                 ->streaming('errors/failed_streaming', function () {});
+    }
+
+    public function testFailedStreamingCurlAsync()
+    {
+        $this->setExpectedException(CURLException::class, 'The requested URL returned error: 401');
+        Co::wait($this->c->withOptions([CURLOPT_FAILONERROR => true])
+                ->streamingAsync('errors/failed_streaming', function () {}));
     }
 }

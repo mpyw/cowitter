@@ -17,7 +17,7 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class APIOAuthTest extends \Codeception\TestCase\Test {
+class APIOAuthEchoTest extends \Codeception\TestCase\Test {
 
     use \Codeception\Specify;
     private static $CredentialNormalizer;
@@ -33,21 +33,14 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
     }
 
-    public function testLogin()
+    public function testGetOut()
     {
-        return; // this does not work
-        $c = new Client(['ck', 'cs'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_0,
-        ]);
-        $this->assertInstanceOf(
-            ClientInterface::class,
-            $c->login('username', 'password')
-        );
+        return; // This does not work
+        $user = $this->c->getOut('https://localhost:8081/oauth_echo/verify_credentials.php');
+        $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 }
