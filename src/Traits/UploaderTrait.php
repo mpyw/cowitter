@@ -38,7 +38,9 @@ trait UploaderTrait
             yield Co::RETURN_WITH => $response->getContent();
         }
         yield Co::RETURN_WITH => (yield $this->uploadStep2($response, $on_progress));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     protected function uploadStep1(\SplFileObject $file, $media_category = null, $chunk_size = 300000)
     {
@@ -63,7 +65,9 @@ trait UploaderTrait
             'command' => 'FINALIZE',
             'media_id' => $info->media_id_string,
         ], true));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     protected function uploadStep2(ResponseInterface $response, callable $on_progress = null)
     {
@@ -96,10 +100,11 @@ trait UploaderTrait
         }
 
         if ($info->processing_info->state === 'failed') {
+            $message = isset($info->processing_info->error->message)
+                ? $info->processing_info->error->message
+                : $info->processing_info->error->name;
             throw new HttpException(
-                isset($info->processing_info->error->message)
-                    ? $info->processing_info->error->message
-                    : $info->processing_info->error->name,
+                $message,
                 $info->processing_info->error->code,
                 $response->getHandle(),
                 $response
@@ -107,7 +112,9 @@ trait UploaderTrait
         }
 
         yield Co::RETURN_WITH => $info;
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function uploadImageAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000)
     {
