@@ -1,7 +1,8 @@
 language: php
 
 before_install:
-  - curl --version
+  - sudo apt-get remove libcurl
+  - sudo apt-get install libcurl
 
 php:
   - 7.0.8
