@@ -1,5 +1,8 @@
 language: php
 
+before_install:
+  - curl --version
+
 php:
   - 7.0.8
 
