@@ -1,13 +1,9 @@
 language: php
 
-before_install:
-  - phpenv install 7.0.9
-  - phpenv global 7.0.9
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libcurl4-openssl-dev
-
 php:
-  - 7.0.8
+  - nightly
+
+sudo: false
 
 install:
   - composer install
