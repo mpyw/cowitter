@@ -24,6 +24,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
 
     public function _before()
     {
+        usleep(5000);
     }
 
     public function testOauthForRequestToken()

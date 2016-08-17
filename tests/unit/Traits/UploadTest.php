@@ -20,10 +20,10 @@ use mpyw\Privator\ProxyException;
 class UploadTest extends \Codeception\TestCase\Test {
 
     use \Codeception\Specify;
-    private static $CredentialNormalizer;
 
     public function _before()
     {
+        usleep(5000);
         $this->c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
