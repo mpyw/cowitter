@@ -24,7 +24,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
 
     public function _before()
     {
-        usleep(5000);
+        usleep(50000);
     }
 
     public function testOauthForRequestToken()
@@ -136,7 +136,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             return $this->getInternalCurl();
         })->call($c)->browsing();
         curl_setopt_array($ch, [
-            CURLOPT_URL => 'https://localhost:8081/path/to/invalid/file',
+            CURLOPT_URL => 'https://localhost:8081/1.1/account/verify_credentials.json.php',
             CURLOPT_POST => true,
         ]);;
         $response = new Response(curl_exec($ch), $ch);
