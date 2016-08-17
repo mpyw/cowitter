@@ -31,7 +31,9 @@ trait OAuth2ClientTrait
             $obj->access_token,
             '',
         ]);
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function invalidateBearerToken()
     {

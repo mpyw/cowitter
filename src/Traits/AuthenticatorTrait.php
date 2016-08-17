@@ -21,7 +21,9 @@ trait AuthenticatorTrait
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function oauthForAccessTokenAsync($oauth_verifier)
     {
@@ -32,7 +34,9 @@ trait AuthenticatorTrait
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnds
 
     public function xauthForAccessTokenAsync($username, $password)
     {
@@ -43,7 +47,9 @@ trait AuthenticatorTrait
             $obj->oauth_token,
             $obj->oauth_token_secret,
         ]);
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function oauthForRequestToken($oauth_callback = null)
     {
@@ -78,6 +84,10 @@ trait AuthenticatorTrait
         ]);
     }
 
+    /**
+     * This method is untestable because of libcurl issue
+     * @codeCoverageIgnore
+     */
     public function loginAsync($username, $password)
     {
         $author = (yield $this->oauthForRequestTokenAsync('oob'));
@@ -100,6 +110,10 @@ trait AuthenticatorTrait
         yield CoInterface::RETURN_WITH => $author->oauthForAccessTokenAsync($verifier);
     }
 
+    /**
+     * This method is untestable because of libcurl issue
+     * @codeCoverageIgnore
+     */
     public function login($username, $password)
     {
         $author = $this->oauthForRequestToken('oob');

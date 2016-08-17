@@ -41,3 +41,29 @@ function verify_oauth_1a($origin = 'https://api.twitter.com')
         exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
     }
 }
+
+function verify_oauth_2_bearer()
+{
+    $token = substr(
+        filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION'),
+        strlen('Bearer ')
+    );
+
+    if ($token !== 't') {
+        header('Content-Type: application/json', true, 400);
+        exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
+    }
+}
+
+function verify_oauth_2_basic()
+{
+    $pair = array_map('rawurldecode', explode(':', base64_decode(substr(
+        filter_input(INPUT_SERVER, 'HTTP_AUTHORIZATION'),
+        strlen('Basic ')
+    ))));
+
+    if ($pair[0] !== 'ck' || $pair[1] !== 'cs') {
+        header('Content-Type: application/json', true, 400);
+        exit('{"errors":[{"message":"Bad Authentication data","code":215}]}');
+    }
+}
