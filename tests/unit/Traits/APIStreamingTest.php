@@ -26,6 +26,8 @@ class APIStreamingTest extends \Codeception\TestCase\Test {
         $this->c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
     }
 

@@ -28,6 +28,7 @@ class LoginTest extends \Codeception\TestCase\Test {
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
         ]);
     }
 
