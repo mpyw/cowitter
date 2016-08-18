@@ -127,17 +127,15 @@ Co::wait($client->streamingAsync('statuses/filter', function ($status) use ($cli
 // Rapidly update with MP4 video
 Co::wait(function () use ($client) {
     $file = new \SplFileObject('video.mp4', 'rb');
-    $on_progress = function ($percent) {
-        if ($percent === null) {
-            echo "Processing ...\n";
-        } else {
-            echo "Processing ... ({$percent}%)\n";
-        }
+    $on_uploading = function ($percent) {
+        echo "Uploading ... ({$percent}%)\n";
     };
-    echo "Uploading...\n";
+    $on_processing = function ($percent) {
+        echo "Processing ... ({$percent}%)\n";
+    };
     yield $client->postAsync('statuses/update', [
         'status' => 'My video',
-        'media_ids' => (yield $client->uploadVideoAsync($file, $on_progress))->media_id_string,
+        'media_ids' => (yield $client->uploadVideoAsync($file, $on_uploading, $on_processing))->media_id_string,
     ]);
     echo "Done\n";
 });

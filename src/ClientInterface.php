@@ -149,6 +149,7 @@ interface ClientInterface
      *     Each event object is passed as the first argument.
      *     If you return false in your callback, the streaming will stop without exception occurrence.
      *     If your callback is Generator function, it is implicitly wrapped into Co::async() call.
+     *     Be carefull that exceptions can be captured only by Co::wait() / Co::async() options or outer scope of Co::wait().
      *       Signature: function (\stdClass $event);
      *
      * @param array $params
@@ -158,6 +159,7 @@ interface ClientInterface
      * @param callable|null $header_response_handler
      *     Receive Response object that only contains header information as the first argument.
      *     If your callback is Generator function, it is implicitly wrapped into Co::async() call.
+     *     Be carefull that exceptions can be captured only by Co::wait() / Co::async() options or outer scope of Co::wait().
      *       Signature: function (ResponseInterface $response);
      *
      * @throws HttpExceptionInterface
@@ -174,21 +176,23 @@ interface ClientInterface
      * @param string $media_category
      *     "tweet_image", "tweet_gif" or "tweet_video"
      *
-     * @param callable|null $on_progress
-     *     Progress functions while uploading. Note that $percent is nullable.
+     * @param callable|null $on_uploading
+     * @param callable|null $on_processing
+     *     Progress functions while uploading/processing.
      *     If you return false in your callback, client aborts waiting and immediately return information stdClass object.
      *     If your callback is Generator function, it is implicitly wrapped into Co::async() call.
-     *       Signature: function (int|null $percent, ResponseInterface $response);
+     *     Be carefull that exceptions can be captured only by Co::wait() / Co::async() options or outer scope of Co::wait().
+     *       Signature: function (int $percent);
      *
      * @param int $chunk_size
      *     File data is split into chunks with specified size.
      *
      * @throws HttpExceptionInterface
      */
-    public function uploadAsync(\SplFileObject $file, $media_category = null, callable $on_progress = null, $chunk_size = 300000); // : \Generator<\stdClass>
-    public function uploadImageAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000); // : \Generator<\stdClass>
-    public function uploadAnimeGifAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000); // : \Generator<\stdClass>
-    public function uploadVideoAsync(\SplFileObject $file, callable $on_progress = null, $chunk_size = 300000); // : \Generator<\stdClass>
+    public function uploadAsync(\SplFileObject $file, $media_category = null, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
+    public function uploadImageAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
+    public function uploadAnimeGifAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
+    public function uploadVideoAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
 
     /**
      * Renew with OAuth 2.0 authorized/authenticated credential.

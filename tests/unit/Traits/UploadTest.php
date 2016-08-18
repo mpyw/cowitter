@@ -35,13 +35,13 @@ class UploadTest extends \Codeception\TestCase\Test {
     public function testInvalidChunkType()
     {
         $this->setExpectedException(\InvalidArgumentException::class, 'Chunk size must be integer.');
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, []));
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, null, []));
     }
 
     public function testInvalidChunkLength()
     {
         $this->setExpectedException(\LengthException::class, 'Chunk size must be no less than 10000 bytes.');
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, 893));
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, null, 893));
     }
 
     public function testUploadAsync()
@@ -53,10 +53,10 @@ class UploadTest extends \Codeception\TestCase\Test {
 
     public function testUploadImageAsync()
     {
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, function ($percent) {
             static $i = -1;
             if (++$i === 0) {
-                $this->assertEquals(null, $percent);
+                $this->assertEquals(0, $percent);
             } else {
                 $this->assertEquals(53, $percent);
             }
@@ -67,7 +67,7 @@ class UploadTest extends \Codeception\TestCase\Test {
 
     public function testUploadImageAsyncYieldAbort01()
     {
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, function ($percent) {
             yield;
             return false;
         }));
@@ -77,7 +77,7 @@ class UploadTest extends \Codeception\TestCase\Test {
 
     public function testUploadImageAsyncYieldAbort02()
     {
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, function ($percent) {
             yield Co::DELAY => 0.03;
             return false;
         }));
@@ -87,7 +87,7 @@ class UploadTest extends \Codeception\TestCase\Test {
 
     public function testUploadImageAsyncAbort()
     {
-        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, function ($percent) {
             return false;
         }));
         $this->assertEquals('pending', $info->processing_info->state);
@@ -104,5 +104,35 @@ class UploadTest extends \Codeception\TestCase\Test {
     {
         $this->setExpectedException(HttpException::class, 'tweet_video always fails in this test.');
         $info = Co::wait($this->c->uploadVideoAsync(new \SplFileObject(__FILE__, 'rb')));
+    }
+
+    public function testUploadProgressAsync()
+    {
+        $invoked = false;
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) use (&$invoked) {
+            $invoked = true;
+        }));
+        $this->assertTrue($invoked);
+        $this->assertEquals('done', $info->processing_info->state);
+        $this->assertNotEmpty($info->media_id_string);
+    }
+
+    public function testUploadProgressAsyncAbort()
+    {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+            return false;
+        }));
+        $this->assertTrue(!isset($info->processing_info));
+        $this->assertNotEmpty($info->media_id_string);
+    }
+
+    public function testUploadProgressAsyncYieldAbort()
+    {
+        $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), function ($percent) {
+            yield;
+            return false;
+        }));
+        $this->assertTrue(!isset($info->processing_info));
+        $this->assertNotEmpty($info->media_id_string);
     }
 }
