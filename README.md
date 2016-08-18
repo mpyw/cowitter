@@ -85,7 +85,7 @@ Co::wait(function () use ($client) {
 ```php
 // Rapidly update tweets for 10 times
 $tasks = [];
-foreach ($i = 0; $i < 20; ++$i) {
+for ($i = 0; $i < 20; ++$i) {
     $tasks[] = $client->postAsync('statuses/update', [
         'status' => str_repeat('!', $i + 1),
     ]);
