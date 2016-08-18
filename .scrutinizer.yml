@@ -19,7 +19,7 @@ build:
       - 'sudo apt-get install -y lsof'
       - 'composer install'
       - './vendor/bin/codecept build'
-      - 'php vendor/bin/hyper-run tests/assets/www &'
+      - '(cd tests/assets/www && php -S localhost:8080) &'
 
   tests:
     override:
