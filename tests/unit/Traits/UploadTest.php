@@ -23,7 +23,7 @@ class UploadTest extends \Codeception\TestCase\Test {
 
     public function _before()
     {
-        usleep(5000);
+        sleep(4);
         $this->c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
