@@ -60,7 +60,7 @@ trait UploaderTrait
             yield $this->uploadBuffers($file, $info, $chunk_size, $on_uploading);
         } catch (CURLException $e) {
             if ($e->getCode() === CURLE_ABORTED_BY_CALLBACK) {
-                return $info;
+                yield Co::RETURN_WITH => $info;
             }
             // @codeCoverageIgnoreStart
             throw $e;
