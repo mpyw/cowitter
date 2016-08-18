@@ -24,75 +24,44 @@ class APIOAuth2Test extends \Codeception\TestCase\Test {
 
     public function _before()
     {
-        usleep(50000);
     }
 
     public function testOauthForBearerToken()
     {
-        $c = new Client(['ck', 'cs'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs']);
         $client = $c->oauthForBearerToken();
         $this->assertEquals('t', $client['token']);
     }
 
     public function testInvalidateBearerToken()
     {
-        $c = new Client(['ck', 'cs', 't', 'ts'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs', 't', 'ts']);
         $this->assertNull($c->invalidateBearerToken());
     }
 
     public function testGet2()
     {
-        $c = new Client(['ck', 'cs', 't'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs', 't']);
         $response = $c->get2('sample_endpoint_for_oauth2');
         $this->assertEquals('114514', $response->id_str);
     }
 
     public function testOauthForBearerTokenAsync()
     {
-        $c = new Client(['ck', 'cs'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs']);
         $client = Co::wait($c->oauthForBearerTokenAsync());
         $this->assertEquals('t', $client['token']);
     }
 
     public function testInvalidateBearerTokenAsync()
     {
-        $c = new Client(['ck', 'cs', 't', 'ts'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs', 't', 'ts']);
         $this->assertNull(Co::wait($c->invalidateBearerTokenAsync()));
     }
 
     public function testGet2Async()
     {
-        $c = new Client(['ck', 'cs', 't'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $c = new Client(['ck', 'cs', 't']);
         $response = Co::wait($c->get2Async('sample_endpoint_for_oauth2'));
         $this->assertEquals('114514', $response->id_str);
     }

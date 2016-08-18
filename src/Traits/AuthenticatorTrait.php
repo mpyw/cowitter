@@ -36,7 +36,7 @@ trait AuthenticatorTrait
         ]);
         // @codeCoverageIgnoreStart
     }
-    // @codeCoverageIgnoreEnds
+    // @codeCoverageIgnoreEnd
 
     public function xauthForAccessTokenAsync($username, $password)
     {
@@ -84,10 +84,6 @@ trait AuthenticatorTrait
         ]);
     }
 
-    /**
-     * This method is untestable because of libcurl issue
-     * @codeCoverageIgnore
-     */
     public function loginAsync($username, $password)
     {
         $author = (yield $this->oauthForRequestTokenAsync('oob'));
@@ -108,12 +104,10 @@ trait AuthenticatorTrait
         ]);
         $verifier = RegexParser::parseVerifier((yield ResponseYielder::asyncExec($scraper)), $scraper);
         yield CoInterface::RETURN_WITH => $author->oauthForAccessTokenAsync($verifier);
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
-    /**
-     * This method is untestable because of libcurl issue
-     * @codeCoverageIgnore
-     */
     public function login($username, $password)
     {
         $author = $this->oauthForRequestToken('oob');

@@ -22,7 +22,6 @@ class APIRestTest extends \Codeception\TestCase\Test {
 
     public function _before()
     {
-        usleep(5000);
         $this->c = new Client(['ck', 'cs', 't', 'ts'], [
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,

@@ -23,48 +23,42 @@ class APIOAuthEchoTest extends \Codeception\TestCase\Test {
 
     public function _before()
     {
-        usleep(5000);
-        $this->c = new Client(['ck', 'cs', 't', 'ts'], [
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
-        ]);
+        $this->c = new Client(['ck', 'cs', 't', 'ts']);
     }
 
     public function testGetOut()
     {
-        $user = $this->c->getOut('https://localhost:8081/oauth_echo/verify_credentials.php');
+        $user = $this->c->getOut('http://localhost:8080/oauth_echo/verify_credentials.php');
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 
     public function testPostOut()
     {
-        $user = $this->c->postOut('https://localhost:8081/oauth_echo/verify_credentials.php');
+        $user = $this->c->postOut('http://localhost:8080/oauth_echo/verify_credentials.php');
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 
     public function testPostMultipartOut()
     {
-        $user = $this->c->postMultipartOut('https://localhost:8081/oauth_echo/verify_credentials.php');
+        $user = $this->c->postMultipartOut('http://localhost:8080/oauth_echo/verify_credentials.php');
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 
     public function testGetOutAsync()
     {
-        $user = Co::wait($this->c->getOutAsync('https://localhost:8081/oauth_echo/verify_credentials.php'));
+        $user = Co::wait($this->c->getOutAsync('http://localhost:8080/oauth_echo/verify_credentials.php'));
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 
     public function testPostOutAsync()
     {
-        $user = Co::wait($this->c->postOutAsync('https://localhost:8081/oauth_echo/verify_credentials.php'));
+        $user = Co::wait($this->c->postOutAsync('http://localhost:8080/oauth_echo/verify_credentials.php'));
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 
     public function testPostMultipartOutAsync()
     {
-        $user = Co::wait($this->c->postMultipartOutAsync('https://localhost:8081/oauth_echo/verify_credentials.php'));
+        $user = Co::wait($this->c->postMultipartOutAsync('http://localhost:8080/oauth_echo/verify_credentials.php'));
         $this->assertEquals((object)['id_str' => '114514'], $user);
     }
 }

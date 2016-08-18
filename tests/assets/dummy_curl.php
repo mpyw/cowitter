@@ -10,7 +10,7 @@ namespace mpyw\f
         if (!preg_match('@twitter\.com\z@', $host)) {
             return $url;
         }
-        return 'https://localhost:8081' . $path . '.php'
+        return 'http://localhost:8080' . $path . '.php'
                 . (null !== $query ? "?$query" : '');
     }
 }
