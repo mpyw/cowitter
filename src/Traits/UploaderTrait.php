@@ -12,6 +12,7 @@ trait UploaderTrait
     abstract public function getAsync($endpoint, array $params = [], $return_response_object = false);
     abstract public function postAsync($endpoint, array $params = [], $return_response_object = false);
     abstract public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false);
+    abstract public function withOptions(array $options);
 
     protected static function validateChunkSize($value)
     {
