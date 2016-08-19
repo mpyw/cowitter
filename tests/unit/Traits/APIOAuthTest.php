@@ -84,7 +84,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             CURLOPT_URL => 'http://localhost:8080/oauth/authorize.php',
         ]);;
         $response = new Response(curl_exec($ch), $ch);
-        $this->assertEquals('114514364364', RegexParser::parseAuthenticityToken($response, $ch));
+        $this->assertEquals('114514364364', RegexParser::parseAuthenticityToken($response));
     }
 
     public function testParseAuthenticityTokenFailure()
@@ -99,7 +99,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             CURLOPT_POST => true,
         ]);;
         $response = new Response(curl_exec($ch), $ch);
-        RegexParser::parseAuthenticityToken($response, $ch);
+        RegexParser::parseAuthenticityToken($response);
     }
 
     public function testParseVerifierSuccess()
@@ -118,7 +118,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             ], '', '&'),
         ]);;
         $response = new Response(curl_exec($ch), $ch);
-        $this->assertEquals('1919810', RegexParser::parseVerifier($response, $ch));
+        $this->assertEquals('1919810', RegexParser::parseVerifier($response));
     }
 
     public function testParseVerifierFailure()
@@ -137,7 +137,7 @@ class APIOAuthTest extends \Codeception\TestCase\Test {
             ], '', '&'),
         ]);;
         $response = new Response(curl_exec($ch), $ch);
-        RegexParser::parseVerifier($response, $ch);
+        RegexParser::parseVerifier($response);
     }
 
     public function testLoginSuccess()

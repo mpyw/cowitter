@@ -92,7 +92,7 @@ trait AuthenticatorTrait
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),
         ]);
-        $authenticity_token = RegexParser::parseAuthenticityToken((yield ResponseYielder::asyncExec($scraper)), $scraper);
+        $authenticity_token = RegexParser::parseAuthenticityToken((yield ResponseYielder::asyncExec($scraper)));
         curl_setopt_array($scraper, [
             CURLOPT_URL        => $author->getAuthorizeUrl(true),
             CURLOPT_POST       => true,
@@ -102,7 +102,7 @@ trait AuthenticatorTrait
                 'authenticity_token'         => $authenticity_token,
             ], '', '&'),
         ]);
-        $verifier = RegexParser::parseVerifier((yield ResponseYielder::asyncExec($scraper)), $scraper);
+        $verifier = RegexParser::parseVerifier((yield ResponseYielder::asyncExec($scraper)));
         yield CoInterface::RETURN_WITH => $author->oauthForAccessTokenAsync($verifier);
         // @codeCoverageIgnoreStart
     }
@@ -116,7 +116,7 @@ trait AuthenticatorTrait
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),
         ]);
-        $authenticity_token = RegexParser::parseAuthenticityToken(ResponseYielder::syncExec($scraper), $scraper);
+        $authenticity_token = RegexParser::parseAuthenticityToken(ResponseYielder::syncExec($scraper));
         curl_setopt_array($scraper, [
             CURLOPT_URL        => $author->getAuthorizeUrl(true),
             CURLOPT_POST       => true,
@@ -126,7 +126,7 @@ trait AuthenticatorTrait
                 'authenticity_token'         => $authenticity_token,
             ], '', '&'),
         ]);
-        $verifier = RegexParser::parseVerifier(ResponseYielder::syncExec($scraper), $scraper);
+        $verifier = RegexParser::parseVerifier(ResponseYielder::syncExec($scraper));
         return $author->oauthForAccessToken($verifier);
     }
 }
