@@ -19,12 +19,6 @@ interface HttpExceptionInterface
     public function getReasonPhrase();
 
     /**
-     * Return cURL handle used for sending request.
-     * @return resource
-     */
-    public function getHandle();
-
-    /**
      * Return Response object with no decoded content.
      * @return ResponseInterface
      */

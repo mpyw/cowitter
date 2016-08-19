@@ -80,7 +80,6 @@ class ReponseAndHttpExceptionTest extends \Codeception\TestCase\Test {
         $this->assertEquals(215, $e->getCode());
         $this->assertEquals(400, $e->getStatusCode());
         $this->assertEquals('Bad Request', $e->getReasonPhrase());
-        $this->assertSame($ch, $e->getHandle());
         $this->assertSame($ch, $e->getResponse()->getHandle());
     }
 }

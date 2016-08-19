@@ -9,10 +9,9 @@ class HttpException extends \RuntimeException implements HttpExceptionInterface
     protected $ch;
     protected $response;
 
-    public function __construct($message, $code, $ch, Response $response)
+    public function __construct($message, $code, Response $response)
     {
         parent::__construct($message, $code);
-        $this->ch = $ch;
         $this->response = $response;
     }
 
@@ -24,11 +23,6 @@ class HttpException extends \RuntimeException implements HttpExceptionInterface
     public function getReasonPhrase()
     {
         return $this->response->getReasonPhrase();
-    }
-
-    public function getHandle()
-    {
-        return $this->ch;
     }
 
     public function getResponse()

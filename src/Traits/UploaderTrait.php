@@ -165,7 +165,6 @@ trait UploaderTrait
             throw new HttpException(
                 $message,
                 $info->processing_info->error->code,
-                $response->getHandle(),
                 $response
             );
         }

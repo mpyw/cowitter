@@ -13,7 +13,6 @@ class RegexParser
             throw new HttpException(
                 'Failed to get authenticity_token.',
                 -1,
-                $response->getHandle(),
                 $response
             );
         }
@@ -26,7 +25,6 @@ class RegexParser
             throw new HttpException(
                 'Wrong username or password. Otherwise, you may have to verify your email address.',
                 -1,
-                $response->getHandle(),
                 $response
             );
         }
