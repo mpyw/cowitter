@@ -13,9 +13,9 @@ class ResponseBodyDecoder
     protected $info;
     protected $bodyBuffer;
 
-    public static function getDecodedResponse(Response $response, $ch, $body_buffer = null)
+    public static function getDecodedResponse(Response $response, $body_buffer = null)
     {
-        $static = new static($response, $ch, $body_buffer);
+        $static = new static($response, $response->getHandle(), $body_buffer);
         return $response->withDecodedContent($static->normalizeImpl());
     }
 

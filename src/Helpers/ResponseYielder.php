@@ -49,7 +49,7 @@ class ResponseYielder
     public static function syncExecDecoded($ch, $return_response_object = false)
     {
         $response = static::syncExec($ch);
-        $response = ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        $response = ResponseBodyDecoder::getDecodedResponse($response);
         if (!$return_response_object) {
             $response = $response->hasContent() ? $response->getContent() : null;
         }
@@ -59,7 +59,7 @@ class ResponseYielder
     public static function asyncExecDecoded($ch, $return_response_object = false)
     {
         $response = (yield static::asyncExec($ch));
-        $response = ResponseBodyDecoder::getDecodedResponse($response, $ch);
+        $response = ResponseBodyDecoder::getDecodedResponse($response);
         if (!$return_response_object) {
             $response = $response->hasContent() ? $response->getContent() : null;
         }

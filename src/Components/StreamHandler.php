@@ -42,7 +42,7 @@ class StreamHandler
         if ('' === $line = rtrim($line)) {
             return;
         }
-        $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $line);
+        $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $line);
         if ($handle) {
             if ((new \ReflectionFunction($handle))->isGenerator()) {
                 Co::async(function () use ($handle, $event) {
@@ -65,7 +65,7 @@ class StreamHandler
         }
         $this->eventBuffer .= $str;
         if (200 !== $code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
-            ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $ch, $this->eventBuffer);
+            ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $this->eventBuffer);
             throw new \UnexpectedValueException('Unexpected response: ' . $this->eventBuffer);
         }
         while (false !== $pos = strpos($this->eventBuffer, "\n")) {
