@@ -72,7 +72,7 @@ class UploadTest extends \Codeception\TestCase\Test {
     public function testUploadImageAsyncYieldAbort02()
     {
         $info = Co::wait($this->c->uploadImageAsync(new \SplFileObject(__FILE__, 'rb'), null, function ($percent) {
-            yield Co::DELAY => 0.03;
+            yield Co::DELAY => 0.1;
             return false;
         }));
         $this->assertEquals('in_progress', $info->processing_info->state);

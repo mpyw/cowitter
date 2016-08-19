@@ -69,7 +69,7 @@ if (isset($_POST['command'], $_POST['media_id']) && $_POST['command'] === 'FINAL
 
     if (isset($info->media_category)) {
         $info->processing_info = (object)['state' => 'pending'];
-        $info->processing_info->check_after_secs = 0.02;
+        $info->processing_info->check_after_secs = 0.075;
         file_put_contents("/tmp/$_POST[media_id]", json_encode($info));
     }
 
@@ -92,7 +92,7 @@ if (isset($_GET['command'], $_GET['media_id']) && $_GET['command'] === 'STATUS')
     if ($info->processing_info->state === 'pending') {
         $info->processing_info->state = 'in_progress';
         $info->processing_info->progress_percent = 53;
-        $info->processing_info->check_after_secs = 0.02;
+        $info->processing_info->check_after_secs = 0.075;
         file_put_contents("/tmp/$_GET[media_id]", json_encode($info));
     } elseif ($info->processing_info->state === 'in_progress') {
         $info->processing_info->state = 'done';
