@@ -16,7 +16,13 @@ Currently there are no stable versions, sorry xD
 composer require mpyw/cowitter:@dev
 ```
 
-## Examples
+## Tutorial
+
+1. [Preparation](tutorial/01-preparation.md)
+2. [Example application for your own personal use](tutorial/02-example_application_for_your_own_personal_use.md)
+3. [Example "Sign in with Twitter"](tutorial/03-example_sign_in_with_twitter.md)
+ 
+## Quick examples
 
 ### Prepare requirements
 
@@ -166,6 +172,23 @@ try {
 }
 ```
 
+or
+
+```php
+try {
+
+    // do stuff here
+    $client->get(...);
+    $client->post(...);
+
+} catch (\RuntimeException $e) {
+
+    // Something failed.
+    $message = $e->getMessage();
+
+}
+```
+
 ## Details
 
 Read interfaces.
@@ -178,5 +201,4 @@ Read interfaces.
 ## Todos
 
 - Documentation
-- Tests
 - Improving codes
