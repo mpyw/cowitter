@@ -18,23 +18,19 @@ Before creating an application, you have to [register your phone number](https:/
 To use all endpoints, you have to upgrade privilages of your API key.
 
 1. Access [https://apps.twitter.com/](https://apps.twitter.com/) to select the application you created.
-2. Click the tab <kbd>Permissions</kbd>
+2. Click the tab <kbd>Permissions</kbd>.
 3. Select `Read, Write and Access direct messages` to submit.
 
 ### Confirm API keys
 
 1. Access [https://apps.twitter.com/](https://apps.twitter.com/) to select the application you created.
-2. Click the tab <kbd>Keys and Access Tokens</kbd>
+2. Click the tab <kbd>Keys and Access Tokens</kbd>.
 3. Note `Consumer Key` `Consumer Secret`. They are for every account that uses your application.
 3. Note `Access Token` `Access Token Secret`. They are only for your own account.
 
 ## Install PHP, Composer and Cowitter
 
 ### For Windows beginners
-
-- PHP is a programming language.
-- Composer is a PHP package manager for modern PHP development.
-- Cowitter is a PHP package that helps you using Twitter via your PHP codes.
 
 1. Download and install [XAMPP](https://www.apachefriends.org) that contains PHP version **7.x**.
 2. Download and install [Composer](https://getcomposer.org/doc/00-intro.md#installation-windows).
