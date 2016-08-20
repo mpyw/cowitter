@@ -57,7 +57,7 @@ interface ResponseInterface
 
     /**
      * Return decoded body if available.
-     * @return stdClass|array
+     * @return \stdClass|array
      * @throws \UnderflowException
      */
     public function getContent();

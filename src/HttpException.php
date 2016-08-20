@@ -2,14 +2,14 @@
 
 namespace mpyw\Cowitter;
 
-use mpyw\Cowitter\Response;
+use mpyw\Cowitter\ResponseInterface;
 
 class HttpException extends \RuntimeException implements HttpExceptionInterface
 {
     protected $ch;
     protected $response;
 
-    public function __construct($message, $code, Response $response)
+    public function __construct($message, $code, ResponseInterface $response)
     {
         parent::__construct($message, $code);
         $this->response = $response;

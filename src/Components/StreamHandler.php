@@ -36,7 +36,7 @@ class StreamHandler
         return strlen($str);
     }
 
-    protected function processLine($ch, $line)
+    protected function processLine($line)
     {
         $handle = $this->eventHandler;
         if ('' === $line = rtrim($line)) {
@@ -71,7 +71,7 @@ class StreamHandler
         while (false !== $pos = strpos($this->eventBuffer, "\n")) {
             $line = substr($this->eventBuffer, 0, $pos + 1);
             $this->eventBuffer = substr($this->eventBuffer, $pos + 1);
-            $this->processLine($ch, $line);
+            $this->processLine($line);
             if ($this->haltedByUser) {
                 return 0;
             }

@@ -4,6 +4,7 @@ namespace mpyw\Cowitter\Helpers;
 
 use mpyw\Cowitter\HttpException;
 use mpyw\Cowitter\Response;
+use mpyw\Cowitter\ResponseInterface;
 use mpyw\Cowitter\Media;
 
 class ResponseBodyDecoder
@@ -15,17 +16,17 @@ class ResponseBodyDecoder
     public static function getDecodedResponse(Response $response, $body_buffer = null)
     {
         $static = new static($response, $body_buffer);
-        return $response->withDecodedContent($static->normalizeImpl());
+        return $response->withDecodedContent($static->normalize());
     }
 
-    protected function __construct(Response $response, $body_buffer = null)
+    protected function __construct(ResponseInterface $response, $body_buffer = null)
     {
         $this->response = $response;
         $this->info = curl_getinfo($response->getHandle());
         $this->bodyBuffer = $body_buffer === null ? $response->getRawContent() : $body_buffer;
     }
 
-    protected function normalizeImpl()
+    protected function normalize()
     {
         if ($this->bodyBuffer === '') {
             return $this->handleEmptyBody();
