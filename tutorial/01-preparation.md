@@ -7,10 +7,11 @@ Before creating an application, you have to [register your phone number](https:/
 ### Create an application
 
 1. Access [https://apps.twitter.com/](https://apps.twitter.com/).
-2. Click the button <kbd>Create New App</kdb>.
+2. Click the button <kbd>Create New App</kbd>.
 3. Fill out the form to submit.
 
-`Callback URL` is actually a REQUIRED field when you create web-based applications.<br />Even if you can change it when you provide authentication, you should fill with dummy URL. <br />e.g. [http://127.0.0.1/](http://127.0.0.1/)
+- `Callback URL` is actually a REQUIRED field when you create web-based applications.<br />Even if you can change it when you provide authentication, you should fill with dummy URL.
+  - e.g. [http://127.0.0.1/](http://127.0.0.1/)
 
 ### Upgrade privileges
 
@@ -38,7 +39,7 @@ To use all endpoints, you have to upgrade privilages of your API key.
 1. Download and install [XAMPP](https://www.apachefriends.org) that contains PHP version **7.x**.
 2. Download and install [Composer](https://getcomposer.org/doc/00-intro.md#installation-windows).
 3. Create your project folder somewhere.
-4. Right-click in the folder pressing <kbd>Shift</kbd> key to `Open Command Window Here`.
+4. Right-click in the folder pressing <kbd>Shift</kbd> key to click `Open Command Window Here`.
 5. Run the followings commands.
   - `composer require mpyw/cowitter:@dev`
   - `composer install`

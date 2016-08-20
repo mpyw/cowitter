@@ -128,8 +128,8 @@ try {
 <?php foreach ($statuses as $status): ?>
     <ul>
         <li>
-            <span style="font-weight: bold;">@<?=h($status->user->screen_name)?> - <?=h($status->user->name)?>:</span>
-            <span style="color: #848484"><?=h($status->text, false)?></span>
+            <div style="font-weight: bold;">@<?=h($status->user->screen_name)?> - <?=h($status->user->name)?>:</div>
+            <div style="color: #848484"><?=h($status->text, false)?></div>
         </li>
     </ul>
 <?php endforeach; ?>
