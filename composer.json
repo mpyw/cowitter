@@ -26,8 +26,8 @@
         "ext-hash": "*",
         "ext-json": "*",
         "ext-openssl": "*",
-        "lib-curl": "*",
-        "mpyw/co": "^1.4"
+        "lib-curl": ">=7.20.0",
+        "mpyw/co": "^1.5"
     },
     "require-dev": {
         "php": ">=7.0.0",
