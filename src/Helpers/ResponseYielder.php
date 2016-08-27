@@ -17,7 +17,7 @@ class ResponseYielder
         $response = new Response($buffer, $ch);
         if ($response->getStatusCode() >= 300 &&
             $response->getStatusCode() < 400 &&
-            '' !== $url = $response->getHeaderLine('Location')) {
+            false !== $url = curl_getinfo($ch, CURLINFO_REDIRECT_URL)) {
             curl_setopt_array($ch, [
                 CURLOPT_URL => $url,
                 CURLOPT_HTTPGET => true,
@@ -33,7 +33,7 @@ class ResponseYielder
         $response = new Response((yield $ch), $ch);
         if ($response->getStatusCode() >= 300 &&
             $response->getStatusCode() < 400 &&
-            '' !== $url = $response->getHeaderLine('Location')) {
+            false !== $url = curl_getinfo($ch, CURLINFO_REDIRECT_URL)) {
             curl_setopt_array($ch, [
                 CURLOPT_URL => $url,
                 CURLOPT_HTTPGET => true,
