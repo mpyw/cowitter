@@ -19,7 +19,7 @@ composer require mpyw/cowitter:^1.0
 1. [Preparation](tutorial/01-preparation.md)
 2. [Example application for your own personal use](tutorial/02-example_application_for_your_own_personal_use.md)
 3. [Example "Sign in with Twitter"](tutorial/03-example_sign_in_with_twitter.md)
- 
+
 ## Quick examples
 
 ### Prepare requirements
@@ -185,6 +185,24 @@ try {
     $message = $e->getMessage();
 
 }
+```
+
+### Avoiding SSL errors due to the old libcurl version
+
+If you encountered `SSL certificate problem` error...
+
+1. Download the latest `cacert.pem` from official libcurl site.<br />https://curl.haxx.se/docs/caextract.html
+2. Specify the path as **`CURLOPT_CAINFO`**. Using the magic constant `__DIR__` is recommended.
+
+```php
+$client = new Client(['CK', 'CS', 'AT', 'ATS'], [CURLOPT_CAINFO => __DIR__ . '/cacert.pem']);
+```
+
+or
+
+```php
+$client = new Client(['CK', 'CS', 'AT', 'ATS']);
+$client = $client->withOptions([CURLOPT_CAINFO => __DIR__ . '/cacert.pem']);
 ```
 
 ## Details
