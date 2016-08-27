@@ -10,10 +10,8 @@ Asynchronous Twitter client compatible with mpyw/co Generator-based flows.
 
 ## Installing
 
-Currently there are no stable versions, sorry xD
-
 ```
-composer require mpyw/cowitter:@dev
+composer require mpyw/cowitter:^1.0
 ```
 
 ## Tutorial
