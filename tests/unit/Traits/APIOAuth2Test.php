@@ -10,7 +10,7 @@ use mpyw\Cowitter\Client;
 use mpyw\Cowitter\ClientInterface;
 use mpyw\Cowitter\HttpException;
 use mpyw\Cowitter\Response;
-use mpyw\Cowitter\Helpers\RegexParser;
+use mpyw\Cowitter\Helpers\TokenParser;
 
 use mpyw\Privator\Proxy;
 use mpyw\Privator\ProxyException;

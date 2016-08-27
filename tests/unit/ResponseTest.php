@@ -3,7 +3,7 @@
 use mpyw\Co\Co;
 
 use mpyw\Cowitter\Response;
-use mpyw\Cowitter\Helpers\ResponseYielder;
+use mpyw\Cowitter\Helpers\CurlExecutor;
 use mpyw\Cowitter\HttpException;
 
 use mpyw\Privator\Proxy;
@@ -29,7 +29,7 @@ class ReponseAndHttpExceptionTest extends \Codeception\TestCase\Test {
             CURLOPT_HEADER => true,
         ]);
         $this->setExpectedException(\UnexpectedValueException::class, 'Invalid response line.');
-        $response = ResponseYielder::syncExec($ch);
+        $response = CurlExecutor::exec($ch);
     }
 
     public function testRedirectAndHeaders()
@@ -40,7 +40,7 @@ class ReponseAndHttpExceptionTest extends \Codeception\TestCase\Test {
             CURLOPT_URL => 'http://localhost:8080/simple/redirect.php',
             CURLOPT_HEADER => true,
         ]);
-        $response = ResponseYielder::syncExec($ch);
+        $response = CurlExecutor::exec($ch);
         $this->assertEquals('http://localhost:8080/simple/headers.php', curl_getinfo($response->getHandle(), CURLINFO_EFFECTIVE_URL));
         $this->assertEquals($response->getVersion(), '1.1');
         $this->assertEquals($response->getStatusCode(), 200);
@@ -61,7 +61,7 @@ class ReponseAndHttpExceptionTest extends \Codeception\TestCase\Test {
             CURLOPT_URL => 'http://localhost:8080/simple/redirect.php',
             CURLOPT_HEADER => true,
         ]);
-        $response = Co::wait(ResponseYielder::asyncExec($ch));
+        $response = Co::wait(CurlExecutor::execAsync($ch));
         $this->assertEquals('http://localhost:8080/simple/headers.php', curl_getinfo($response->getHandle(), CURLINFO_EFFECTIVE_URL));
     }
 
@@ -74,7 +74,7 @@ class ReponseAndHttpExceptionTest extends \Codeception\TestCase\Test {
             CURLOPT_HEADER => true,
         ]);
         try {
-            ResponseYielder::syncExecDecoded($ch);
+            CurlExecutor::execDecoded($ch);
         } catch (HttpException $e) {}
         $this->assertEquals('Bad Authentication data', $e->getMessage());
         $this->assertEquals(215, $e->getCode());

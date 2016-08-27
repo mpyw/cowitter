@@ -2,8 +2,8 @@
 
 namespace mpyw\Cowitter\Traits;
 
-use mpyw\Cowitter\Helpers\ResponseYielder;
-use mpyw\Cowitter\Helpers\RegexParser;
+use mpyw\Cowitter\Helpers\CurlExecutor;
+use mpyw\Cowitter\Helpers\TokenParser;
 use mpyw\Co\CoInterface;
 
 trait AuthenticatorTrait
@@ -14,7 +14,7 @@ trait AuthenticatorTrait
 
     public function oauthForRequestTokenAsync($oauth_callback = null)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForRequestToken($oauth_callback)));
+        $obj = (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->oauthForRequestToken($oauth_callback)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -27,7 +27,7 @@ trait AuthenticatorTrait
 
     public function oauthForAccessTokenAsync($oauth_verifier)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForAccessToken($oauth_verifier)));
+        $obj = (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->oauthForAccessToken($oauth_verifier)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -40,7 +40,7 @@ trait AuthenticatorTrait
 
     public function xauthForAccessTokenAsync($username, $password)
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->xauthForAccessToken($username, $password)));
+        $obj = (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->xauthForAccessToken($username, $password)));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -53,7 +53,7 @@ trait AuthenticatorTrait
 
     public function oauthForRequestToken($oauth_callback = null)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForRequestToken($oauth_callback));
+        $obj = CurlExecutor::execDecoded($this->getInternalCurl()->oauthForRequestToken($oauth_callback));
         return $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -64,7 +64,7 @@ trait AuthenticatorTrait
 
     public function oauthForAccessToken($oauth_verifier)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForAccessToken($oauth_verifier));
+        $obj = CurlExecutor::execDecoded($this->getInternalCurl()->oauthForAccessToken($oauth_verifier));
         return $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -75,7 +75,7 @@ trait AuthenticatorTrait
 
     public function xauthForAccessToken($username, $password)
     {
-        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->xauthForAccessToken($username, $password));
+        $obj = CurlExecutor::execDecoded($this->getInternalCurl()->xauthForAccessToken($username, $password));
         return $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -92,7 +92,7 @@ trait AuthenticatorTrait
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),
         ]);
-        $authenticity_token = RegexParser::parseAuthenticityToken((yield ResponseYielder::asyncExec($scraper)));
+        $authenticity_token = TokenParser::parseAuthenticityToken((yield CurlExecutor::execAsync($scraper)));
         curl_setopt_array($scraper, [
             CURLOPT_URL        => $author->getAuthorizeUrl(true),
             CURLOPT_POST       => true,
@@ -102,7 +102,7 @@ trait AuthenticatorTrait
                 'authenticity_token'         => $authenticity_token,
             ], '', '&'),
         ]);
-        $verifier = RegexParser::parseVerifier((yield ResponseYielder::asyncExec($scraper)));
+        $verifier = TokenParser::parseVerifier((yield CurlExecutor::execAsync($scraper)));
         yield CoInterface::RETURN_WITH => $author->oauthForAccessTokenAsync($verifier);
         // @codeCoverageIgnoreStart
     }
@@ -116,7 +116,7 @@ trait AuthenticatorTrait
             CURLOPT_HTTPGET => true,
             CURLOPT_URL     => $author->getAuthorizeUrl(true),
         ]);
-        $authenticity_token = RegexParser::parseAuthenticityToken(ResponseYielder::syncExec($scraper));
+        $authenticity_token = TokenParser::parseAuthenticityToken(CurlExecutor::exec($scraper));
         curl_setopt_array($scraper, [
             CURLOPT_URL        => $author->getAuthorizeUrl(true),
             CURLOPT_POST       => true,
@@ -126,7 +126,7 @@ trait AuthenticatorTrait
                 'authenticity_token'         => $authenticity_token,
             ], '', '&'),
         ]);
-        $verifier = RegexParser::parseVerifier(ResponseYielder::syncExec($scraper));
+        $verifier = TokenParser::parseVerifier(CurlExecutor::exec($scraper));
         return $author->oauthForAccessToken($verifier);
     }
 }

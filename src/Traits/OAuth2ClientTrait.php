@@ -3,7 +3,7 @@
 namespace mpyw\Cowitter\Traits;
 
 use mpyw\Co\CoInterface;
-use mpyw\Cowitter\Helpers\ResponseYielder;
+use mpyw\Cowitter\Helpers\CurlExecutor;
 
 trait OAuth2ClientTrait
 {
@@ -13,7 +13,7 @@ trait OAuth2ClientTrait
 
     public function oauthForBearerToken()
     {
-        $obj = ResponseYielder::syncExecDecoded($this->getInternalCurl()->oauthForBearerToken());
+        $obj = CurlExecutor::execDecoded($this->getInternalCurl()->oauthForBearerToken());
         return $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -24,7 +24,7 @@ trait OAuth2ClientTrait
 
     public function oauthForBearerTokenAsync()
     {
-        $obj = (yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->oauthForBearerToken()));
+        $obj = (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->oauthForBearerToken()));
         yield CoInterface::RETURN_WITH => $this->withCredentials([
             $this->getInternalCredential()['consumer_key'],
             $this->getInternalCredential()['consumer_secret'],
@@ -37,21 +37,21 @@ trait OAuth2ClientTrait
 
     public function invalidateBearerToken()
     {
-        ResponseYielder::syncExecDecoded($this->getInternalCurl()->invalidateBearerToken());
+        CurlExecutor::execDecoded($this->getInternalCurl()->invalidateBearerToken());
     }
 
     public function invalidateBearerTokenAsync()
     {
-        yield ResponseYielder::asyncExecDecoded($this->getInternalCurl()->invalidateBearerToken());
+        yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->invalidateBearerToken());
     }
 
     public function get2($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::syncExecDecoded($this->getInternalCurl()->get2($endpoint, $params), $return_response_object);
+        return CurlExecutor::execDecoded($this->getInternalCurl()->get2($endpoint, $params), $return_response_object);
     }
 
     public function get2Async($endpoint, array $params = [], $return_response_object = false)
     {
-        return ResponseYielder::asyncExecDecoded($this->getInternalCurl()->get2($endpoint, $params), $return_response_object);
+        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->get2($endpoint, $params), $return_response_object);
     }
 }

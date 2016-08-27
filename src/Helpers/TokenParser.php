@@ -5,7 +5,7 @@ namespace mpyw\Cowitter\Helpers;
 use mpyw\Cowitter\ResponseInterface;
 use mpyw\Cowitter\HttpException;
 
-class RegexParser
+class TokenParser
 {
     public static function parseAuthenticityToken(ResponseInterface $response) {
         static $pattern = '@<input name="authenticity_token" type="hidden" value="([^"]++)">@';
