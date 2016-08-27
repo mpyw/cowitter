@@ -6,7 +6,7 @@
 2. Write down the following code to save.
 3. Execute the command `php tweet.php`
 
-```php
+```html+php
 <?php
 
 // Load libraries
@@ -116,7 +116,7 @@ try {
 
 <section>
     <h1>Tweet Form</h1>
-    <form method="POST" action="">
+    <form method="post" action="">
         <input type="text" name="tweet_text">
         <input type="submit" value="Tweet!">
     </form>
