@@ -25,7 +25,7 @@ composer require mpyw/cowitter:^1.0
 ### Prepare requirements
 
 ```php
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 use mpyw\Co\Co;
 use mpyw\Co\CURLException;

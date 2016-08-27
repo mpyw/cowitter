@@ -13,7 +13,7 @@ Use `127.0.0.1` instead.
 <?php
 
 // Load libraries
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 // Start session
 session_start();
@@ -52,7 +52,7 @@ function require_unlogined_session()
 <?php
 
 // Booting
-require 'bootstrap.php';
+require __DIR__ . '/bootstrap.php';
 
 // Redirect logined user to index page
 require_unlogined_session();
@@ -116,7 +116,7 @@ try {
 <?php
 
 // Booting
-require 'bootstrap.php';
+require __DIR__ . '/bootstrap.php';
 
 // Redirect unlogined user to login page
 require_logined_session();

@@ -10,7 +10,7 @@
 <?php
 
 // Load libraries
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 // Make an alias "Client" instead of "mpyw\Cowitter\Client"
 use mpyw\Cowitter\Client;
@@ -55,7 +55,7 @@ Interfaces are very intuitive like this.
 <?php
 
 // Load libraries
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 // Make an alias "Client" instead of "mpyw\Cowitter\Client"
 use mpyw\Cowitter\Client;
