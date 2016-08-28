@@ -52,6 +52,8 @@ trait OAuth2ClientTrait
 
     public function get2Async($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->get2($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->get2($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 }

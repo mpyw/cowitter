@@ -176,16 +176,22 @@ trait UploaderTrait
 
     public function uploadImageAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000)
     {
-        return $this->uploadAsync($file, 'tweet_image', $on_uploading, $on_processing, $chunk_size);
+        yield Co::RETURN_WITH => ($this->uploadAsync($file, 'tweet_image', $on_uploading, $on_processing, $chunk_size));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function uploadAnimeGifAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000)
     {
-        return $this->uploadAsync($file, 'tweet_gif', $on_uploading, $on_processing, $chunk_size);
+        yield Co::RETURN_WITH => ($this->uploadAsync($file, 'tweet_gif', $on_uploading, $on_processing, $chunk_size));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function uploadVideoAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000)
     {
-        return $this->uploadAsync($file, 'tweet_video', $on_uploading, $on_processing, $chunk_size);
+        yield Co::RETURN_WITH => ($this->uploadAsync($file, 'tweet_video', $on_uploading, $on_processing, $chunk_size));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 }

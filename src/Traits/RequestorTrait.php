@@ -2,6 +2,7 @@
 
 namespace mpyw\Cowitter\Traits;
 
+use mpyw\Co\CoInterface;
 use mpyw\Co\CURLException;
 use mpyw\Cowitter\Components\StreamHandler;
 use mpyw\Cowitter\Helpers\CurlExecutor;
@@ -12,18 +13,24 @@ trait RequestorTrait
 
     public function getAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->get($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->get($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function postAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->post($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->post($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->postMultipart($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->postMultipart($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function get($endpoint, array $params = [], $return_response_object = false)
     {
@@ -71,18 +78,24 @@ trait RequestorTrait
 
     public function getOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->getOut($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->getOut($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function postOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->postOut($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->postOut($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function postMultipartOutAsync($endpoint, array $params = [], $return_response_object = false)
     {
-        return CurlExecutor::execDecodedAsync($this->getInternalCurl()->postMultipartOut($endpoint, $params), $return_response_object);
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->postMultipartOut($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
     }
+    // @codeCoverageIgnoreEnd
 
     public function getOut($endpoint, array $params = [], $return_response_object = false)
     {
