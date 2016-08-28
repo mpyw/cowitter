@@ -1,6 +1,11 @@
 Cowitter - changelog
 ======================
 
+1.0.1 (2016-08-29)
+------------------
+
++ Clarify that some asynchronous interface methods are Generator Function
+
 1.0.0 (2016-08-27)
 ------------------
 
