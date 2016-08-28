@@ -1,6 +1,8 @@
-# 02: Example application for your own personal use
+# 02: Example: Application for your own personal use
 
 ## Commandline application example
+
+Tweet 🍣 from your terminal.
 
 1. Create the file `tweet.php` to open your editor.
 2. Write down the following code to save.
@@ -35,7 +37,7 @@ try {
 
 } catch (\RuntimeException $e) {
 
-    // Jump here if an errors has ocurred
+    // Jump here if an errors has occurred
     echo "Error: {$e->getMessage()}\n";
 
 }
@@ -45,6 +47,8 @@ Now we used the endpoint [POST statuses/update](https://dev.twitter.com/rest/ref
 Interfaces are very intuitive like this.
 
 ## Web application example
+
+Tweet and read timeline on your browser.
 
 1. Create the file `index.php` to open your editor.
 2. Write down the following code to save.

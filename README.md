@@ -17,8 +17,9 @@ composer require mpyw/cowitter:^1.0
 ## Tutorial
 
 1. [Preparation](tutorial/01-preparation.md)
-2. [Example application for your own personal use](tutorial/02-example_application_for_your_own_personal_use.md)
-3. [Example "Sign in with Twitter"](tutorial/03-example_sign_in_with_twitter.md)
+2. [Example: Application for your own personal use](tutorial/02-example_application_for_your_own_personal_use.md)
+3. [Example: Sign in with Twitter](tutorial/03-example_sign_in_with_twitter.md)
+4. [Example: Commandline streaming readers](tutorial/04-example_commandline_streaming_readers.md)
 
 ## Quick examples
 
