@@ -8,8 +8,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class CredentialNormalizerTest extends \Codeception\TestCase\Test {
-
+class CredentialNormalizerTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
     private static $CredentialNormalizer;
 

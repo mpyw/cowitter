@@ -8,8 +8,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class UrlNormalizerTest extends \Codeception\TestCase\Test {
-
+class UrlNormalizerTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
 
     public function testSpecialUrls()

@@ -8,8 +8,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class CurlOptionNormalizerTest extends \Codeception\TestCase\Test {
-
+class CurlOptionNormalizerTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
 
     public function testStringify()

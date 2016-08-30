@@ -18,8 +18,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class APIOAuthTest extends \Codeception\TestCase\Test {
-
+class APIOAuthTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
 
     public function _before()

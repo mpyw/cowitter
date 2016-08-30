@@ -16,8 +16,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class APIRestTest extends \Codeception\TestCase\Test {
-
+class APIRestTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
 
     public function _before()

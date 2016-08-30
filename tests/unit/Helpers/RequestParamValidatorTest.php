@@ -8,8 +8,8 @@ use mpyw\Privator\ProxyException;
 /**
  * @requires PHP 7.0
  */
-class RequestParamValidatorTest extends \Codeception\TestCase\Test {
-
+class RequestParamValidatorTest extends \Codeception\TestCase\Test
+{
     use \Codeception\Specify;
 
     public function testValidateParams()
