@@ -61,7 +61,7 @@ $ids = [
 ];
 $client->post('statuses/update', [
     'status' => 'My photos',
-    'media_ids' => implode(',', $ids);
+    'media_ids' => implode(',', $ids),
 ]);
 ```
 
