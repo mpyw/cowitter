@@ -145,6 +145,7 @@ class CurlInitializer
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
             CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => '',
         ]));
         return $ch;
     }
@@ -159,6 +160,7 @@ class CurlInitializer
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
             CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => '',
         ]));
         return $ch;
     }
