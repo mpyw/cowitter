@@ -37,7 +37,7 @@ To use all endpoints, you have to upgrade privilages of your API key.
 3. Create your project folder somewhere.
 4. Right-click in the folder pressing <kbd>Shift</kbd> key to click `Open Command Window Here`.
 5. Run the followings commands.
-  - `composer require mpyw/cowitter:@dev`
+  - `composer require mpyw/cowitter:^1.0`
   - `composer install`
 6. Now you can verify some files are created.
   - The file `composer.json` contains your package information.
@@ -48,7 +48,7 @@ To use all endpoints, you have to upgrade privilages of your API key.
 1. Install PHP and Composer using your favorite package manager.
 2. Run the followings commands.
   - `mkdir ~/myapp && cd ~/myapp`
-  - `composer require mpyw/cowitter:@dev`
+  - `composer require mpyw/cowitter:^1.0`
   - `composer install`
 
 I believe your skill :D
