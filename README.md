@@ -193,7 +193,21 @@ try {
 If you encountered `SSL certificate problem` error...
 
 1. Download the latest `cacert.pem` from official libcurl site.<br />https://curl.haxx.se/docs/caextract.html
-2. Specify the path as **`CURLOPT_CAINFO`**. Using the magic constant `__DIR__` is recommended.
+2. Please choose either of the following solutions.
+
+#### 2-A: Configure globally
+
+Specify the path as **`curl.cainfo`** in your `php.ini`.
+
+```ini
+curl.cainfo="C:\foo\bar\baz\cacert.pem"
+```
+
+DO NOT forget restarting Apache.
+
+#### 2-B: Configure locally
+
+Specify the path as **`CURLOPT_CAINFO`**. Using the magic constant `__DIR__` is recommended.
 
 ```php
 $client = new Client(['CK', 'CS', 'AT', 'ATS'], [CURLOPT_CAINFO => __DIR__ . '/cacert.pem']);
