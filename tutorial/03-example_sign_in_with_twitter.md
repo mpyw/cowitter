@@ -7,6 +7,14 @@ Use `127.0.0.1` instead.
 2. Execute the command `php -S 127.0.0.1:8080`.
 3. Access [http://127.0.0.1:8080/](http://127.0.0.1:8080/) using your web browser.
 
+We have three states on authentication.
+
+| Step | Description | `isset($_SESSION['state'])` | `$_SESSION['state']` |
+|:---:|:--:|:--:|:--:|
+| 1 | Start | false | Undefined |
+| 2 | Waiting `oauth_verifier` | true | "pending" |
+| 3 | Logined | true | "logined" |
+
 ## bootstrap.php
 
 ```html+php
