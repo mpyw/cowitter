@@ -46,4 +46,16 @@ class RequestParamValidator
         return $params;
     }
 
+    public static function isGenerator(callable $callable)
+    {
+        if (is_string($callable) && strpos($callable, '::')) {
+            $callable = explode('::', $callable);
+        } elseif (!$callable instanceof \Closure && is_object($callable)) {
+            $callable = [$callable, '__invoke'];
+        }
+        $reflector = $callable instanceof \Closure || is_string($callable)
+            ? new \ReflectionFunction($callable)
+            : new \ReflectionMethod($callable[0], $callable[1]);
+        return $reflector->isGenerator();
+    }
 }

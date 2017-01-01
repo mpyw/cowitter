@@ -38,6 +38,69 @@ class APIStreamingTest extends \Codeception\TestCase\Test
         $this->assertEquals(3, $i);
     }
 
+    public function testStreamingWithArrayInstanceCallable()
+    {
+        $obj = new class($this) {
+            public $i = 0;
+            public function __construct($phpunit) {
+                $this->phpunit = $phpunit;
+            }
+            public function process($status)
+            {
+                ++$this->i;
+                $this->phpunit->assertEquals((object)['text' => 'hello'], $status);
+                if ($this->i === 3) {
+                    return false;
+                }
+            }
+        };
+        $this->c->streaming('statuses/filter', [$obj, 'process']);
+        $this->assertEquals(3, $obj->i);
+    }
+
+    public function testStreamingWithStaticMethod()
+    {
+        $counter = '____DummyCounter____' . uniqid();
+        $phpunit = '____PHPUnit___' . uniqid();
+        $class = '____DummyTestClass____' . uniqid();
+        $GLOBALS[$counter] = 0;
+        $GLOBALS[$phpunit] = $this;
+        eval('
+            class ' . $class . ' {
+                public static function process($status)
+                {
+                    ++$GLOBALS["' . $counter . '"];
+                    $GLOBALS["' . $phpunit . '"]->assertEquals((object)["text" => "hello"], $status);
+                    if ($GLOBALS["' . $counter . '"] === 3) {
+                        return false;
+                    }
+                }
+            }
+        ');
+        $this->c->streaming('statuses/filter', "$class::process");
+        $this->assertEquals(3, $GLOBALS[$counter]);
+    }
+
+    public function testStreamingWithInvokable()
+    {
+        $obj = new class($this) {
+            public $i = 0;
+            public function __construct($phpunit) {
+                $this->phpunit = $phpunit;
+            }
+            public function __invoke($status)
+            {
+                ++$this->i;
+                $this->phpunit->assertEquals((object)['text' => 'hello'], $status);
+                if ($this->i === 3) {
+                    return false;
+                }
+            }
+        };
+        $this->c->streaming('statuses/filter', $obj);
+        $this->assertEquals(3, $obj->i);
+    }
+
     public function testStreamingAsync()
     {
         $i = 0;
