@@ -6,6 +6,7 @@ use mpyw\Cowitter\HttpException;
 use mpyw\Co\Co;
 use mpyw\Co\CURLException;
 use mpyw\Cowitter\ResponseInterface;
+use mpyw\Cowitter\Helpers\RequestParamValidator;
 
 trait UploaderTrait
 {
@@ -115,7 +116,7 @@ trait UploaderTrait
                 return 0;
             }
             $first = false;
-            if ((new \ReflectionFunction($on_uploading))->isGenerator()) {
+            if (RequestParamValidator::isGenerator($on_uploading)) {
                 Co::async(function () use ($on_uploading, $whole_uploaded_percent_after, &$canceled) {
                     if (false === (yield $on_uploading($whole_uploaded_percent_after))) {
                         $canceled = true;
@@ -138,7 +139,7 @@ trait UploaderTrait
             ;
             $previous_percent = $percent;
             if ($on_processing) {
-                if ((new \ReflectionFunction($on_processing))->isGenerator()) {
+                if (RequestParamValidator::isGenerator($on_processing)) {
                     Co::async(function () use ($on_processing, $percent, $response, &$canceled) {
                         if (false === (yield $on_processing($percent, $response))) {
                             $canceled = true;

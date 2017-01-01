@@ -5,6 +5,7 @@ namespace mpyw\Cowitter\Components;
 use mpyw\Co\Co;
 use mpyw\Cowitter\Response;
 use mpyw\Cowitter\Helpers\ResponseBodyDecoder;
+use mpyw\Cowitter\Helpers\RequestParamValidator;
 
 class StreamHandler
 {
@@ -28,7 +29,7 @@ class StreamHandler
         if (substr($this->headerResponseBuffer, -4) === "\r\n\r\n") {
             $this->headerResponse = new Response($this->headerResponseBuffer, $ch);
             if ($handle) {
-                (new \ReflectionFunction($handle))->isGenerator()
+                RequestParamValidator::isGenerator($handle)
                 ? Co::async($handle($this->headerResponse))
                 : $handle($this->headerResponse);
             }
@@ -44,7 +45,7 @@ class StreamHandler
         }
         $event = ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $line);
         if ($handle) {
-            if ((new \ReflectionFunction($handle))->isGenerator()) {
+            if (RequestParamValidator::isGenerator($handle)) {
                 Co::async(function () use ($handle, $event) {
                     if (false === (yield $handle($event->getContent()))) {
                         $this->haltedByUser = true;

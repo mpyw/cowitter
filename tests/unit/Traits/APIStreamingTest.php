@@ -38,6 +38,65 @@ class APIStreamingTest extends \Codeception\TestCase\Test
         $this->assertEquals(3, $i);
     }
 
+    public function testStreamingWithArrayInstanceCallable()
+    {
+        $obj = new class($this) {
+            public $i = 0;
+            public function __construct($phpunit) {
+                $this->phpunit = $phpunit;
+            }
+            public function process($status)
+            {
+                ++$this->i;
+                $this->phpunit->assertEquals((object)['text' => 'hello'], $status);
+                if ($this->i === 3) {
+                    return false;
+                }
+            }
+        };
+        $this->c->streaming('statuses/filter', [$obj, 'process']);
+        $this->assertEquals(3, $obj->i);
+    }
+
+    public function testStreamingWithStaticMethod()
+    {
+        $obj = new class($this) {
+            public static $i = 0;
+            public static $phpunit;
+            public static function process($status)
+            {
+                ++static::$i;
+                static::$phpunit->assertEquals((object)['text' => 'hello'], $status);
+                if (static::$i === 3) {
+                    return false;
+                }
+            }
+        };
+        $obj::$phpunit = $this;
+        $this->c->streaming('statuses/filter', [get_class($obj), 'process']);
+        $this->assertEquals(3, $obj::$i);
+    }
+
+    public function testStreamingWithInvokable()
+    {
+        $obj = new class($this) {
+            public $i = 0;
+            public function __construct($phpunit) {
+                $this->phpunit = $phpunit;
+            }
+            public function __invoke($status)
+            {
+                ++$this->i;
+                $this->phpunit->assertEquals((object)['text' => 'hello'], $status);
+                if ($this->i === 3) {
+                    return false;
+                }
+            }
+        };
+        $this->c->streaming('statuses/filter', $obj);
+        $this->assertEquals(3, $obj->i);
+    }
+
     public function testStreamingAsync()
     {
         $i = 0;
