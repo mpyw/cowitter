@@ -32,7 +32,7 @@ class CurlInitializer
         return $ch;
     }
 
-    public function post($endpoint, array $params)
+    protected function custom($method, $endpoint, array $params)
     {
         $ch = curl_init();
         list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
@@ -40,13 +40,28 @@ class CurlInitializer
         $params = RequestParamValidator::validateParams($params);
         curl_setopt_array($ch, array_replace($this->options, [
             CURLOPT_URL            => $url,
-            CURLOPT_HTTPHEADER     => $this->credential->getOAuthHeaders($url, 'POST', $params),
+            CURLOPT_HTTPHEADER     => $this->credential->getOAuthHeaders($url, $method, $params),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
-            CURLOPT_POST           => true,
+            CURLOPT_CUSTOMREQUEST  => $method,
             CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
         ]));
         return $ch;
+    }
+
+    public function post($endpoint, array $params)
+    {
+        return $this->custom('POST', $endpoint, $params);
+    }
+
+    public function delete($endpoint, array $params)
+    {
+        return $this->custom('DELETE', $endpoint, $params);
+    }
+
+    public function put($endpoint, array $params)
+    {
+        return $this->custom('PUT', $endpoint, $params);
     }
 
     public function postMultipart($endpoint, array $params)
@@ -215,6 +230,38 @@ class CurlInitializer
             CURLOPT_HTTPGET        => true,
         ]));
         return $ch;
+    }
+
+    protected function custom2($endpoint, $params = [])
+    {
+        $ch = curl_init();
+        list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
+        $params += $extra;
+        $params = RequestParamValidator::validateParams($params);
+        curl_setopt_array($ch, array_replace($this->options, [
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => $this->credential->getBearerHeaders(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
+        ]));
+        return $ch;
+    }
+
+    public function post2($endpoint, array $params)
+    {
+        return $this->custom2('POST', $endpoint, $params);
+    }
+
+    public function delete2($endpoint, array $params)
+    {
+        return $this->custom2('DELETE', $endpoint, $params);
+    }
+
+    public function put2($endpoint, array $params)
+    {
+        return $this->custom2('PUT', $endpoint, $params);
     }
 
     public function invalidateBearerToken()

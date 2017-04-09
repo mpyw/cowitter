@@ -25,6 +25,20 @@ trait RequestorTrait
     }
     // @codeCoverageIgnoreEnd
 
+    public function deleteAsync($endpoint, array $params = [], $return_response_object = false)
+    {
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->delete($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
+    }
+    // @codeCoverageIgnoreEnd
+
+    public function putAsync($endpoint, array $params = [], $return_response_object = false)
+    {
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->put($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
+    }
+    // @codeCoverageIgnoreEnd
+
     public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false)
     {
         yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->postMultipart($endpoint, $params), $return_response_object));
@@ -40,6 +54,16 @@ trait RequestorTrait
     public function post($endpoint, array $params = [], $return_response_object = false)
     {
         return CurlExecutor::execDecoded($this->getInternalCurl()->post($endpoint, $params), $return_response_object);
+    }
+
+    public function delete($endpoint, array $params = [], $return_response_object = false)
+    {
+        return CurlExecutor::execDecoded($this->getInternalCurl()->delete($endpoint, $params), $return_response_object);
+    }
+
+    public function put($endpoint, array $params = [], $return_response_object = false)
+    {
+        return CurlExecutor::execDecoded($this->getInternalCurl()->put($endpoint, $params), $return_response_object);
     }
 
     public function postMultipart($endpoint, array $params = [], $return_response_object = false)
