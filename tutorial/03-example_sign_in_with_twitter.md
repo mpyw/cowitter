@@ -13,7 +13,7 @@ We have three states on authentication.
 |:---:|:--:|:--:|:--:|
 | 1 | Start | false | Undefined |
 | 2 | Waiting `oauth_verifier` | true | "pending" |
-| 3 | Logined | true | "logined" |
+| 3 | Logged in | true | "logged-in" |
 
 ## bootstrap.php
 
@@ -35,19 +35,19 @@ function h($str, $double_encode = true)
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8', $double_encode);
 }
 
-// Redirect unlogined user to login page
-function require_logined_session()
+// Redirect guest user to login page
+function require_loggedin_session()
 {
-    if (!isset($_SESSION['state']) || $_SESSION['state'] !== 'logined') {
+    if (!isset($_SESSION['state']) || $_SESSION['state'] !== 'logged-in') {
         header('Location: /login.php');
         exit;
     }
 }
 
-// Redirect logined user to index page
-function require_unlogined_session()
+// Redirect logged-in user to index page
+function require_guest_session()
 {
-    if (isset($_SESSION['state']) && $_SESSION['state'] === 'logined') {
+    if (isset($_SESSION['state']) && $_SESSION['state'] === 'logged-in') {
         header('Location: /');
         exit;
     }
@@ -62,8 +62,8 @@ function require_unlogined_session()
 // Booting
 require __DIR__ . '/bootstrap.php';
 
-// Redirect logined user to index page
-require_unlogined_session();
+// Redirect logged-in user to index page
+require_guest_session();
 
 // Make an alias "Client" instead of "mpyw\Cowitter\Client"
 use mpyw\Cowitter\Client;
@@ -72,7 +72,7 @@ try {
 
     if (!isset($_SESSION['state'])) {
 
-        /* User is completely unlogined */
+        /* User hasn't completely logged in */
 
         // Create a client object
         $_SESSION['client'] = new Client([
@@ -92,13 +92,13 @@ try {
 
     } else {
 
-        /* User is unlogined, but pending access_token */
+        /* User has logged in, but pending access_token */
 
         // Update it with access_token (Using $_GET['oauth_verifier'] returned from Twitter)
         $_SESSION['client'] = $_SESSION['client']->oauthForAccessToken(filter_input(INPUT_GET, 'oauth_verifier'));
 
         // Change state
-        $_SESSION['state'] = 'logined';
+        $_SESSION['state'] = 'logged-in';
 
         // Redirect to index page
         header('Location: /');
@@ -126,8 +126,8 @@ try {
 // Booting
 require __DIR__ . '/bootstrap.php';
 
-// Redirect unlogined user to login page
-require_logined_session();
+// Redirect guest user to login page
+require_loggedin_session();
 
 // Make an alias "Client" instead of "mpyw\Cowitter\Client"
 use mpyw\Cowitter\Client;
