@@ -69,7 +69,7 @@ $client->post('statuses/update', [
 // Listen user streaming
 $client->streaming('user', function ($status) {
     if (!isset($status->text)) return;
-    printf("%s(@s) - %s\n",
+    printf("%s(@%s) - %s\n",
         $status->user->name,
         $status->user->screen_name,
         htmlspecialchars_decode($status->text, ENT_NOQUOTES)
