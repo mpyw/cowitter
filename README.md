@@ -20,6 +20,7 @@ composer require mpyw/cowitter:^1.0
 2. [Example: Application for your own personal use](tutorial/02-example_application_for_your_own_personal_use.md)
 3. [Example: Sign in with Twitter](tutorial/03-example_sign_in_with_twitter.md)
 4. [Example: Commandline streaming readers](tutorial/04-example_commandline_streaming_readers.md)
+5. [Example: Account activity webhook setup and usage](tutorial/05-example_account_activity.md)
 
 ## Quick examples
 
@@ -69,7 +70,7 @@ $client->post('statuses/update', [
 // Listen user streaming
 $client->streaming('user', function ($status) {
     if (!isset($status->text)) return;
-    printf("%s(@s) - %s\n",
+    printf("%s(@%s) - %s\n",
         $status->user->name,
         $status->user->screen_name,
         htmlspecialchars_decode($status->text, ENT_NOQUOTES)
