@@ -107,9 +107,14 @@ interface ClientInterface
      */
     public function get($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|MediaInterface|ResponseInterface
     public function post($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
+    public function postJson($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
+    public function delete($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
+    public function put($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
     public function postMultipart($endpoint, array $params = [], $return_response_object = false); // : \stdClass|ResponseInterface
     public function getAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|MediaInterface|ResponseInterface
     public function postAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
+    public function deleteAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
+    public function putAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
     public function postMultipartAsync($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|ResponseInterface>
 
     /**
@@ -227,6 +232,12 @@ interface ClientInterface
      *
      * @throws HttpExceptionInterface
      */
-    public function get2($endpoint, array $params = [], $return_response_object = false); // : \stdClass|array|ResponseInterface
-    public function get2Async($endpoint, array $params = [], $return_response_object = false); // : \Generator<\stdClass|array|ResponseInterface>
+    public function get2($endpoint, array $params = [], $return_response_object = false);
+    public function get2Async($endpoint, array $params = [], $return_response_object = false);
+    public function post2($endpoint, array $params = [], $return_response_object = false);
+    public function post2Async($endpoint, array $params = [], $return_response_object = false);
+    public function delete2($endpoint, array $params = [], $return_response_object = false);
+    public function delete2Async($endpoint, array $params = [], $return_response_object = false);
+    public function put2($endpoint, array $params = [], $return_response_object = false);
+    public function put2Async($endpoint, array $params = [], $return_response_object = false);
 }

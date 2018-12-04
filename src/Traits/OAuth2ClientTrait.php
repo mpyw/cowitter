@@ -56,4 +56,40 @@ trait OAuth2ClientTrait
         // @codeCoverageIgnoreStart
     }
     // @codeCoverageIgnoreEnd
+
+    public function post2($endpoint, array $params = [], $return_response_object = false)
+    {
+        return CurlExecutor::execDecoded($this->getInternalCurl()->post2($endpoint, $params), $return_response_object);
+    }
+
+    public function post2Async($endpoint, array $params = [], $return_response_object = false)
+    {
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->post2($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
+    }
+    // @codeCoverageIgnoreEnd
+
+    public function delete2($endpoint, array $params = [], $return_response_object = false)
+    {
+        return CurlExecutor::execDecoded($this->getInternalCurl()->delete2($endpoint, $params), $return_response_object);
+    }
+
+    public function delete2Async($endpoint, array $params = [], $return_response_object = false)
+    {
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->delete2($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
+    }
+    // @codeCoverageIgnoreEnd
+
+    public function put2($endpoint, array $params = [], $return_response_object = false)
+    {
+        return CurlExecutor::execDecoded($this->getInternalCurl()->put2($endpoint, $params), $return_response_object);
+    }
+
+    public function put2Async($endpoint, array $params = [], $return_response_object = false)
+    {
+        yield CoInterface::RETURN_WITH => (yield CurlExecutor::execDecodedAsync($this->getInternalCurl()->put2($endpoint, $params), $return_response_object));
+        // @codeCoverageIgnoreStart
+    }
+    // @codeCoverageIgnoreEnd
 }

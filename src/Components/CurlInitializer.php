@@ -32,21 +32,50 @@ class CurlInitializer
         return $ch;
     }
 
-    public function post($endpoint, array $params)
+    protected function custom($method, $endpoint, array $params, $json = false)
     {
         $ch = curl_init();
         list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
         $params += $extra;
-        $params = RequestParamValidator::validateParams($params);
+        if(!$json){
+            $params = RequestParamValidator::validateParams($params);
+            $header = $this->credential->getOAuthHeaders($url, $method, $params);
+            $postfields = http_build_query($params, '', '&');
+        } else {
+            $params = RequestParamValidator::validateJsonParams($params);
+            $header = array_merge(['Content-Type: application/json'], $this->credential->getOAuthHeaders($url, $method, []));
+            $postfields = json_encode($params);
+        }
+
         curl_setopt_array($ch, array_replace($this->options, [
             CURLOPT_URL            => $url,
-            CURLOPT_HTTPHEADER     => $this->credential->getOAuthHeaders($url, 'POST', $params),
+            CURLOPT_HTTPHEADER     => $header,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_POSTFIELDS     => $postfields,
         ]));
         return $ch;
+    }
+
+    public function post($endpoint, array $params)
+    {
+        return $this->custom('POST', $endpoint, $params);
+    }
+
+    public function postJson($endpoint, array $params)
+    {
+        return $this->custom('POST', $endpoint, $params, true);
+    }
+
+    public function delete($endpoint, array $params)
+    {
+        return $this->custom('DELETE', $endpoint, $params);
+    }
+
+    public function put($endpoint, array $params)
+    {
+        return $this->custom('PUT', $endpoint, $params);
     }
 
     public function postMultipart($endpoint, array $params)
@@ -215,6 +244,38 @@ class CurlInitializer
             CURLOPT_HTTPGET        => true,
         ]));
         return $ch;
+    }
+
+    protected function custom2($method, $endpoint, $params = [])
+    {
+        $ch = curl_init();
+        list($url, $extra) = UrlNormalizer::twitterSplitUrlAndParameters($endpoint);
+        $params += $extra;
+        $params = RequestParamValidator::validateParams($params);
+        curl_setopt_array($ch, array_replace($this->options, [
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => $this->credential->getBearerHeaders(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
+        ]));
+        return $ch;
+    }
+
+    public function post2($endpoint, array $params)
+    {
+        return $this->custom2('POST', $endpoint, $params);
+    }
+
+    public function delete2($endpoint, array $params)
+    {
+        return $this->custom2('DELETE', $endpoint, $params);
+    }
+
+    public function put2($endpoint, array $params)
+    {
+        return $this->custom2('PUT', $endpoint, $params);
     }
 
     public function invalidateBearerToken()

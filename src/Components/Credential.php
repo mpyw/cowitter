@@ -3,6 +3,13 @@
 namespace mpyw\Cowitter\Components;
 use mpyw\Cowitter\Helpers\CredentialNormalizer;
 
+/**
+  * @property string $consumer_key
+  * @property string $consumer_secret
+  * @property string $token
+  * @property string $token_secret
+  */
+
 class Credential implements \ArrayAccess
 {
     protected $consumer_key;
@@ -114,7 +121,7 @@ class Credential implements \ArrayAccess
     public function getOAuthHeadersForOAuthEcho()
     {
         $url     = 'https://api.twitter.com/1.1/account/verify_credentials.json';
-        $headers = static::getOAuthHeaders($url, 'GET', []);
+        $headers = $this->getOAuthHeaders($url, 'GET', []);
         return [
             'X-Auth-Service-Provider: ' . $url,
             'X-Verify-Credentials-Authorization: OAuth realm="http://api.twitter.com/", ' . substr($headers[0], 21),

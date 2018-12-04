@@ -55,6 +55,26 @@ $client->post('statuses/update', ['status' => 'Cowitter is the best twitter libr
 ```
 
 ```php
+// Send direct message with new API
+$params = [
+            'event' => [
+                'type' => 'message_create',
+                'message_create' => [
+                    'target' => [
+                        'recipient_id' => 'RECIPIENT_USER_ID'
+                    ],
+                    'message_data' => [
+                        'text' => 'Hello World!',
+
+                    ]
+                ]
+            ]
+        ];
+// Post as json
+$client->postJson('direct_messages/events/new ', $params);
+```
+
+```php
 // Update tweet with multiple images
 $ids = [
     $client->postMultipart('media/upload', ['media' => new \CURLFile('photo01.png')])->media_id_string,
