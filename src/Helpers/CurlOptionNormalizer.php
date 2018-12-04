@@ -57,7 +57,7 @@ class CurlOptionNormalizer
 
     protected static function initialize()
     {
-        if (!static::$strToInt) {
+        if (empty(static::$strToInt)) {
             static::$strToInt = get_defined_constants(true)['curl'];
             static::$intToStr = array_flip(static::$strToInt);
         }

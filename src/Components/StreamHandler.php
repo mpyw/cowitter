@@ -65,7 +65,7 @@ class StreamHandler
             // @codeCoverageIgnoreEnd
         }
         $this->eventBuffer .= $str;
-        if (200 !== $code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
+        if (200 !== curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
             ResponseBodyDecoder::getDecodedResponse($this->headerResponse, $this->eventBuffer);
             throw new \UnexpectedValueException('Unexpected response: ' . $this->eventBuffer);
         }
