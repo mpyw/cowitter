@@ -13,7 +13,7 @@ class RequestParamValidator
             }
             return base64_encode($value);
         }
-        if (false === $result = filter_var($value)) {
+        if (filter_var($value) === false) {
             $type = gettype($value);
             throw new \InvalidArgumentException("\"$name\" must be stringable, $type given.");
         }
@@ -28,6 +28,17 @@ class RequestParamValidator
                 continue;
             }
             $params[$key] = static::validateStringable($key, $value);
+        }
+        return $params;
+    }
+    
+    public static function validateJsonParams(array $params)
+    {
+        foreach ($params as $key => $value) {
+            if ($value === null) {
+                unset($params[$key]);
+                continue;
+            }
         }
         return $params;
     }

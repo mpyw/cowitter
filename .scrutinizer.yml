@@ -10,21 +10,27 @@ filter:
     - vendor/*
 
 build:
+  nodes:
+    analysis:
+      tests:
+        override:
+          - php-scrutinizer-run
 
-  environment:
-    php: '7.0.8'
+    tests-and-coverage:
+      environment:
+        php: '7.1.21'
 
-  dependencies:
-    before:
-      - 'sudo apt-get install -y lsof'
-      - 'composer install'
-      - './vendor/bin/codecept build'
-      - '(cd tests/assets/www && php -S localhost:8080) &'
+      dependencies:
+        before:
+          - 'sudo apt-get install -y lsof'
+          - 'composer install'
+          - './vendor/bin/codecept build'
+          - '(cd tests/assets/www && php -S localhost:8080) &'
 
-  tests:
-    override:
-      -
-        command: 'php vendor/bin/codecept run unit --coverage --coverage-xml'
-        coverage:
-          file: 'tests/_output/coverage.xml'
-          format: 'php-clover'
+      tests:
+        override:
+          -
+            command: 'php vendor/bin/codecept run unit --coverage --coverage-xml'
+            coverage:
+              file: 'tests/_output/coverage.xml'
+              format: 'php-clover'

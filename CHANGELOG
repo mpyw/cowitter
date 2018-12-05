@@ -1,6 +1,12 @@
 Cowitter - changelog
 ======================
 
+1.0.3 (2018-12-04)
+------------------
++ Added Put and Delete methods by @mpyw
++ Added Post as Json
++ Fixed bugs and updated documentation
+
 1.0.2 (2016-09-13)
 ------------------
 

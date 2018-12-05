@@ -27,7 +27,7 @@ class UrlNormalizer
 
     protected static function twitterFixPathSegments(array $segments)
     {
-        if (!$segments) {
+        if (empty($segments)) {
             return $segments;
         }
         if (!isset(static::$versions[$segments[0]])) {
@@ -58,7 +58,7 @@ class UrlNormalizer
         if (false === $e = parse_url($endpoint)) {
             throw new \DomainException('Invalid URL.');
         }
-        $segments = preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
+        $segments = (array) preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
         if (!isset($e['host'])) {
             $segments = static::twitterFixPathSegments($segments);
         }
@@ -86,7 +86,7 @@ class UrlNormalizer
         if (false === $e = parse_url($endpoint)) {
             throw new \DomainException('Invalid URL.');
         }
-        $segments = preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
+        $segments = (array) preg_split('@/++@', isset($e['path']) ? $e['path'] : '', -1, PREG_SPLIT_NO_EMPTY);
         parse_str(isset($e['query']) ? $e['query'] : '', $params);
         return [static::outBuildUrl($e, $segments), $params];
     }

@@ -2,8 +2,6 @@
 
 namespace mpyw\Cowitter;
 
-use mpyw\Cowitter\Helpers\ResponseBodyNormalizer;
-
 class Response implements ResponseInterface
 {
     protected $version;
