@@ -19,7 +19,7 @@ class Response implements ResponseInterface
         $body_buffer = substr($buffer, $header_size);
         $header_buffer = current(array_slice(explode("\r\n\r\n", $header_buffer), -1));
         $lines = explode("\r\n", $header_buffer);
-        if (!preg_match('@\AHTTP/([\d.]+)\s+(\d{3})\s+(.+)\z@i', array_shift($lines), $matches)) {
+        if (!preg_match('@\AHTTP/([\d.]+)\s+(\d{3})\s+(.*)\z@i', array_shift($lines), $matches)) {
             throw new \UnexpectedValueException('Invalid response line.');
         }
         $this->version = $matches[1];
