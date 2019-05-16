@@ -1,6 +1,10 @@
 Cowitter - changelog
 ======================
 
+1.0.5 (2019-05-16)
+------------------
++ PR #20: Fix response in HTTP/2 response by @kb10uy
+
 1.0.4 (2018-12-04)
 ------------------
 + Added Put and Delete methods by @mpyw
