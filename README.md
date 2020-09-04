@@ -161,7 +161,7 @@ Co::wait(function () use ($client) {
     };
     yield $client->postAsync('statuses/update', [
         'status' => 'My video',
-        'media_ids' => (yield $client->uploadVideoAsync($file, $on_uploading, $on_processing))->media_id_string,
+        'media_ids' => (yield $client->uploadVideoAsync($file, 'tweet_video', $on_uploading, $on_processing))->media_id_string,
     ]);
     echo "Done\n";
 });
