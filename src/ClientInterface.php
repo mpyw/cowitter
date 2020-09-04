@@ -197,7 +197,7 @@ interface ClientInterface
     public function uploadAsync(\SplFileObject $file, $media_category = null, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
     public function uploadImageAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
     public function uploadAnimeGifAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
-    public function uploadVideoAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
+    public function uploadVideoAsync(\SplFileObject $file, $media_type, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000); // : \Generator<\stdClass>
 
     /**
      * Renew with OAuth 2.0 authorized/authenticated credential.
