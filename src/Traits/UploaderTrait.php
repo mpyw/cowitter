@@ -189,9 +189,9 @@ trait UploaderTrait
     }
     // @codeCoverageIgnoreEnd
 
-    public function uploadVideoAsync(\SplFileObject $file, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000)
+    public function uploadVideoAsync(\SplFileObject $file, $media_category, callable $on_uploading = null, callable $on_processing = null, $chunk_size = 300000)
     {
-        yield Co::RETURN_WITH => ($this->uploadAsync($file, 'tweet_video', $on_uploading, $on_processing, $chunk_size));
+        yield Co::RETURN_WITH => ($this->uploadAsync($file, $media_category, $on_uploading, $on_processing, $chunk_size));
         // @codeCoverageIgnoreStart
     }
     // @codeCoverageIgnoreEnd
